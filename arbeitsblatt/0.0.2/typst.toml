@@ -1,0 +1,5 @@
+[package]
+name = "arbeitsblatt"
+version = "0.0.2"
+entrypoint = "arbeitsblatt.typ"
+
