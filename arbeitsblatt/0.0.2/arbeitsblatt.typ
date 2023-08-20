@@ -138,10 +138,10 @@
   ]) 
 }
 
-#let tasks(tasks:(), amount:auto) = {
+#let tasks(tasks:(), amount:auto, numbering:"a)", gutter:20pt) = {
   let row-amount = tasks.len()
   if amount != auto {
     row-amount = amount
   } 
-  grid(columns: (1fr,) * row-amount, column-gutter: 20pt, row-gutter: 15pt, ..tasks.map(task => {teilaufgabe(task)}))
+  grid(columns: (1fr,) * row-amount, column-gutter: gutter, row-gutter: gutter, ..tasks.map(task => {teilaufgabe(numbering:numbering,task)}))
 } 

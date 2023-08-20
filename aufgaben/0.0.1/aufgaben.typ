@@ -286,6 +286,7 @@
 
 #let teilaufgabe(
 	use: true,
+	numbering: "a)",
 	body
 ) = {
 	if use {
@@ -302,11 +303,12 @@
 		})
 		__akt_taufgnr(
 			taufg => enum(
-				numbering: "a)",
+				numbering: numbering,
 				start: taufg,
 				tight: false,
 				spacing: auto,
 				body + [<teilaufgabe>]
+
 			)
 		)
 
