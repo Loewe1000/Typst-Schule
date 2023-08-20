@@ -1,4 +1,4 @@
-#import "@local/options:0.0.5"
+#import "@schule/options:0.0.5"
 
 #let __c_aufgaben = counter("aufgaben")
 #let __c_punkte   = counter("punkte")

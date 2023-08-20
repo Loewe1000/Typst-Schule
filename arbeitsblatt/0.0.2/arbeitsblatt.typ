@@ -1,7 +1,7 @@
 #import "@schule/aufgaben:0.0.1": *
 #import "@schule/options:0.0.5"
 #import "@preview/cetz:0.0.1"
-#import "@preview/colorful-boxes:1.0.0": *
+#import "@preview/colorful-boxes:1.1.0": *
 
 #let header(title: none, class: none, font-size: 16pt) = {
   text(font-size,font: "Myriad Pro", weight: "semibold")[#title]
