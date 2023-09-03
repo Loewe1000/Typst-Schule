@@ -3,6 +3,7 @@
 #let __c_aufgaben = counter("aufgaben")
 #let __c_punkte   = counter("punkte")
 
+
 #let __s_aufgaben       = state("aufgaben", ())
 #let __s_in_teilaufgabe = state("in_teilaufgabe", false)
 #let __s_erwartungen    = state("erwartungen", ())
@@ -246,6 +247,8 @@
 #let aufgabe(
 	titel: none,
 	icons: none,
+	large: false,
+	number: true,
 	use:   true,
 	header: true,
 	page:  false,
@@ -265,12 +268,12 @@
 				a
 			})
 		})
-		let ic = ""
+		let ic = none
 		if icons != none {
 			ic = marginnote(dy:.2em)[#text(size:0.88em)[#{(icons,).flatten().join()}]]
 		}
 		if page { pagebreak() }
-		if header [== #ic#d_aufg()#if titel != none [$-$ #text(fill:black)[#titel]]#h(1fr)#punkte(func:p=>if p > 0 {text(fill:black,size:0.88em)[#d_punkte(p)]}) <aufgabe>]
+		if header [#heading(level:{if large {1} else {2}},[#ic#if number [#d_aufg()] #if (number and titel != none) [$-$] #if titel != none [#titel]#h(1fr)#punkte(func:p=>if p > 0 {text(fill:black,size:0.88em)[#d_punkte(p)]}) <aufgabe>])]
 		// if type(icons) != none {
 		// 	icons = (icons,).flatten()
 		// 	marginnote(dy:-1.5em)[#icons.join()]
@@ -286,7 +289,7 @@
 
 #let teilaufgabe(
 	use: true,
-	numbering: "a)",
+	numbering: "a)" ,
 	body
 ) = {
 	if use {
@@ -308,7 +311,6 @@
 				tight: false,
 				spacing: auto,
 				body + [<teilaufgabe>]
-
 			)
 		)
 
