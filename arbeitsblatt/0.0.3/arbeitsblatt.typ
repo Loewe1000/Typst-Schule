@@ -1,5 +1,6 @@
 #import "@schule/aufgaben:0.0.1": *
 #import "@schule/options:0.0.5"
+#import "@preview/metro:0.1.0": *
 #import "@preview/cetz:0.0.1"
 #import "@preview/colorful-boxes:1.1.0": *
 
@@ -17,6 +18,11 @@
   margin: (top: 2.2cm, x: 1.75cm, bottom: 1.5cm), 
   header: header(title: title, class: class, font-size:header-font-size),
   header-ascent: 20%
+  )
+
+  metro-setup(
+    output-decimal-marker: ",",
+    per-mode: "fraction"
   )
 
   show math.equation: set text(font: "Fira Math")
