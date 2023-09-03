@@ -97,16 +97,22 @@
 
 #let kariert(height: 1, width: auto, cnt: (), cnt-spacing: 1.5cm) = {
   layout(size => {
+    let autoheight
+    if cnt.len() != 0 and height == 1 {
+      autoheight = cnt.len() * 1.5cm - 0.5cm
+    } else {
+      autoheight = height
+    }
     cetz.canvas(length:0.5cm,{ import cetz.draw: *
     set-style(stroke: (paint: black.lighten(50%), thickness: 0.5pt))
     if width != auto {
-      grid((0,0), (width,height))
+      grid((0,0), (width,autoheight))
     } else {
-      grid((0,0), (calc.round((size.width/0.5cm)),height))
+      grid((0,0), (calc.round((size.width/0.5cm)),autoheight))
     }
     if cnt.len() != 0 {
       for (key, item) in cnt.enumerate() {
-        content((1,height - 0.5cm - key * cnt-spacing),[#box(fill: white, inset: 2pt)[#item]])
+        content((1,autoheight - 0.5cm - key * cnt-spacing),[#box(fill: white, inset: 2pt)[#item]])
       }
     }
     })
