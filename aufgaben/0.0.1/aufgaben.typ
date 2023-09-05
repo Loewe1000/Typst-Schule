@@ -1,4 +1,5 @@
 #import "@schule/options:0.0.5"
+#import "@preview/fontawesome:0.1.0": *
 
 #let __c_aufgaben = counter("aufgaben")
 #let __c_punkte   = counter("punkte")
@@ -240,14 +241,31 @@
 	)
 ]
 
+#let marginnote(
+	pos: left,
+	gutter: .5em,
+	dy: 0em,
+	body
+) = {
+	style(styles => {
+		let _m = measure(body, styles)
+		if pos == left {
+			place(pos, dx: -1*gutter - _m.width, dy:dy, body)
+		} else {
+			place(pos, dx: gutter + _m.width, dy:dy, body)
+		}
+	})
+}
+
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // %           Aufgaben           %
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 #let aufgabe(
 	titel: none,
-	icons: none,
+	icons: (),
 	large: false,
+	methode: "",
 	number: true,
 	use:   true,
 	header: true,
@@ -269,8 +287,17 @@
 			})
 		})
 		let ic = none
-		if icons != none {
-			ic = marginnote(dy:.2em)[#text(size:0.88em)[#{(icons,).flatten().join()}]]
+		if methode == "EA" {
+			icons.push(fa-user-large())
+		}
+		if methode == "PA" {
+			icons.push(fa-user-group())
+		}
+		if methode == "GA" {
+			icons.push(fa-users())
+		}
+		if icons.len() != 0 {
+			ic = marginnote(dy:0em)[#text(size:0.88em)[#icons.join()]]
 		}
 		if page { pagebreak() }
 		if header [#heading(level:{if large {1} else {2}},[#ic#if number [#d_aufg()] #if (number and titel != none) [$-$] #if titel != none [#titel]#h(1fr)#punkte(func:p=>if p > 0 {text(fill:black,size:0.88em)[#d_punkte(p)]}) <aufgabe>])]
