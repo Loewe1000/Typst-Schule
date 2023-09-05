@@ -113,7 +113,7 @@
     }
     if cnt.len() != 0 {
       for (key, item) in cnt.enumerate() {
-        content((1,autoheight - 0.5cm - key * cnt-spacing),[#box(fill: white, inset: 2pt)[#item]])
+        content((0.75,autoheight - 0.5cm - key * cnt-spacing),[#box(fill: white, inset: 4pt)[#item]],anchor: "left")
       }
     }
     })
