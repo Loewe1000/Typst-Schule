@@ -11,10 +11,11 @@
   move(dy:-.4em, line(length: 100%, stroke: 0.5pt + luma(200)))
 }
 
-#let arbeitsblatt(title: "", class: "", paper:"a4", font-size:12pt, header-font-size:16pt, ..args, body) = {
+#let arbeitsblatt(title: "", class: "", paper:"a4", font-size:12pt, header-font-size:16pt, landscape: false, ..args, body) = {
   // Set the document's basic properties.
   set document(author: "Alexander Schulz", title: title)
   set page(paper: paper, 
+  flipped: landscape,
   margin: (top: 2.2cm, x: 1.75cm, bottom: 1.5cm), 
   header: header(title: title, class: class, font-size:header-font-size),
   header-ascent: 20%
@@ -48,7 +49,7 @@
   // Main body
   set par(justify: true, leading: 0.65em)
 
-  set text(font-size, font: "Myriad Pro", hyphenate: true)
+  set text(font-size, font: "Myriad Pro", hyphenate: true, lang: "de")
 
   set figure(numbering: none)
 
