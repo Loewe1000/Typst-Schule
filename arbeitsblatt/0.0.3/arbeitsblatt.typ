@@ -27,6 +27,17 @@
     exponent-product: sym.dot
   )
 
+  show regex("\d+\.\d+"): it => {
+    if it.func() != heading {show ".": ","}
+    it
+  }
+
+  show math.equation: it => {
+    show regex("\d+\.\d+"): it => {show ".": {","+h(0pt)}
+        it}
+    it
+  }
+
   show math.equation: set text(font: "Fira Math")
 
   options.addconfig("loesungen", default:"")
