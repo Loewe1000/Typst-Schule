@@ -23,7 +23,8 @@
 
   metro-setup(
     output-decimal-marker: ",",
-    per-mode: "fraction"
+    per-mode: "fraction",
+    exponent-product: sym.dot
   )
 
   show math.equation: set text(font: "Fira Math")
