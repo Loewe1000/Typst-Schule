@@ -2,7 +2,7 @@
 #import "@schule/options:0.0.5"
 #import "@preview/metro:0.1.0": *
 #import "@preview/cetz:0.0.1"
-#import "@schule/colorful-boxes:1.2.0": *
+#import "@preview/colorful-boxes:1.2.0": *
 
 #let header(title: none, class: none, font-size: 16pt) = {
   text(font-size,font: "Myriad Pro", weight: "semibold")[#title]
@@ -173,4 +173,4 @@
     row-amount = amount
   } 
   grid(columns: (1fr,) * row-amount, column-gutter: gutter, row-gutter: gutter, ..tasks.map(task => {teilaufgabe(numbering:numbering,task)}))
-} 
+}
