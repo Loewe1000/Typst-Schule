@@ -4,6 +4,7 @@
 #import "@preview/cetz:0.0.1"
 #import "@preview/colorful-boxes:1.2.0": *
 #import "@preview/tablex:0.0.5": *
+#import "@schule/random:0.0.1": *
 
 #let header(title: none, class: none, font-size: 16pt) = {
   text(font-size,font: "Myriad Pro", weight: "semibold")[#title]
