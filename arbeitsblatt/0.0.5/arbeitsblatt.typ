@@ -180,3 +180,34 @@
   } 
   grid(columns: (1fr,) * row-amount, column-gutter: gutter, row-gutter: gutter, ..tasks.map(task => {teilaufgabe(numbering:numbering,task)}))
 }
+
+
+#let gap(body) = {
+  box(move(dy:4pt)[
+    #box(stroke: (bottom: 0.5pt + luma(130)), inset: (x: 8pt, y: 4pt))[
+      #hide(body) #label("gap")
+    ]
+  ])
+}
+
+#let gap-text(body) = {
+  let colors = (rgb("#B3D4EC"), rgb("#D5E3B5"), rgb("#EEAA95"), rgb("#FAD3AD"), rgb("#CBADC8"), rgb("#FFE3A8"))
+
+  align(center,
+  locate(loc => {
+  let elems = query(<gap>, loc)
+  for (index,word) in shuffle(elems, 42).enumerate() [
+    #h(0.4em)
+    #box(
+      block(
+        fill: colors.at(calc.rem(index ,colors.len())),
+        inset: 8pt,
+        radius: 4pt)[#word.body]
+    )
+    #h(0.4em)
+  ]
+  })
+  )
+
+  body
+}
