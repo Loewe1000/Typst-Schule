@@ -215,22 +215,7 @@
 	])
 }
 
-#let d_loesungen() = page(
-	numbering: "I",
-	header: kopfzeile(
-		mitte: () => [Lösungen]
-	),
-	footer: fusszeile(
-		rechts: () => {
-			set text(fill:theme.text.default)
-			d_seitenzahl(func:(cur, body, total, loc) => {
-				if cur > body {
-					numbering("I", cur - body)
-				} else [#__seitenzahl(cur, body, total, loc)]
-			})
-		}
-	)
-)[= Lösungen <loesungen>
+#let d_loesungen() = page()[= Lösungen <loesungen>
 	#__foreach_aufg(
 		final:true,
 		filter: a=>a.loesung.len()>0,
