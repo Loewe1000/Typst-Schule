@@ -3,6 +3,7 @@
 #import "@preview/metro:0.1.0": *
 #import "@preview/cetz:0.0.1"
 #import "@schule/colorful-boxes:1.2.0": *
+#import "@preview/tablex:0.0.5": tablex, colspanx
 
 #let header(title: none, class: none, font-size: 16pt) = {
   text(font-size,font: "Myriad Pro", weight: "semibold")[#title]
@@ -11,17 +12,27 @@
   move(dy:-.4em, line(length: 100%, stroke: 0.5pt + luma(200)))
 }
 
-#let arbeitsblatt(title: "", class: "", paper:"a4", print:false, font-size:12pt, header-font-size:16pt, landscape: false, ..args, body) = {
+#let arbeitsblatt(title: "", class: "", mrg:(), paper:"a4", head: true, print:false, font-size:12pt, header-font-size:16pt, landscape: false, ..args, body) = {
   // Set the document's basic properties.
-  set document(author: "Alexander Schulz", title: title)
+  if type(title) == str {
+    set document(author: "Alexander Schulz", title: title)
+  } else {
+    set document(author: "Alexander Schulz")
+  }
   set page(paper: paper, 
   flipped: landscape,
-  ..if print {
+  ..if mrg.len() > 0 {
+    (margin: mrg)
+  } else if print {
     (margin: (top: 2.2cm, inside: 2.25cm, outside: 1.25cm, bottom: 1.5cm))
   } else {
     (margin: (top: 2.2cm, x: 1.75cm, bottom: 1.5cm))
   },
-  header: header(title: title, class: class, font-size:header-font-size),
+  ..if head {
+    (header: header(title: title, class: class, font-size:header-font-size))
+  } else {
+    (header: none)
+  },
   header-ascent: 20%
   )
 
@@ -97,6 +108,7 @@
 #let centering(body) = {
   align(center, body)
 }
+
 
 #let minipage(columns:(1fr,1fr), align: horizon, spacing: 5mm, ..args, body) = {
   table(stroke: none,
@@ -174,3 +186,12 @@
   } 
   grid(columns: (1fr,) * row-amount, column-gutter: gutter, row-gutter: gutter, ..tasks.map(task => {teilaufgabe(numbering:numbering,task)}))
 } 
+
+#let messwerttabelle(messgrößen:([],), messwerte: 8, height: 7mm) = tablex(stroke: 0.5pt, rows: messgrößen.len(), columns: (auto, ..messwerte * (1fr,)), align:horizon+center,
+  map-cells: cell => {
+    if cell.x == 0 {
+        (..cell, content: [#messgrößen.at(cell.y)])
+    } else {
+      (..cell, content: [#v(height)])
+    }
+  }, ..range(0,messwerte * messgrößen.len()).map(x => x))
