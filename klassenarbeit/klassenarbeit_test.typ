@@ -1,7 +1,6 @@
 #import "@schule/klassenarbeit:0.0.1": *
 #import "@preview/unify:0.4.0": *
 
-
 #show: klassenarbeit.with(
   title: "Physikklausur Nr. 1",
   class: "PH1",
@@ -9,6 +8,7 @@
   teacher: "SLZ",
   font-size: 11pt,
   logo: image("logo.svg"),
+  ew: true,
   table: (
     ("Hinweise", "Die Lösungen sind nachvollziehbar und in einer sauberen äußeren Form anzufertigen. Skizzen werden mit Lineal und Bleistift angefertigt."),
     ("Hilfsmittel", "keine"),
@@ -19,12 +19,18 @@
 
 #aufgabe(large: true)[
   #lorem(50)
-]
-#loesung[
-  Test
+  #teilaufgabe[
+  #erwartung("Gibt die Adjazenzmatrix zum Graphen an.", 3)
+  #erwartung("Gibt die Adjazenzmatrix zum Graphen an.", 4)
+  #loesung[
+    Test
+  ]
+  ]
 ]
 
+
 #aufgabe(large: true)[
+  #erwartung("Gibt die Adjazenzmatrix zum Graphen an.", 3)
   #lorem(50)
 ]
 

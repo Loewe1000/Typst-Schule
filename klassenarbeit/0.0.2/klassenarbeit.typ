@@ -1,0 +1,66 @@
+#import "@schule/arbeitsblatt:0.0.5": *
+#import "@preview/unify:0.4.0": *
+#import  "./bewertung.typ": *
+
+#let header(title: "", class: "", date: "", teacher: "", logo:[]) = {
+  set text(font: "Myriad Pro", hyphenate: true, lang: "de")
+  tablex(
+    columns: (1fr,) * 3,
+    row: (1fr,) * 2,
+    align: center + horizon,
+    stroke: none,
+    inset: 3pt,
+    ..if logo != [] {
+    (rowspanx(2, align: left+horizon, inset: 0pt)[#text(16pt, weight: "semibold")[#box(height: 1cm)[#logo]]],
+    rowspanx(2)[#text(16pt, weight: "semibold")[#title]],
+    cellx(align: right+horizon)[#date],
+    cellx(align: right+horizon)[#class - #teacher])
+    } else {
+    ([],
+    rowspanx(2)[#text(16pt, weight: "semibold")[#title]],
+    cellx(align: right+horizon)[#date],
+    [],
+    cellx(align: right+horizon)[#class - #teacher] )
+    }
+  )
+  
+  move(dy:-1em, line(length: 100%, stroke: 0.5pt + luma(200)))
+}
+
+
+#let klassenarbeit(title: "", class: "", date: "", logo: "", teacher: "", font-size:12pt, table:() , ..args, ew: false, loesungen: "false", body) = {
+
+show: arbeitsblatt.with(
+  title: title,
+  font-size: font-size,
+  custom-header: header(title: title, date: date, class: class, teacher: teacher, logo: logo),
+  table: table,
+  header-ascent: 0%,
+  loesungen: loesungen,
+  ..args
+)
+
+text(14pt, weight: "semibold")[Name:]
+
+tablex(
+    columns: (auto, 1fr),
+    align: left,
+    auto-lines: false,
+    inset: 8pt,
+    stroke: 0.5pt,
+    hlinex(),
+    ..range(0, table.len()).map( key => (
+      (cellx(inset:0pt, box(inset: (top: 8pt, left:0pt, bottom:8pt, right: 8pt))[*#{table.at(key).at(0)}:*]), [#{table.at(key).at(1)}])
+    )).flatten(),
+    hlinex(),
+  )
+		body
+    [
+		#if loesungen == "seite" {
+      d_loesungen()
+    }
+    #if ew {
+      d_ew_oberstufe()
+    }
+    ]
+}
