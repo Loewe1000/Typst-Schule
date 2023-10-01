@@ -220,7 +220,7 @@
 		final:true,
 		filter: a=>a.loesung.len()>0,
 		(i, aufg, count) => [
-			== #d_aufg(nr:aufg.nummer) #h(1fr) #text(fill:theme.secondary, size:0.88em)[#punkte(nr:aufg.nummer)]
+			== #d_aufg(nr:aufg.nummer) #h(1fr) #text(fill:black, size:0.88em)[#punkte(nr:aufg.nummer)]
 			#__d_loesung(aufg)
 		]
 	)
