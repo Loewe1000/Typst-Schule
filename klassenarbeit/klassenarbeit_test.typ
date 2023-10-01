@@ -1,4 +1,4 @@
-#import "@schule/klassenarbeit:0.0.1": *
+#import "@schule/klassenarbeit:0.0.2": *
 #import "@preview/unify:0.4.0": *
 
 #show: klassenarbeit.with(
