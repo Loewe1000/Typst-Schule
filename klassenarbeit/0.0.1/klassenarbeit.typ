@@ -27,13 +27,15 @@
 }
 
 
-#let klassenarbeit(title: "", class: "", date: "", logo: "", teacher: "", font-size:12pt, ..args, body) = {
+#let klassenarbeit(title: "", class: "", date: "", logo: "", teacher: "", font-size:12pt, table:() , ..args, body) = {
 
 show: arbeitsblatt.with(
   title: title,
   font-size: font-size,
   custom-header: header(title: title, date: date, class: class, teacher: teacher, logo: logo),
+  table: table,
   header-ascent: 0%,
+  ..args
 )
 
 text(14pt, weight: "semibold")[Name:]
@@ -44,9 +46,9 @@ tablex(
     auto-lines: false,
     inset: 8pt,
     hlinex(),
-    cellx(inset:0pt, box(inset: (top: 8pt, left:0pt, bottom:8pt, right: 8pt))[*Hinweise:*]), [Die Lösungen sind nachvollziehbar und in einer sauberen äußeren Form anzufertigen. Skizzen werden mit Lineal und Bleistift angefertigt.],
-    cellx(inset:0pt, box(inset: (top: 8pt, left:0pt, bottom:8pt, right: 8pt))[*Hingsmittel:*]), [keine],
-    cellx(inset:0pt, box(inset: (top: 8pt, left:0pt, bottom:8pt, right: 8pt))[*Bearbeitungszeit:*]), [45 Minuten],
+    ..range(0, table.len()).map( key => (
+      (cellx(inset:0pt, box(inset: (top: 8pt, left:0pt, bottom:8pt, right: 8pt))[*#{table.at(key).at(0)}:*]), [#{table.at(key).at(1)}])
+    )).flatten(),
     hlinex(),
   )
 
