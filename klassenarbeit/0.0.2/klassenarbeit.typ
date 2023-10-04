@@ -28,21 +28,35 @@
 }
 
 
-#let klassenarbeit(title: "", class: "", date: "", logo: "", teacher: "", font-size:12pt, table:() , ..args, ew: false, loesungen: "false", body) = {
+#let klassenarbeit(title: "", class: "", date: "", logo: "", teacher: "", font-size:12pt, table:() , ..args, ew: false, loesungen: "false", page-numbering: true, body) = {
 
-show: arbeitsblatt.with(
-  title: title,
-  font-size: font-size,
-  custom-header: header(title: title, date: date, class: class, teacher: teacher, logo: logo),
-  table: table,
-  header-ascent: 0%,
-  loesungen: loesungen,
-  ..args
-)
+  set page(
+    footer: if page-numbering {
+      [
+        #set align(right)
+        #set text(8pt, font: "Myriad Pro")
+        Seite
+        #counter(page).display(
+          "1 von 1",
+          both: true,
+        )
+      ]
+    }
+  )
 
-text(14pt, weight: "semibold")[Name:]
+  show: arbeitsblatt.with(
+    title: title,
+    font-size: font-size,
+    custom-header: header(title: title, date: date, class: class, teacher: teacher, logo: logo),
+    table: table,
+    header-ascent: 0%,
+    loesungen: loesungen,
+    ..args
+  )
 
-tablex(
+  text(14pt, weight: "semibold")[Name:]
+
+  tablex(
     columns: (auto, 1fr),
     align: left,
     auto-lines: false,
@@ -54,13 +68,16 @@ tablex(
     )).flatten(),
     hlinex(),
   )
-		body
-    [
-		#if loesungen == "seite" {
-      d_loesungen()
-    }
-    #if ew {
-      d_ew_oberstufe()
-    }
-    ]
+
+  body
+
+  [
+  #if loesungen == "seite" {
+    d_loesungen()
+  }
+  #if ew {
+    d_ew_oberstufe()
+  }
+  ]
 }
+
