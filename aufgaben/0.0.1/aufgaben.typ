@@ -12,6 +12,23 @@
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // %       Hilfsfunktionen        %
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+#let marginnote(
+	pos: left,
+	gutter: .5em,
+	dy: 0em,
+	body
+) = {
+	style(styles => {
+		let _m = measure(body, styles)
+		if pos == left {
+			place(pos, dx: -1*gutter - _m.width, dy:dy, body)
+		} else {
+			place(pos, dx: gutter + _m.width, dy:dy, body)
+		}
+	})
+}
+
 #let __foreach(
 	s,
 	func,
@@ -226,22 +243,6 @@
 	)
 ]
 
-#let marginnote(
-	pos: left,
-	gutter: .5em,
-	dy: 0em,
-	body
-) = {
-	style(styles => {
-		let _m = measure(body, styles)
-		if pos == left {
-			place(pos, dx: -1*gutter - _m.width, dy:dy, body)
-		} else {
-			place(pos, dx: gutter + _m.width, dy:dy, body)
-		}
-	})
-}
-
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // %           Aufgaben           %
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -301,14 +302,14 @@
 
 #let teilaufgabe(
 	use: true,
-	numbering: "a)" ,
+	numb: "a)" ,
 	body
 ) = {
 	if use {
 		__c_aufgaben.step(level:2)
 		__s_in_teilaufgabe.update(true)
-
-		__akt_aufgnr(n => {
+		
+		__akt_aufgnr(n => {	
 			__s_aufgaben.update(a => {
 				if a.len() >= n {
 					a.at(n - 1).teile += 1
@@ -317,15 +318,20 @@
 			})
 		})
 		__akt_taufgnr(
-			taufg => enum(
-				numbering: numbering,
+			taufg => {
+				enum(
+				..if (numb == "klausur") {
+					(numbering: n => __c_aufgaben.display())
+				} else {
+					(numbering: numb)
+				},
 				start: taufg,
 				tight: false,
 				spacing: auto,
 				body + [<teilaufgabe>]
 			)
+			}
 		)
-
 		__s_in_teilaufgabe.update(false)
 	}
 }
