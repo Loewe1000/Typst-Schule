@@ -1,10 +1,11 @@
 #import "@schule/aufgaben:0.0.1": *
 #import "@schule/options:0.0.5"
 #import "@preview/metro:0.1.0": *
-#import "@preview/cetz:0.0.1"
+#import "@preview/cetz:0.1.2": *
 #import "@preview/colorful-boxes:1.2.0": *
 #import "@preview/tablex:0.0.5": *
 #import "@schule/random:0.0.1": *
+#import "@preview/codetastic:0.2.2": qrcode
 
 #let header(title: none, class: none, font-size: 16pt) = {
   text(font-size,font: "Myriad Pro", weight: "semibold")[#title]
@@ -28,7 +29,8 @@
   } else {
     header(title: title, class: class, font-size:header-font-size)
   },
-  header-ascent: header-ascent
+  header-ascent: header-ascent,
+  ..args
   )
 
   metro-setup(
@@ -75,8 +77,8 @@
     #v(10pt, weak: true)
     #text(size:9pt,[
      #grid(columns: 2, column-gutter: if it.numbering != none {4pt} else {0pt},
-        [#if it.numbering != none [*A#it.counter.display(it.numbering)*] ],
-        [#align(left, it.caption)]
+        [#if it.numbering != none [*M#it.counter.display(it.numbering)*:] ],
+        [#align(left, it.caption.body)]
       ) 
     ])
     ]
@@ -85,7 +87,7 @@
     let el = it.element
     if el != none and el.func() == figure {
       // Override figure references.
-      [*A#numbering(
+      [*M#numbering(
         el.numbering,
         ..counter(figure).at(el.location())
       )*]
@@ -113,24 +115,24 @@
      ..args, body)
 }
 
-#let kariert(height: 1, width: auto, cnt: (), cnt-spacing: 1.5cm) = {
+#let kariert(height: 1, width: auto, cnt: (), cnt-spacing: 1.5cm, grid-size: 0.5cm) = {
   layout(size => {
     let autoheight
     if cnt.len() != 0 and height == 1 {
-      autoheight = cnt.len() * 1.5cm - 0.5cm
+      autoheight = cnt.len() * 1.5cm - grid-size
     } else {
       autoheight = height
     }
-    cetz.canvas(length:0.5cm,{ import cetz.draw: *
+    canvas(length:grid-size,{ import draw: *
     set-style(stroke: (paint: black.lighten(50%), thickness: 0.5pt))
     if width != auto {
       grid((0,0), (width,autoheight))
     } else {
-      grid((0,0), (calc.round((size.width/0.5cm)),autoheight))
+      grid((0,0), (calc.round((size.width/grid-size)),autoheight))
     }
     if cnt.len() != 0 {
       for (key, item) in cnt.enumerate() {
-        content((0.75,autoheight - 0.5cm - key * cnt-spacing),[#box(fill: white, inset: 4pt)[#item]],anchor: "left")
+        content((0.75,autoheight - grid-size - key * cnt-spacing),[#box(fill: white, inset: 4pt)[#item]],anchor: "left")
       }
     }
     })
@@ -140,7 +142,7 @@
 #let liniert(rows: 1, width: auto, lineheight: 1cm) = {
   move(dy: lineheight * 0.5)[
   #layout(size => {
-    cetz.canvas(length:lineheight,{ import cetz.draw: *
+    canvas(length:lineheight,{ import draw: *
     set-style(stroke: (paint: black.lighten(50%), thickness: 0.5pt))
     if width != auto {
       for row in range(rows) {
@@ -156,21 +158,27 @@
   ]
 }
 
-#let klausurbogen(start-even: false, pages:1, rand: 6cm) = {
- locate((loc) => [
-    #if start-even and calc.rem(loc.position().page,2) == 1 {
-      page(header:none,[])
-    }
-    #for _ in range(pages) {
-      page(paper: "a4", 
-        margin: (top: 0cm, inside:0cm, outside:rand, bottom: 0cm), 
-        header: none,
-        [#layout(size => {    
-          kariert(height:size.height)
-    })]
-    )
-    }
-  ]) 
+#let klausurbogen(start-even: false, pages:1, rand: 6cm, inline: false) = {
+  if inline {
+    layout(size => {
+      place(dx: -1.75cm - 6cm, kariert(height:size.height, width: 21cm))
+    })
+  } else {
+    locate((loc) => [
+        #if start-even and calc.rem(loc.position().page,2) == 1 {
+          page(header:none,[])
+        }
+        #for _ in range(pages) {
+          page(paper: "a4", 
+            margin: (top: 0cm, inside:0cm, outside:rand, bottom: 0cm), 
+            header: none,
+            [#layout(size => {    
+              kariert(height:size.height)
+            })]
+        )
+        }
+      ]) 
+  }
 }
 
 #let tasks(tasks:(), amount:auto, numbering:"a)", gutter:20pt) = {
@@ -210,4 +218,15 @@
   )
 
   body
+}
+
+#let qrbox(url, name, width: 3cm, ..args) = {
+  stickybox(width: width, ..args)[
+    #qrcode(url, colors: (rgb(255,255,255,0), black), width: width - 0.5cm, quiet-zone: 0)
+    #centering[
+      #text(size:8pt,[
+        #link(url)[#fa-external-link(fill:blue) #text(fill:blue,[#name])]
+      ])
+    ]
+  ]
 }
