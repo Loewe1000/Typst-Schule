@@ -16,7 +16,9 @@
 
 #let arbeitsblatt(title: "", class: "", paper:"a4", print:false, font-size:12pt, header-font-size:16pt, landscape: false, custom-header: none, header-ascent: 20%, ..args, body) = {
   // Set the document's basic properties.
-  set document(author: "Alexander Schulz", title: title)
+  if type(title) == str {
+    set document(author: "Alexander Schulz", title: title)
+  }
   set page(paper: paper, 
   flipped: landscape,
   ..if print {
