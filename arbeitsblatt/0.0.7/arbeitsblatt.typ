@@ -1,9 +1,8 @@
 #import "@schule/aufgaben:0.0.1": *
 #import "@schule/options:0.0.5"
-#import "@preview/metro:0.1.0": *
+//#import "@preview/metro:0.1.0": *
 #import "@preview/cetz:0.1.2": *
-#import "@preview/colorful-boxes:1.2.0": *
-#import "@preview/tablex:0.0.5": *
+#import "@preview/tablex:0.0.6": *
 #import "@schule/random:0.0.1": *
 #import "@preview/codetastic:0.2.2": qrcode
 
@@ -14,7 +13,7 @@
   move(dy:-.4em, line(length: 100%, stroke: 0.5pt + luma(200)))
 }
 
-#let arbeitsblatt(title: "", class: "", paper:"a4", print:false, font-size:12pt, header-font-size:16pt, landscape: false, custom-header: none, header-ascent: 20%, ..args, body) = {
+#let arbeitsblatt(title: "", class: "", paper:"a4", print:false, font-size:12pt, header-font-size:16pt, landscape: false, custom-header: none, header-ascent: 20%, page-settings:(), ..args, body) = {
   // Set the document's basic properties.
   if type(title) == str {
     set document(author: "Alexander Schulz", title: title)
@@ -32,20 +31,21 @@
     header(title: title, class: class, font-size:header-font-size)
   },
   header-ascent: header-ascent,
-  //..args
+  ..page-settings
   )
 
-  metro-setup(
+  /*metro-setup(
     output-decimal-marker: ",",
-    per-mode: "fraction",
+    //per-mode: "fraction", 
+    quantity-product: sym.space,
     exponent-product: sym.dot
-  )
+  )*/
 
-  show math.equation: it => {
+  /*show math.equation: it => {
     show regex("\d+\.\d+"): it => {show ".": {","+h(0pt)}
         it}
     it
-  }
+  }*/
 
   show math.equation: set text(font: "Fira Math")
 
@@ -98,7 +98,6 @@
       it
     }
   }
-
   body
   
 }
@@ -183,43 +182,59 @@
   }
 }
 
-#let tasks(tasks:(), amount:auto, numbering:"a)", gutter:20pt) = {
+#let tasks(tasks:(), amount:auto, numbering:"a)", gutter:20pt, loesungen:()) = {
   let row-amount = tasks.len()
   if amount != auto {
     row-amount = amount
-  } 
-  grid(columns: (1fr,) * row-amount, column-gutter: gutter, row-gutter: gutter, ..tasks.map(task => {teilaufgabe(numb:numbering,task)}))
+  }
+  let tasks-show = ()
+  for (key, task) in tasks.enumerate() {
+    tasks-show.push([
+      #teilaufgabe(numb:numbering)[
+        #task
+        #if loesungen.len() > key [
+          #loesung[#loesungen.at(key)]
+        ]
+      ]
+    ])
+  }
+
+  grid(columns: (1fr,) * row-amount, column-gutter: gutter, row-gutter: gutter,
+  ..tasks-show)
+  
 }
 
 
 #let gap(body) = {
-  box(move(dy:4pt)[
-    #box(stroke: (bottom: 0.5pt + luma(130)), inset: (x: 8pt, y: 4pt))[
+  box(move(dy:6pt)[
+    #box(stroke: (bottom: 0.5pt + luma(130)), inset: (x: 8pt, y: 0pt))[
       #hide(body) #label("gap")
     ]
   ])
 }
 
-#let gap-text(body) = {
+#let gap-text(hide-gaps: false, body) = {
   let colors = (rgb("#B3D4EC"), rgb("#D5E3B5"), rgb("#EEAA95"), rgb("#FAD3AD"), rgb("#CBADC8"), rgb("#FFE3A8"))
 
   align(center,
   locate(loc => {
   let elems = query(<gap>, loc)
-  for (index,word) in shuffle(elems, 42).enumerate() [
-    #h(0.4em)
-    #box(
-      block(
-        fill: colors.at(calc.rem(index ,colors.len())),
-        inset: 8pt,
-        radius: 4pt)[#word.body]
-    )
-    #h(0.4em)
-  ]
+  if not hide-gaps {
+    for (index,word) in shuffle(elems, 42).enumerate() [
+      #h(0.4em)
+      #box(
+        block(
+          fill: colors.at(calc.rem(index ,colors.len())),
+          inset: 8pt,
+          radius: 4pt)[#word.body]
+      )
+      #h(0.4em)
+    ]
+  }
   })
+  
   )
-
-  body
+  par(leading: 1.5em, body)
 }
 
 #let qrbox(url, name, width: 3cm, ..args) = {
@@ -231,4 +246,8 @@
       ])
     ]
   ]
+}
+
+#let icon-link(url, name) = {
+  link(url)[#fa-external-link(fill:blue) #text(fill:blue,[#name])]
 }
