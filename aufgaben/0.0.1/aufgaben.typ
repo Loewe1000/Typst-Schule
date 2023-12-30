@@ -169,6 +169,19 @@
 	})
 }
 
+#let sub-punkte( nr:none, subnr:none, func:d_punkte ) = {
+	locate(loc => {
+		let n = nr
+		if nr == none {
+			n = __akt_aufgnr(v=>v, loc:loc)
+		}
+		func(__s_erwartungen.final(loc)
+			.filter(erw => erw.aufgabe == n)
+			.filter(erw => erw.teil == subnr)
+			.fold(0, (p, erw) => p + erw.punkte))
+	})
+}
+
 #let d_erwpunkte( aufg:none, teil:none, format:punkte => [#align(right)[_(#punkte.join(" + "))_]] ) = {
 	locate(loc => {
 		let n = aufg
@@ -202,7 +215,7 @@
 
 #let __d_loesung( aufg ) = [
 	#d_enum(
-		numbering: "(1)",
+		numbering: "a)",
 		..aufg.loesung
 			.filter(l=> l.teil == 0)
 			.map(l => l.body)
@@ -217,7 +230,7 @@
 		)
 	}
 	#if enums.len() > 0 {
-		enum(numbering:"a)", ..enums)
+		enum(tight:false, spacing: 2em, numbering:"a)", ..enums)
 	}
 ]
 
@@ -237,8 +250,11 @@
 		final:true,
 		filter: a=>a.loesung.len()>0,
 		(i, aufg, count) => [
-			== #d_aufg(nr:aufg.nummer) #h(1fr) #text(fill:black, size:0.88em)[#punkte(nr:aufg.nummer)]
+			
+			#block(inset: (top:1mm), width: 100%)[
+			== #d_aufg(nr:aufg.nummer)
 			#__d_loesung(aufg)
+			]
 		]
 	)
 ]
@@ -328,7 +344,7 @@
 				start: taufg,
 				tight: false,
 				spacing: auto,
-				body + [<teilaufgabe>]
+				body + [<teilaufgabe>] + [#h(1fr)#place(dy: 0cm, dx: 7mm, top+right,sub-punkte(subnr:taufg,func:p=>if p > 0 {text(fill:black,size:0.88em)[(#p)]}))]
 			)
 			}
 		)
@@ -342,10 +358,10 @@
 	body,
 ) = {
 	locate(loc => {
-		//let nr = __c_aufgaben.at(loc).at(0)
-		// if _ab_s_in_teilaufgabe.at(loc) {
-		// 	let  t = _ab_c_aufgaben.at(loc).at(1)
-		// }
+		/*let nr = __c_aufgaben.at(loc).at(0)
+		 if _ab_s_in_teilaufgabe.at(loc) {
+		 	let  t = _ab_c_aufgaben.at(loc).at(1)
+		 }*/
 		let t = teil
 		if t == none {
 			if __s_in_teilaufgabe.at(loc) {
