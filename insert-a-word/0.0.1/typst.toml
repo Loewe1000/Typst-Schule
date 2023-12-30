@@ -1,0 +1,5 @@
+[package]
+name = "insert-a-word"
+version = "0.0.1"
+entrypoint = "lib.typ"
+
