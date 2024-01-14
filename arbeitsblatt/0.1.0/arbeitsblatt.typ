@@ -64,6 +64,11 @@
   set par(justify: true, leading: 0.65em)
   set text(font-size, font: "Myriad Pro", hyphenate: true, lang: "de")
   show math.equation: set text(font: "Fira Math")
+  show math.equation: it => {
+    show regex("\d+\.\d+"): it => {show ".": {","+h(0pt)}
+        it}
+    it
+  }
 
   // Set page properties
   set page(
