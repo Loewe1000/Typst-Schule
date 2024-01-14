@@ -134,27 +134,28 @@
   #fkt
 ]
 
-#let tasks(tasks: (), amount: auto, numbering: "a)", gutter: 20pt, loesungen: ()) = {
+#let tasks(tasks: (), columns: auto, numbering: "a)", gutter: 10pt, loesungen: (), ..args) = {
   let row-amount = tasks.len()
-  if amount != auto {
-    row-amount = amount
+  if columns != auto {
+    row-amount = columns
   }
   let tasks-show = ()
   for (key, task) in tasks.enumerate() {
-    tasks-show.push([
-      #teilaufgabe(numb: numbering)[
+    tasks-show.push(
+      teilaufgabe(numb: numbering)[
         #task
         #if loesungen.len() > key [
           #loesung[#loesungen.at(key)]
         ]
-      ]
     ])
   }
 
-  grid(
+  table(
+    stroke:none,
     columns: (1fr,) * row-amount,
     column-gutter: gutter,
     row-gutter: gutter,
     ..tasks-show,
+    ..args
   )
 }
