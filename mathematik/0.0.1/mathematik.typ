@@ -134,28 +134,70 @@
   #fkt
 ]
 
-#let tasks(tasks: (), columns: auto, numbering: "a)", gutter: 10pt, loesungen: (), ..args) = {
+#let tasks(
+  tasks: (),
+  columns: auto,
+  numbering: "a)",
+  gutter: 10pt,
+  loesungen: (),
+  ..args,
+) = {
   let row-amount = tasks.len()
   if columns != auto {
     row-amount = columns
   }
   let tasks-show = ()
   for (key, task) in tasks.enumerate() {
-    tasks-show.push(
-      teilaufgabe(numb: numbering)[
-        #task
-        #if loesungen.len() > key [
-          #loesung[#loesungen.at(key)]
-        ]
+    tasks-show.push(teilaufgabe(numb: numbering)[
+      #task
+      #if loesungen.len() > key [
+        #loesung[#loesungen.at(key)]
+      ]
     ])
   }
 
   table(
-    stroke:none,
+    stroke: none,
     columns: (1fr,) * row-amount,
     column-gutter: gutter,
     row-gutter: gutter,
     ..tasks-show,
-    ..args
+    ..args,
   )
 }
+
+#let ti-btn(name) = [#box(
+  height: 1em,
+  move(
+    dy: 0mm,
+    box(
+      stroke: 0.6pt,
+      width: 12mm,
+      height: 5mm,
+      radius: 10%,
+    )[#align(
+        center + horizon,
+        move(dy: 0.4mm, text(size: 9pt, font: "Config Alt", weight: 800, [#name])),
+      )],
+  ),
+)
+#h(1pt)
+]
+
+#let ti-mnu(name) = [#box(
+  height: 1em,
+  move(
+    dy: 0mm,
+    box(
+      fill: rgb("#D3D3D3"),
+      height: 5mm,
+      radius: 10%,
+      inset: (left: 2mm, right: 2mm),
+    )[#align(
+        center + horizon,
+        move(dy: 0.4mm, text(size: 9pt, font: "Config Alt", weight: 600, [#name])),
+      )],
+  ),
+)
+#h(1pt)
+]
