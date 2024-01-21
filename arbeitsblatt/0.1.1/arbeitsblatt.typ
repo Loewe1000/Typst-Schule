@@ -77,12 +77,12 @@
     header-ascent: header-ascent,
     margin: if print {
       if landscape {
-        (top: 2.2cm + 0.5cm, x: 1.75cm, bottom: 1.5cm)
+        (top: 2.2cm + 1.5cm, x: 1.75cm, bottom: 1cm)
       } else {
-        (top: 2.2cm, inside: 2.25cm, outside: 1.25cm, bottom: 1.5cm)
+        (top: 2.2cm, inside: 2.25cm, outside: 1.25cm, bottom: 1cm)
       }
     } else {
-      (top: 2.2cm, x: 1.75cm, bottom: 1.5cm)
+      (top: 2.2cm, x: 1.75cm, bottom: 1cm)
     },
     header: if custom-header == none {
       header(title: title, class: class, font-size: title-font-size)
