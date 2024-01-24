@@ -49,7 +49,7 @@
   custom-header: none,
   header-ascent: 20%,
   page-settings: (),
-  loesungen: none,
+  loesungen: false,
   ..args,
   body,
 ) = {
