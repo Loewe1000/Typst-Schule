@@ -1,0 +1,5 @@
+[package]
+name = "klausurboegen"
+version = "0.0.2"
+entrypoint = "klausurboegen.typ"
+
