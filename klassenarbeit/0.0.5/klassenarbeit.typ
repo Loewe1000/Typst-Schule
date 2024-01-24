@@ -86,7 +86,7 @@ tablex(
     
 
     #if klausurboegen {
-      import "@schule/klausurboegen:0.0.1": *
+      import "@schule/klausurboegen:0.0.2": *
 
       klausurbögen(
         exam: title,

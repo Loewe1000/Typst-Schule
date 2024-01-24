@@ -1,5 +1,5 @@
 #import "@preview/tablex:0.0.5": *
-#import "@schule/klausurboegen:0.0.1": *
+#import "@schule/klausurboegen:0.0.2": *
 
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // %       Hilfsfunktionen        %
