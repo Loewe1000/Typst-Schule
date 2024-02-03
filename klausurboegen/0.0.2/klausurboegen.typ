@@ -280,12 +280,14 @@
       tablex(
       columns: (auto,) + (1fr,) * (numberOfColumns + 1),
       inset: 6pt,
-      stroke: if result {none} else {black.lighten(50%) + 1pt},
+      stroke: if result {print-color + 1pt} else {print-color + 1pt},
       align: horizon + center,
       [*Aufgabe*], ..headerRow, [$sum$],
       ..subtaskRow.map(x => [*#x*]),
-      text(size: 8pt,[*mögliche Punkte*]), ..maxPoints.map(x => if result {cellx(inset: 0mm, text(size:10pt, fill: black,str(x).replace(".", ",")))}), if result {cellx(inset: 0mm, text(size:10pt, fill: black,str(maxPoints.sum()).replace(".", ",")))},
-      text(size: 8pt,[*erreichte Punkte*]), ..if result {achievedPoints.map(x => cellx(inset: 0mm, text(size:10pt, fill: black, str(x).replace(".", ","))))}, if result {cellx(inset: 0mm, text(size:10pt, fill: black, str(achievedPoints.sum()).replace(".", ",")))}
+      text(size: 8pt,[*mögliche Punkte*]), ..maxPoints.map(x => if result {cellx(inset: 0mm, text(size:10pt, fill: black,str(x).replace(".", ",")))}),
+      if result {cellx(inset: 0mm, text(size:10pt, fill: black,str(maxPoints.sum()).replace(".", ",")))},
+      text(size: 8pt,[*erreichte Punkte*]), ..if result {achievedPoints.map(x => cellx(inset: 0mm, text(size:10pt, fill: black, str(x).replace(".", ","))))},
+      if result {cellx(inset: 0mm, text(size:10pt, fill: black, str(achievedPoints.sum()).replace(".", ",")))}
     )
     } else{
       tablex(
@@ -331,10 +333,10 @@
           if (value.at(n).contains(" ")) {
             let aufgabe = value.at(n).split(" ").at(0)
             cols.insert(aufgabe, cols.at(aufgabe)+1)
-          } /*else if (regex("[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)") in value.at(n)) {
+          } else if (value.at(n).contains(".")) {
             let aufgabe = str(value.at(n).split(".").at(0))
             cols.insert(aufgabe, cols.at(aufgabe)+1)//
-          } */else {
+          } else {
             cols.insert(value.at(n), 0)
           }
           n = n + 1
