@@ -166,38 +166,71 @@
   )
 }
 
-#let ti-btn(name) = [#box(
-  height: 1em,
-  move(
-    dy: 0mm,
-    box(
-      stroke: 0.6pt,
-      width: 12mm,
-      height: 5mm,
-      radius: 10%,
-    )[#align(
-        center + horizon,
-        move(dy: 0.4mm, text(size: 9pt, font: "Config Alt", weight: 800, [#name])),
-      )],
-  ),
-)
-#h(1pt)
+#let ti-btn(name, color: white) = [
+  #let fill-color = none
+  #let text-color = black
+  #if color == white {
+    fill-color = white
+  } else if color == red {
+    fill-color = rgb("#E7001A")
+    text-color = white
+  } else if color == black {
+    fill-color = black
+    text-color = white
+  } else if color == blue {
+    fill-color = rgb("#A4C8DE")
+    text-color = black
+  } else {
+    fill-color = color
+  }
+  #box(
+    height: 0em,
+  )[
+    #move(
+      dy: -1.2mm + 0.75pt / 2,
+      box(
+        fill: fill-color,
+        width: 11mm,
+        height: 4.8mm,
+        stroke: 0.75pt,
+        radius: 1mm,
+      )[
+        #align(
+          center + horizon,
+          [
+            #text(9pt, text-color, font: "Open Sans", weight: 600, tracking: -0.4pt, [
+              #name
+            ])
+          ],
+        )
+      ],
+    )
+  ]
+]
+
+#let ti-ctrl-btn(name) = [
+  #let text-color = rgb("#A4C8DE")
+  #text(9pt, text-color.darken(20%), font: "Open Sans", weight: 600, tracking: -0.4pt, [
+    #name
+  ])
 ]
 
 #let ti-mnu(name) = [#box(
-  height: 1em,
-  move(
-    dy: 0mm,
-    box(
-      fill: rgb("#D3D3D3"),
-      height: 5mm,
-      radius: 10%,
-      inset: (left: 2mm, right: 2mm),
-    )[#align(
-        center + horizon,
-        move(dy: 0.4mm, text(size: 9pt, font: "Config Alt", weight: 600, [#name])),
-      )],
-  ),
-)
-#h(1pt)
+    height: 0em,
+    move(
+      dy: -1.125mm,
+      box(
+        fill: rgb("#008AD8"),
+        height: 4.5mm,
+        radius: 10%,
+        inset: (left: 2mm, right: 2mm),
+      )[#align(
+          center + horizon,
+          move(dy: 0mm, text(9pt, white, font: "Open Sans", weight: 400, [
+    #name
+  ])),
+        )],
+    ),
+  )
+  #h(1pt)
 ]
