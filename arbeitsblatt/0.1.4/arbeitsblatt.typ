@@ -59,11 +59,14 @@
   set par(justify: true, leading: 0.65em, linebreaks: "optimized")
 
   set text(font-size, font: "Myriad Pro", hyphenate: true, lang: "de")
-  show math.equation: set text(font: "STIX Two Math")
+  show math.equation: set text(font: "New Computer Modern Math")
   show math.equation: it => {
     show regex("\d+\.\d+"): it => {show ".": {","+h(0pt)}
         it}
     it
+  }
+  show math.equation: it => {
+    math.sans(it)
   }
 
   // Set page properties
