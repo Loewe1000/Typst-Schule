@@ -7,7 +7,7 @@
 #import "@schule/patterns:0.0.1": *  
 
 #import "@preview/cades:0.3.0": qr-code
-#import "@preview/cetz:0.2.1": *
+#import "@preview/cetz:0.2.2": *
 #import "@preview/colorful-boxes:1.3.1": *
 #import "@preview/tablex:0.0.8": *
 #import "@preview/unify:0.4.3": *

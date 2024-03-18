@@ -1,4 +1,4 @@
-#import "@preview/cetz:0.2.1": *
+#import "@preview/cetz:0.2.2": *
 
 // Was ist items? Gibts da nicht schönere Variablennamen?
 #let kariert(
