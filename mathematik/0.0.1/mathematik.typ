@@ -1,7 +1,7 @@
 #import "@preview/tablex:0.0.7": tablex, colspanx, rowspanx, vlinex,
 #import "@preview/cetz:0.1.2": *
 #import "@schule/random:0.0.1": *
-#import "@schule/aufgaben:0.0.1": teilaufgabe
+#import "@schule/aufgaben:0.0.2": teilaufgabe
 
 #let c_canvas = canvas
 #let canvas(..args, body) = {
