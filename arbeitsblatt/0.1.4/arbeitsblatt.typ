@@ -1,5 +1,5 @@
-#import "@schule/aufgaben:0.0.1": *
-#import "@schule/options:0.0.5"
+#import "@schule/typopst:0.0.1": *
+#import "@schule/aufgaben:0.0.2": *
 #import "@schule/random:0.0.1": *
 #import "@schule/insert-a-word:0.0.1": *
 #import "@schule/energy-sketch:0.0.1": *
@@ -8,7 +8,7 @@
 
 #import "@preview/cades:0.3.0": qr-code
 #import "@preview/cetz:0.2.1": *
-#import "@preview/colorful-boxes:1.2.0": *
+#import "@preview/colorful-boxes:1.3.1": *
 #import "@preview/tablex:0.0.8": *
 #import "@preview/unify:0.4.3": *
 
@@ -69,6 +69,7 @@
   // Set page properties
   set page(
     paper: paper,
+    ..if not print {(height: auto)} ,
     flipped: landscape,
     header-ascent: header-ascent,
     margin: if print {
@@ -89,8 +90,10 @@
   )
 
   // To show solutions for exercises: use "loesungen: "sofort""
-  options.addconfig("loesungen", default: "")
-  options.parseconfig(loesungen: loesungen)
+  options.add-argument("loesungen", default: "")
+  options.add-argument("print", default: "false")
+
+  options.parseconfig(loesungen: loesungen, print: if print {"true"} else {"false"} )
 
   // font-size for aufgaben, large and small
   show heading.where(level: 1): it => block[
@@ -138,6 +141,35 @@
     d_loesungen()
   }
 }
+
+  // In CeTZ-Diagrammen keine gestrichelten Linien mehr haben
+  // + Position der Achsenbeschriftungen innen statt außen
+
+  #let c_canvas = canvas
+  #let canvas(..args, body) = {
+    c_canvas(
+      ..args,
+      {
+        import draw: *
+        set-style(
+          axes: (
+            grid: (
+              stroke: (paint: rgb("#AAAAAA").lighten(10%), dash: "solid", thickness: 0.5pt),
+              fill: none,
+            ),
+            minor-grid: (
+              stroke: (paint: rgb("#AAAAAA").lighten(10%), dash: "solid", thickness: 0.5pt),
+              fill: none,
+            ),
+            mark: (end: ">"),
+            x: (label: (anchor: "south-east", offset: -0.2)),
+            y: (label: (anchor: "north-west", offset: -0.2)),
+          ),
+        )
+        body
+      },
+    )
+  }
 
 /// Splits text into multiple columns
 ///
