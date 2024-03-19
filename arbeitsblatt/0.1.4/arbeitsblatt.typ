@@ -4,7 +4,7 @@
 #import "@schule/insert-a-word:0.0.1": *
 #import "@schule/energy-sketch:0.0.1": *
 #import "@schule/mathematik:0.0.1": *
-#import "@schule/patterns:0.0.1": *  
+#import "@schule/patterns:0.0.1": *
 
 #import "@preview/cades:0.3.0": qr-code
 #import "@preview/cetz:0.2.2": *
@@ -54,25 +54,23 @@
   body,
 ) = {
   // Set document title and authors in metadata
-
   // Set font and text properties
   set par(justify: true, leading: 0.65em, linebreaks: "optimized")
 
   set text(font-size, font: "Myriad Pro", hyphenate: true, lang: "de")
-  show math.equation: set text(font: "New Computer Modern Math")
+  show math.equation: set text(font: "Fira Math")
   show math.equation: it => {
-    show regex("\d+\.\d+"): it => {show ".": {","+h(0pt)}
-        it}
+    show regex("\d+\.\d+"): it => {
+      show ".": { "," + h(0pt) }
+      it
+    }
     it
-  }
-  show math.equation: it => {
-    math.sans(it)
   }
 
   // Set page properties
   set page(
     paper: paper,
-    ..if not print {(height: auto)} ,
+    ..if not print { (height: auto) },
     flipped: landscape,
     header-ascent: header-ascent,
     margin: if print {
@@ -96,7 +94,7 @@
   options.add-argument("loesungen", default: "")
   options.add-argument("print", default: "false")
 
-  options.parseconfig(loesungen: loesungen, print: if print {"true"} else {"false"} )
+  options.parseconfig(loesungen: loesungen, print: if print { "true" } else { "false" })
 
   // font-size for aufgaben, large and small
   show heading.where(level: 1): it => block[
@@ -113,7 +111,9 @@
   // Setting captions and numberings for figures
   set figure(numbering: "1")
 
-  show figure: it => align(center)[
+  show figure: it => align(
+    center,
+  )[
     #it.body
     #v(10pt, weak: true)
     #text(size: 9pt, [
@@ -145,34 +145,34 @@
   }
 }
 
-  // In CeTZ-Diagrammen keine gestrichelten Linien mehr haben
-  // + Position der Achsenbeschriftungen innen statt außen
+// In CeTZ-Diagrammen keine gestrichelten Linien mehr haben
+// + Position der Achsenbeschriftungen innen statt außen
 
-  #let c_canvas = canvas
-  #let canvas(..args, body) = {
-    c_canvas(
-      ..args,
-      {
-        import draw: *
-        set-style(
-          axes: (
-            grid: (
-              stroke: (paint: rgb("#AAAAAA").lighten(10%), dash: "solid", thickness: 0.5pt),
-              fill: none,
-            ),
-            minor-grid: (
-              stroke: (paint: rgb("#AAAAAA").lighten(10%), dash: "solid", thickness: 0.5pt),
-              fill: none,
-            ),
-            mark: (end: ">"),
-            x: (label: (anchor: "south-east", offset: -0.2)),
-            y: (label: (anchor: "north-west", offset: -0.2)),
+#let c_canvas = canvas
+#let canvas(..args, body) = {
+  c_canvas(
+    ..args,
+    {
+      import draw: *
+      set-style(
+        axes: (
+          grid: (
+            stroke: (paint: rgb("#AAAAAA").lighten(10%), dash: "solid", thickness: 0.5pt),
+            fill: none,
           ),
-        )
-        body
-      },
-    )
-  }
+          minor-grid: (
+            stroke: (paint: rgb("#AAAAAA").lighten(10%), dash: "solid", thickness: 0.5pt),
+            fill: none,
+          ),
+          mark: (end: ">"),
+          x: (label: (anchor: "south-east", offset: -0.2)),
+          y: (label: (anchor: "north-west", offset: -0.2)),
+        ),
+      )
+      body
+    },
+  )
+}
 
 /// Splits text into multiple columns
 ///
@@ -191,8 +191,7 @@
   )
 }
 
-
-#let icon-link(url, name, icon:fa-external-link(fill: blue)) = {
+#let icon-link(url, name, icon: fa-external-link(fill: blue)) = {
   link(url)[#icon #text(fill: blue, [#name])]
 }
 
