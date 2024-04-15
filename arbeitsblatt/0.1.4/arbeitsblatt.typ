@@ -11,6 +11,7 @@
 #import "@preview/colorful-boxes:1.3.1": *
 #import "@preview/tablex:0.0.8": *
 #import "@preview/unify:0.4.3": *
+#import "@preview/cheq:0.1.0": checklist
 
 #let header(title: none, class: none, font-size: 16pt) = {
   text(font-size, font: "Myriad Pro", weight: "semibold")[#title]
@@ -136,6 +137,8 @@
       it
     }
   }
+
+  show: checklist
 
   body
 
