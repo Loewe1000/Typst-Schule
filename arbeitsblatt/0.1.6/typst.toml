@@ -1,0 +1,5 @@
+[package]
+name = "arbeitsblatt"
+version = "0.1.6"
+entrypoint = "arbeitsblatt.typ"
+exclude = ["/assets/*", "*.pdf", "example.typ"]
