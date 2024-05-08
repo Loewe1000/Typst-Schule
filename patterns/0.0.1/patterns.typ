@@ -39,7 +39,7 @@
           content(
             (0.75, autoheight + grid-size - (key+1) * items-spacing * grid-size),
             [#box(fill: white, inset: 4pt)[#item]],
-            anchor: "left",
+            anchor: "west",
           )
         }
       }
