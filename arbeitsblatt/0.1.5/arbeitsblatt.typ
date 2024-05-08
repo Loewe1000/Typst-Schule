@@ -1,5 +1,5 @@
 #import "@schule/typopst:0.0.1": *
-#import "@schule/aufgaben:0.0.2": *
+#import "@schule/aufgaben:0.0.3": *
 #import "@schule/random:0.0.1": *
 #import "@schule/insert-a-word:0.0.1": *
 #import "@schule/energy-sketch:0.0.1": *
@@ -43,6 +43,7 @@
   class: "",
   paper: "a4",
   print: false,
+  workspaces: false,
   font-size: 12pt,
   title-font-size: 16pt,
   landscape: false,
@@ -93,8 +94,13 @@
   // To show solutions for exercises: use "loesungen: "sofort""
   options.add-argument("loesungen", default: "")
   options.add-argument("print", default: "false")
+  options.add-argument("workspaces", default: "false")
 
-  options.parseconfig(loesungen: loesungen, print: if print { "true" } else { "false" })
+  options.parseconfig(
+    loesungen: loesungen,
+    print: if print { "true" } else { "false" },
+    workspaces: if workspaces { "true" } else { "false" },
+  )
 
   // font-size for aufgaben, large and small
   show heading.where(level: 1): it => block[
@@ -156,11 +162,7 @@
       import draw: *
       set-style(
         axes: (
-          tick: (
-            offset: −50%,
-            minor-offset: -50%,
-            minor-length: 100%,
-          ),
+          tick: (offset: −50%, minor-offset: -50%, minor-length: 50%),
           grid: (
             stroke: (paint: rgb("#AAAAAA").lighten(10%), dash: "solid", thickness: 0.5pt),
             fill: none,
@@ -172,6 +174,7 @@
           mark: (end: ">"),
           x: (label: (anchor: "south-east", offset: -0.2)),
           y: (label: (anchor: "north-west", offset: -0.2)),
+          overshoot: 4.17pt
         ),
       )
       body
