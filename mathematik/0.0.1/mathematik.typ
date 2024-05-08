@@ -1,25 +1,6 @@
-#import "@preview/tablex:0.0.7": tablex, colspanx, rowspanx, vlinex,
-#import "@preview/cetz:0.1.2": *
+#import "@preview/tablex:0.0.7": *
 #import "@schule/random:0.0.1": *
-#import "@schule/aufgaben:0.0.2": teilaufgabe
-
-#let c_canvas = canvas
-#let canvas(..args, body) = {
-  c_canvas(..args, {
-    import draw: *
-    set-style(axes: (fill: none, stroke: rgb("#000000"), tick: (
-      fill: none,
-      stroke: rgb("#000000"),
-      length: 0.1,
-      minor-length: 0.08,
-      label: (offset: 0.1, angle: 0deg, anchor: auto),
-    ), padding: 0, grid: (
-      stroke: (paint: rgb("#AAAAAA").lighten(30%), dash: "solid"),
-      fill: none,
-    )))
-    body
-  })
-}
+#import "@schule/aufgaben:0.0.3": teilaufgabe, loesung
 
 #let fkt-plot(
   term,
