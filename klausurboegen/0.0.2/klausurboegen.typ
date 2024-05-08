@@ -1,5 +1,5 @@
 #import "@preview/tablex:0.0.4": tablex, colspanx, rowspanx, vlinex,
-#import "@schule/arbeitsblatt:0.0.6": *
+#import "@schule/arbeitsblatt:0.1.6": *
 
 #let klausurbögen(exam: "", subexam:"", teacher: "SLZ", class: "PH1", date: "09.10.2023", students: (), sek1: false, result: false, rand: 5cm, sub: false, numbering: "a)", weißer-rand: true, result-table: true) = [
 
@@ -359,8 +359,10 @@
         let points = ()
         
         while (n < value.len()) {
-          if (not value.at(n).contains(" ")) {
+          if (not value.at(n).contains(" ") and value.at(n) != "") {
             points.push(float(value.at(n)))
+          } else if (not value.at(n).contains(" ")) {
+            points.push(0)
           }
           n += 1
         }
