@@ -1,0 +1,4 @@
+[package]
+name = "gutachten"
+version = "0.0.1"
+entrypoint = "gutachten.typ"
