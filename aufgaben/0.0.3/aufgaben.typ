@@ -253,6 +253,7 @@
   icons: (),
   large: false,
   method: "",
+  icon: "",
   number: true,
   use: true,
   header: true,
@@ -282,8 +283,11 @@
     if method == "GA" {
       icons.push(fa-users())
     }
+    if icon != "" {
+      icons.push(fa-icon(icon, fa-set: "Free solid"))
+    }
     if icons.len() != 0 {
-      ic = marginnote(dy: 0em)[#text(size: 0.88em)[#icons.join()]]
+      ic = marginnote(dy: -0.05em)[#text(size: 0.88em)[#icons.join()]]
     }
     if page { pagebreak() }
     if header [
