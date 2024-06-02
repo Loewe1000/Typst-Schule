@@ -1,7 +1,7 @@
 #import "@preview/tablex:0.0.4": tablex, colspanx, rowspanx, vlinex,
 #import "@schule/arbeitsblatt:0.1.6": *
 
-#let klausurbögen(exam: "", subexam:"", teacher: "SLZ", class: "PH1", date: "09.10.2023", students: (), sek1: false, result: false, rand: 5cm, sub: false, numbering: "a)", weißer-rand: true, result-table: true) = [
+#let klausurbögen(exam: "", subexam:"", teacher: "SLZ", class: "PH1", date: "09.10.2023", students: (), sek1: false, result: false, rand: 5cm, scale: 1, sub: false, numbering: "a)", weißer-rand: true, result-table: true) = [
 
   #set page(paper: "a3", margin: 0cm, flipped: true, header: none, footer: none)
   #set text(12pt,font: "Myriad Pro")
@@ -53,7 +53,7 @@
         
       ],
       [
-        #if not result {place(kariert(height: 30cm))}
+        #if not result {place(top+right,kariert(height: 30cm, grid-size: scale*0.5cm))}
       ]
     )
     #if not result and exam != "" {place(bottom+left, [#box(inset: insetPageNumber, [#box(fill: white,text(size:16pt,[*4*]))])])}
@@ -70,12 +70,12 @@
             header(title: exam ,subtitle: subexam, date: date, class: class, teacher: teacher, logo: image("logo.svg"))
           }
           #box(inset: (top: -1mm))[
-            #table(inset: 0pt, stroke: none, columns: (auto, 1fr, auto, 1fr), align: (left, left, left, center),
+            #table(inset: (top: 0pt, left: 0pt, right: 0pt, bottom: 3mm), stroke: none, columns: (auto, 1fr, auto, 1fr), align: (left, left, left, center),
               [#if not result [#text(14pt, weight: "semibold")[Name:]]],
-              [/*#text(14pt, weight: "regular", name)*/],
+              [],
               [#text(14pt, weight: "semibold")[
                 #if sub [#hide[Ergebnis:]] else [#if not result [Ergebnis:]]
-              ]],
+              ]],if not result {table.hline(stroke: 0.5pt+gray)},
               [#if result and not sub [#note-content] ]
             )
           ]
@@ -87,7 +87,7 @@
     ]
     #table(stroke: none /*0.5pt+rgb(129,129,129)*/, inset: 0cm, rows: 1fr, columns: (1fr, rand),
       [
-        #if not result {place(kariert(height: 30cm - if sub and result-table {6cm} else if sub {3cm} else {8cm} - 0.5cm))}
+        #if not result {place(top+left,kariert(height: 30cm - if sub and result-table {6cm} else if sub {3cm} else {8cm} - 0.5cm, grid-size: scale*0.5cm))}
       ],
     )
     #if not result and exam != "" {place(bottom+right, [#box(inset: insetPageNumber, [#box(fill: white,text(size:16pt,[*1*]))])])}
@@ -104,7 +104,7 @@
         
       ],
       [
-        #place(kariert(height: 30cm))
+        #place(top+right, kariert(height: 30cm, grid-size: scale*0.5cm))
       ]
     )
     #if exam != "" [#place(bottom+left, [#box(inset: insetPageNumber, [#box(fill: white,text(size:16pt,[*2*]))])])]
@@ -115,7 +115,7 @@
   [
     #table(stroke: none /*0.5pt+rgb(129,129,129)*/, inset: 0cm, rows: 1fr, columns: (1fr, rand),
       [
-        #place(kariert(height: 30cm))
+        #place(top+left, kariert(height: 30cm, grid-size: scale*0.5cm))
       ],
       [
         
@@ -138,7 +138,7 @@
 
   #let gradeBoundaries(maxPoints: 100) = {
     let gradeBordersSek1 = (0.875, 0.75, 0.625, 0.5, 0.2, 0)
-    let gradeBordersSek2 = (0.95, 0.90, 0.85, 0.80, 0.75, 0.70, 0.65, 0.60, 0.55, 0.50, 0.45, 0.40, 0.34, 0.28, 0.20, 0)
+    let gradeBordersSek2 = (0.95, 0.90, 0.85, 0.80, 0.75, 0.70, 0.65, 0.60, 0.55, 0.50, 0.45, 0.40, 0.33, 0.27, 0.20, 0)
     let gradeRegions = ()
     let lastLowerBound = 0
     let gradeBorders = ()
