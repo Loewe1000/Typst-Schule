@@ -47,6 +47,7 @@
   date: "",
   logo: "",
   teacher: "",
+  schueler: "",
   font-size: 12pt,
   table: (),
   stufe: false,
@@ -87,7 +88,7 @@
     ..args,
   )
 
-  text(14pt, weight: "semibold")[Name:]
+  text(14pt, weight: "semibold")[Name:#h(0.25em) #schueler] 
 
   tablex(
     columns: (auto, 1fr),
