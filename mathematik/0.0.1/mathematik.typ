@@ -51,7 +51,7 @@
 )
 
 #let nbr = counter("nbr")
-#let rand = counter("rand")
+#let m-rand = counter("m-rand")
 
 #let colors = (
   red,
@@ -80,7 +80,7 @@
   #locate(
     loc => [
       #let color = if clr == none {
-        shuffle(colors, counter("rand").at(loc).at(0)).at(counter("nbr").at(loc).at(0))
+        shuffle(colors, counter("m-rand").at(loc).at(0)).at(counter("nbr").at(loc).at(0))
       } else { clr }
       #box(
         width: size + 2pt,
