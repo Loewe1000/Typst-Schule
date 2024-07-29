@@ -72,7 +72,7 @@
           #box(inset: (top: -1mm))[
             #table(inset: (top: 0pt, left: 0pt, right: 0pt, bottom: 3mm), stroke: none, columns: (auto, 1fr, auto, 1fr), align: (left, left, left, center),
               [#if not result [#text(14pt, weight: "semibold")[Name:]]],
-              [],
+              ..if not result {([],)},
               [#text(14pt, weight: "semibold")[
                 #if sub [#hide[Ergebnis:]] else [#if not result [Ergebnis:]]
               ]],if not result {table.hline(stroke: 0.5pt+gray)},
