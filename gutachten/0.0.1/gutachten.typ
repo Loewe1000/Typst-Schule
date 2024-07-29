@@ -171,7 +171,7 @@ let ew_namen_oberstufe = (
       v(1.5em)
       box({
       par([Insgesamt zeigt #__s_anrede.get().vn eine in Form und Inhalt #{notenpunkte-name+"e"} Leistung.\
-      #if lower(geschlecht) == "w" { "Sie" } else {"Er"} erreicht $#punkte$ von $#be-maximal$ Punkten; das entspricht $#prozent%$.
+      #if lower(geschlecht) == "w" { "Sie" } else {"Er"} erreicht *$#punkte$* von *$#be-maximal$* Punkten; das entspricht *$#prozent%$*.
       ])
       v(1em)
       par([Die gezeigte Leistung wird daher mit der Note])
@@ -192,13 +192,13 @@ let ew_namen_oberstufe = (
       #let korreferent = __s_gutachten-optionen.final().named().korreferent
       Ort, Datum, Unterschrift (Referent#{if lower(prüfer).contains("frau "){"in"}})
       #v(4em)
-      Mit der Korrektur, der Bewertung und dem Gutachten
+      #line(length: 100%)  
       #v(3em)
-      #line(length: 7cm)  
+      #line(length: 100%)  
       #v(4em)
       #line(length: 7cm)  
       #v(-0.7em)
-      Ort, Datum, Unterschrift (Korrerefent#{if lower(korreferent).contains("frau "){"in"}})
+      Ort, Datum, Unterschrift (Korreferent#{if lower(korreferent).contains("frau "){"in"}})
       #label(vorname+name)
     ]
   }
