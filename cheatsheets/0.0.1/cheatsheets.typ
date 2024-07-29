@@ -47,7 +47,7 @@
     height: 6.5mm,
     align(center + horizon, text(weight: "bold", 10pt, title)),
   ))
-}, table.cell(box(inset: 2mm, stroke: none, align(horizon, [#body]))))
+}, table.cell(box(inset: 2mm, width: 100%, stroke: none, align(horizon, [#body]))))
 
 #let cs-item-grid(columns: 2 * (1fr,), rows: 1, body, small: false) = box(
   stroke: (top: 1pt + black),
