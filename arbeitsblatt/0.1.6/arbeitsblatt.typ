@@ -221,3 +221,5 @@
   ]
 }
 
+#let mono(body) = text(font: "SF Mono", body)
+
