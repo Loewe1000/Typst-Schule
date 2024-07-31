@@ -8,6 +8,7 @@
 
 #import "@preview/cades:0.3.0": qr-code
 #import "@preview/cetz:0.2.2": *
+#import "@preview/codly:1.0.0": *
 #import "@preview/colorful-boxes:1.3.1": *
 #import "@preview/tablex:0.0.8": *
 #import "@preview/unify:0.6.0": *
@@ -149,6 +150,10 @@
     }
   }
 
+  show: codly-init.with()
+  codly(display-name: false)  
+  set raw(syntaxes: "processing.sublime-syntax")
+  
   body
 
   // To show solutions on a seperate page
