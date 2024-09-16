@@ -1,0 +1,5 @@
+[package]
+name = "operatoren"
+version = "0.0.1"
+entrypoint = "operatoren.typ"
+
