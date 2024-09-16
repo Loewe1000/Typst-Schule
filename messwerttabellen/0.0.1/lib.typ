@@ -1,10 +1,19 @@
 #import "@schule/arbeitsblatt:0.1.6": *
 
 // Definition der Datensatz-Struktur
-#let datensatz(name, einheit, werte) = (
+#let datensatz(name, einheit, werte, prefix: "1") = (
   name: name,
   einheit: einheit,
+  prefix: prefix,
   werte: werte,
+)
+
+// Definition der Datensatz-Struktur
+#let messdaten(name, einheit, anzahl-messwerte, prefix: "1") = (
+  name: name,
+  einheit: einheit,
+  prefix: prefix,
+  werte: (anzahl-messwerte * ("",)),
 )
 
 #let multiplikatoren = (
@@ -32,6 +41,9 @@
 
 // Funktion zur Berechnung der Anzahl der Nachkommastellen
 #let count_decimal_places(wert) = {
+  if type(wert) == content {
+    return 0
+  }
   let wert_str = str(wert)
   if wert_str.contains(".") {
     wert_str.split(".").at(1).len()
@@ -41,8 +53,11 @@
 }
 
 // Funktion zur Berechnung von Werten basierend auf einem anderen Datensatz
-#let berechnung(name, einheit, datensatz, formel, max-digits: 2, auto-einheit: true, fehler: 0) = {
+#let berechnung(name, einheit, datensatz, formel, prefix: "1", max-digits: 2, auto-einheit: true, fehler: 0) = {
   let neue_werte = datensatz.werte.map(formel)
+  if prefix != "1" {
+    neue_werte = neue_werte.map(w => {w * float("1" + prefix)})
+  } 
   if fehler != 0 {
     for (key, wert) in neue_werte.enumerate() {
       neue_werte.at(key) = wert * (1 + ((0.5 - rand(key)) * fehler / 100))
@@ -68,13 +83,15 @@
     name: name,
     einheit: einheit,
     werte: neue_werte,
+    prefix: prefix
   )
 }
 
 // Funktion zur Erstellung der Tabelle mit Styling für mehrere Datensätze
 #let p_messwerttabelle(
   datensatze,
-  row-height:auto
+  row-height: auto,
+  header: none,
 ) = tablex(
   stroke: 0.5pt,
   inset: 2.5mm,
@@ -85,20 +102,31 @@
     if c.x == 0 {
       c.fill = rgb(255,255,255).darken(5%)
     }
+    if header != none {
+      if c.y == 0 {
+        c.fill = rgb(255,255,255).darken(5%)
+      }
+    }
     c
   },
 
   // Kopfzeilen und Datenzeilen der Tabelle
+  ..if header != none {
+    while header.len() < datensatze.at(0).werte.len() {
+      header.push([])
+    }
+    ([],) + header.map(c => strong(c))
+  },
 
     ..for datensatz in datensatze {
-      ((datensatz.name + " in " + unit(datensatz.einheit)),
+      ((datensatz.name + " in " + if datensatz.prefix == "1" {unit(datensatz.einheit)} else {qty(datensatz.prefix, datensatz.einheit)}),
       ..datensatz.werte.map(x => $#x$))
     }
 
 )
 
 // Funktion zur Erstellung der Tabellen
-#let messwerttabelle(datensatze, max_wert_pro_tabelle, row-height: auto) = {
+#let messwerttabelle(datensatze, max_wert_pro_tabelle, row-height: auto, header: none, width: 100%) = {
   // Prüfen, ob die Daten aufgeteilt werden müssen
   let teile = ()
   let max = 0
@@ -117,7 +145,7 @@
   }
 
   let chunks = for daten in datensatze {
-    daten.werte.chunks(max_wert_pro_tabelle).map(d => datensatz(daten.name, daten.einheit, d))
+    daten.werte.chunks(max_wert_pro_tabelle).map(d => datensatz(daten.name, daten.einheit, d, prefix: daten.prefix))
   }
 
   let chunks-num = calc.ceil(datensatze.at(0).werte.len() / max_wert_pro_tabelle)
@@ -130,6 +158,6 @@
   teile = teile.chunks(datensatze.len())
 
   for teil in teile {
-    p_messwerttabelle(teil, row-height:row-height)
+    block(width: width, p_messwerttabelle(teil, row-height: row-height, header: header))
   }
 }
