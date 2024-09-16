@@ -5,6 +5,7 @@
 #let __c_punkte = counter("punkte")
 
 #let __s_aufgaben = state("aufgaben", ())
+#let __s_print = state("print", ())
 #let __s_in_teilaufgabe = state("in_teilaufgabe", false)
 #let __s_erwartungen = state("erwartungen", ())
 
@@ -137,11 +138,9 @@
   locate(loc => {
     let n = nr
     if nr == none {
-      n = __akt_aufgnr(v=>v, loc: loc)
+      n = __akt_aufgnr(v => v, loc: loc)
     }
-    func(__s_erwartungen.final(loc)
-    .filter(erw => erw.aufgabe == n)
-    .fold(0, (p, erw) => p + erw.punkte))
+    func(__s_erwartungen.final(loc).filter(erw => erw.aufgabe == n).fold(0, (p, erw) => p + erw.punkte))
   })
 }
 
@@ -149,12 +148,14 @@
   locate(loc => {
     let n = nr
     if nr == none {
-      n = __akt_aufgnr(v=>v, loc: loc)
+      n = __akt_aufgnr(v => v, loc: loc)
     }
-    func(__s_erwartungen.final(loc)
-    .filter(erw => erw.aufgabe == n)
-    .filter(erw => erw.teil == subnr)
-    .fold(0, (p, erw) => p + erw.punkte))
+    func(
+      __s_erwartungen.final(loc).filter(erw => erw.aufgabe == n).filter(erw => erw.teil == subnr).fold(
+        0,
+        (p, erw) => p + erw.punkte,
+      ),
+    )
   })
 }
 
@@ -166,17 +167,18 @@
   locate(loc => {
     let n = aufg
     if aufg == none {
-      n = __akt_aufgnr(v=>v, loc: loc)
+      n = __akt_aufgnr(v => v, loc: loc)
     }
     let t = teil
     if (teil == none) {
-      t = __akt_taufgnr(v=>v, loc: loc)
+      t = __akt_taufgnr(v => v, loc: loc)
     }
-    let p = __s_erwartungen.final(loc)
-    .filter(erw => {
-      erw.aufgabe == n and (t == none or t == erw.teil)
-    })
-    .map(erw => str(erw.punkte))
+    let p = __s_erwartungen
+      .final(loc)
+      .filter(erw => {
+          erw.aufgabe == n and (t == none or t == erw.teil)
+        })
+      .map(erw => str(erw.punkte))
 
     format(p)
   })
@@ -192,14 +194,10 @@
 }
 
 #let __d_loesung(aufg) = [
-  #d_enum(numbering: "a)", ..aufg.loesung
-  .filter(l=> l.teil == 0)
-  .map(l => l.body))
+  #d_enum(numbering: "a)", ..aufg.loesung.filter(l => l.teil == 0).map(l => l.body))
   #let enums = ()
   #for t in range(aufg.teile) {
-    enums.push(d_enum(numbering: "(1)", ..aufg.loesung
-    .filter(l => l.teil == t + 1)
-    .map(l => l.body)))
+    enums.push(d_enum(numbering: "(1)", ..aufg.loesung.filter(l => l.teil == t + 1).map(l => l.body)))
   }
   #if enums.len() > 0 {
     enum(tight: false, spacing: 2em, numbering: "a)", ..enums)
@@ -213,28 +211,32 @@
   ])
 }
 
-#let d_loesungen(pages:false) = [
+#let d_loesungen(pages: false) = [
   #pagebreak()
   = Lösungen <loesungen>
   #__foreach_aufg(
     final: true,
-    filter: a=>a.loesung.len() > 0,
+    filter: a => a.loesung.len() > 0,
     (i, aufg, count) => [
       #block(
         inset: (top: 1mm),
         width: 100%,
       )[
-        == #link(
-          label("aufgabe-" + str(aufg.nummer)),
-          [#box(move(dy:0.05em, fa-circle-chevron-left(size: 1em, fill: black))) #d_aufg(nr: aufg.nummer) ],
-        ) #label("loesung-" + str(aufg.nummer))
+        #context [
+          #let print = __s_print.get()
+          #if not print [
+            == #link(
+            label("aufgabe-" + str(aufg.nummer)),
+            [#box(move(dy:0.05em, fa-circle-chevron-left(size: 1em, fill: black))) #d_aufg(nr: aufg.nummer) ],
+          ) #label("loesung-" + str(aufg.nummer))
+          ]
+        ]
         #__d_loesung(aufg)
       ]
       #if pages and i < count - 1 [
         #pagebreak()
       ]
     ],
-    
   )
 ]
 
@@ -263,16 +265,12 @@
 ) = {
   if use {
     __c_aufgaben.step()
-    __akt_aufgnr(
-      n => {
-        __s_aufgaben.update(
-          a => {
-            a.push((nummer: n, title: title, teile: 0, loesung: (), erwartungen: ()))
-            a
-          },
-        )
-      },
-    )
+    __akt_aufgnr(n => {
+      __s_aufgaben.update(a => {
+        a.push((nummer: n, title: title, teile: 0, loesung: (), erwartungen: ()))
+        a
+      })
+    })
     let ic = none
     if method == "EA" {
       icons.push(fa-user-large())
@@ -289,45 +287,60 @@
     if icons.len() != 0 {
       ic = marginnote(dy: -0.05em)[#text(size: 0.88em)[#icons.join()]]
     }
-    if page { pagebreak() }
+    if page {
+      pagebreak()
+    }
     if header [
-      #__akt_aufgnr(
-        n => [
-          #heading(
-            level: { if large { 1 } else { 2 } },
-            [#ic#if number [#d_aufg()] #if (number and title != none) [$-$] #if title != none [#title]#h(1fr)
-              #options.get(
-                "loesungen",
-                value => {
-                  if value == "seite" or value == "seiten" [
-										#if query(label("loesung-"+str(n))).len() > 0 {
-                    link(label("loesung-"+str(n)),fa-circle-check(fa-set: "Free Solid", size: 1em, fill: black)) }
-                  ]
-                },
-              )
-              #punkte(func: p=>if p > 0 { text(fill: black, size: 0.88em)[#d_punkte(p)] }) <aufgabe>],
-          )
-					#label("aufgabe-" + str(n))
-				]
-      )
+      #__akt_aufgnr(n => [
+        #heading(
+          level: {
+            if large {
+              1
+            } else {
+              2
+            }
+          },
+          [#ic#if number [#d_aufg()] #if (number and title != none) [$-$] #if title != none [#title]#h(1fr)
+            #options.get(
+              "loesungen",
+              value => {
+                if value == "seite" or value == "seiten" [
+                  #if query(label("loesung-" + str(n))).len() > 0 {
+                    link(label("loesung-" + str(n)), fa-circle-check(fa-set: "Free Solid", size: 1em, fill: black))
+                  }
+                ]
+              },
+            )
+            #punkte(func: p => if p > 0 {
+              text(fill: black, size: 0.88em)[#d_punkte(p)]
+            }) <aufgabe>],
+        )
+        #label("aufgabe-" + str(n))
+      ])
     ]
     // if type(icons) != none {
     //   icons = (icons,).flatten()
     //   marginnote(dy:-1.5em)[#icons.join()]
     // }
     body
-    options.get("loesungen", value => {
-      if value == "folgend" [
-        #d_loesung()
-      ]
-    })
-    options.get("workspaces", value => {
-      if value == "true" {
-        if workspace != none {
-          d_workspace(workspace)
+    options.get(
+      "loesungen",
+      value => {
+        if value == "folgend" [
+          #d_loesung()
+        ]
+      },
+    )
+    options.get(
+      "workspaces",
+      value => {
+        if value == "true" {
+          if workspace != none {
+            d_workspace(workspace)
+          }
         }
-      }
-    })
+      },
+    )
   }
 }
 
@@ -354,16 +367,26 @@
         start: taufg,
         tight: false,
         spacing: auto,
-        body + [<teilaufgabe>] + [ #options.get("workspaces", value => {
-            if value == "true" {
-              if workspace != none {
-                d_workspace(workspace)
+        body + [<teilaufgabe>] + [ #options.get(
+            "workspaces",
+            value => {
+              if value == "true" {
+                if workspace != none {
+                  d_workspace(workspace)
+                }
               }
-            }
-          }) ] + [#h(1fr)#place(dy: 0cm, dx: 7mm, top + right, sub-punkte(
-            subnr: taufg,
-            func: p=>if p > 0 { text(fill: black, size: 0.88em)[(#p)] },
-          ))],
+            },
+          ) ] + [#h(1fr)#place(
+            dy: 0cm,
+            dx: 7mm,
+            top + right,
+            sub-punkte(
+              subnr: taufg,
+              func: p => if p > 0 {
+                text(fill: black, size: 0.88em)[(#p)]
+              },
+            ),
+          )],
       )
     })
     __s_in_teilaufgabe.update(false)
@@ -404,12 +427,12 @@
   locate(loc => {
     let n = aufg
     if n == none {
-      n = __akt_aufgnr(v=>v, loc: loc)
+      n = __akt_aufgnr(v => v, loc: loc)
     }
     let t = teil
     if t == none {
       if __s_in_teilaufgabe.at(loc) {
-        t = __akt_taufgnr(v=>v, loc: loc)
+        t = __akt_taufgnr(v => v, loc: loc)
       } else {
         t = 0
       }
