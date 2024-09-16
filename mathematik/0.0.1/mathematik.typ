@@ -137,7 +137,7 @@
     ])
   }
 
-  table(
+  tablex(
     stroke: none,
     columns: (1fr,) * row-amount,
     column-gutter: gutter,
