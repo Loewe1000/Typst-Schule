@@ -8,7 +8,8 @@
   items-spacing: 2,
   grid-size: 0.5cm,
   height: none,
-  line-stroke: (paint: black.lighten(50%), thickness: 0.5pt),
+  line-stroke: (paint: rgb("#AAAAAA").lighten(10%), dash: "solid", thickness: 0.5pt),
+  fill-color: white,
 ) = {
   layout(size => {
     let autoheight
@@ -27,11 +28,11 @@
       set-style(stroke: line-stroke)
 
       if width != auto {
+        rect((0, 0), (width, autoheight), ..if fill-color != none {(fill: fill-color)})
         grid((0, 0), (width, autoheight))
-        rect((0, 0), (width, autoheight))
       } else {
+        rect((0, 0), (calc.round((size.width / grid-size)), autoheight), ..if fill-color != none {(fill: fill-color)})
         grid((0, 0), (calc.round((size.width / grid-size)), autoheight))
-        rect((0, 0), (calc.round((size.width / grid-size)), autoheight))
       }
 
       if items.len() != 0 {
