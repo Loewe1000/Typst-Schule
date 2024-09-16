@@ -12,6 +12,8 @@
 #import "@preview/tablex:0.0.8": *
 #import "@preview/unify:0.6.0": *
 
+#let print-state = state("print", false)
+
 #let header(title: none, class: none, font-size: 16pt) = {
   text(font-size, font: "Myriad Pro", weight: "semibold")[#title]
   h(1fr)
@@ -63,7 +65,9 @@
   show math.equation: set text(font: "Fira Math")
   show math.equation: it => {
     show regex("\d+\.\d+"): it => {
-      show ".": { "," + h(0pt) }
+      show ".": {
+        "," + h(0pt)
+      }
       it
     }
     it
@@ -72,7 +76,9 @@
   // Set page properties
   set page(
     paper: paper,
-    ..if not print { (height: auto) },
+    ..if not print {
+      (height: auto)
+    },
     flipped: landscape,
     header-ascent: header-ascent,
     margin: if print {
@@ -103,9 +109,19 @@
 
   options.parseconfig(
     loesungen: loesungen,
-    print: if print { "true" } else { "false" },
-    workspaces: if workspaces { "true" } else { "false" },
+    print: if print {
+      "true"
+    } else {
+      "false"
+    },
+    workspaces: if workspaces {
+      "true"
+    } else {
+      "false"
+    },
   )
+
+  print-state.update(_ => {print})
 
   // font-size for aufgaben, large and small
   show heading.where(level: 1): it => block[
@@ -122,19 +138,24 @@
   // Setting captions and numberings for figures
   set figure(numbering: "1")
 
-  show figure: it => align(
-    center,
-  )[
+  show figure: it => align(center)[
     #it.body
     #v(10pt, weak: true)
-    #text(size: 9pt, [
-      #grid(
-        columns: 2,
-        column-gutter: if it.numbering != none { 4pt } else { 0pt },
-        [#if it.numbering != none [*M#it.counter.display(it.numbering)*:] ],
-        [#if it.caption != none [#align(left, it.caption.body)]],
-      )
-    ])
+    #text(
+      size: 9pt,
+      [
+        #grid(
+          columns: 2,
+          column-gutter: if it.numbering != none {
+            4pt
+          } else {
+            0pt
+          },
+          [#if it.numbering != none [*M#it.counter.display(it.numbering)*:] ],
+          [#if it.caption != none [#align(left, it.caption.body)]],
+        )
+      ],
+    )
   ]
 
   show ref: it => {
@@ -167,26 +188,42 @@
     ..args,
     {
       import draw: *
-      set-style(
-        axes: (
-          tick: (offset: −50%, minor-offset: -50%, minor-length: 50%),
-          grid: (
-            stroke: (paint: rgb("#AAAAAA").lighten(10%), dash: "solid", thickness: 0.5pt),
-            fill: none,
-          ),
-          minor-grid: (
-            stroke: (paint: rgb("#AAAAAA").lighten(10%), dash: "solid", thickness: 0.5pt),
-            fill: none,
-          ),
-          mark: (end: ">"),
-          x: (label: (anchor: "south-east", offset: -0.2)),
-          y: (label: (anchor: "north-west", offset: -0.2)),
-          overshoot: 4.17pt,
+      set-style(axes: (
+        tick: (offset: -50%, minor-offset: -25%, minor-length: 100%),
+        grid: (
+          stroke: (paint: rgb("#AAAAAA").lighten(10%), dash: "solid", thickness: 0.5pt),
+          fill: none,
         ),
-      )
+        minor-grid: (
+          stroke: (paint: rgb("#AAAAAA").lighten(10%), dash: "solid", thickness: 0.5pt),
+          fill: none,
+        ),
+        mark: (end: "straight"),
+        x: (label: (anchor: "south-east", offset: -0.2)),
+        y: (label: (anchor: "north-west", offset: -0.2)),
+        overshoot: 8pt,
+      ))
       body
     },
   )
+}
+
+#let print-pagebreak() = {
+  context {
+    let print = print-state.get()
+    if print {
+      pagebreak()
+    }
+  }
+}
+
+#let non-print-pagebreak() = {
+  context {
+    let print = print-state.get()
+    if not print {
+      pagebreak()
+    }
+  }
 }
 
 /// Splits text into multiple columns
@@ -213,10 +250,16 @@
 #let qrbox(url, name, width: 3cm, ..args) = {
   stickybox(width: width, ..args)[
     #qr-code(url, width: width - 0.5cm, background: rgb(255, 255, 255, 0))
-    #align(center, text(size: 8pt, [
-      #v(-1em)
-      #icon-link(url, name)
-    ]))
+    #align(
+      center,
+      text(
+        size: 8pt,
+        [
+          #v(-1em)
+          #icon-link(url, name)
+        ],
+      ),
+    )
   ]
 }
 
