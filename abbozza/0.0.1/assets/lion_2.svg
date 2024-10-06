@@ -1,0 +1,18 @@
+<svg viewBox="-100 -200 200 400" xmlns="http://www.w3.org/2000/svg">
+
+    <g id="lion" transform="translate(6,3)">
+      <path d="M 28 10 l 0 -16 l -10 -5 l 0 16 z" stroke-width="0" stroke="darkgoldenrod" fill="darkgoldenrod"/>
+      <path d="M 0 24 l 20 -10 l 0 -16 l 8 -4 l 0 16 l 20 -10 l 0 -48 l -48 24 z" stroke-width="0" stroke="goldenrod" fill="goldenrod"/>
+      <path d="M 0 -24 l -48 -24 l 48 -24 l 48 24" stroke-width="0" stroke="gold" fill="gold"/>
+      <path d="M -28 10 l 0 -16 l 10 -5 l 0 16 z" stroke="goldenrod" fill="goldenrod" stroke-width="0"/>
+      <path d="M 0 24 l -20 -10 l 0 -16 l -8 -4 l 0 16 l -20 -10 l 0 -48 l 48 24 z" stroke="darkgoldenrod" fill="darkgoldenrod" stroke-width="0"/>
+      <path d="M -64 -20 l 32 16 l 8 -4 l 0 -29 l 48 -24 l 0 24 l 8 -4 l 0 -43 l -32 -16 l -64 32 l 0 48 z" stroke="saddlebrown" fill="sienna" stroke-width="1"/>
+      <path d="M -32 -4 l 0 -48 l -32 -16 l 32 16 l 64 -32" stroke="saddlebrown" fill="transparent" stroke-width="1"/>
+      <path d="M 0 -24 l -24 -12 l 48 -24 l 24 12" stroke-width="0" stroke="gold" fill="gold"/>
+      <path d="M 24 -25 l 0 16" stroke-width="10" stroke-linecap="round" stroke="darkgoldenrod"/>
+      <path d="M 25 -24 l 0 16" stroke-width="10" stroke-linecap="round" stroke="gold"/>
+      <path d="M 24 -6 l 0 4" stroke-width="12" stroke-linecap="round" stroke="saddlebrown"/>
+      <path d="M 25 -6 l 0 4" stroke-width="12" stroke-linecap="round" stroke="sienna"/>
+    </g>
+  
+  </svg>

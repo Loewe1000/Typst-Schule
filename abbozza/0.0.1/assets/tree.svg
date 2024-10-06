@@ -1,0 +1,48 @@
+<svg viewBox="-80 -160 160 320" xmlns="http://www.w3.org/2000/svg">
+
+    <g id="tree" transform="scale(1,1)">
+      
+      <!-- trunk -->
+      <g>
+        <path 
+            d="M 0 8 l 16 -8 l 0 -24 l -16 -8 l -16 8 l 0 24 z"
+            fill="sienna" stroke="saddlebrown"
+            stroke-width="2" stroke-linejoin="round" stroke-cap="round"
+        />
+        <path 
+            d="M -16 -24 l 16 8 l 16 -8"
+            fill="sienna" stroke="saddlebrown"
+            stroke-width="2" stroke-linejoin="round" stroke-cap="round"
+        />
+        <path 
+            d="M 0 -16 l 0 24"
+            fill="sienna" stroke="saddlebrown"
+            stroke-width="2" stroke-linejoin="round" stroke-cap="round"
+        />
+      </g>
+  
+      <!-- treetop -->
+      <g>
+        <path 
+            d="M 0 -12 l 48 -24 l 0 -48 l -48 -24 l -48 24 l 0 48 z"
+            fill="forestgreen" stroke="darkgreen"
+            stroke-width="2" stroke-linejoin="round" stroke-cap="round"
+        />
+        <path 
+            d="M 0 -60 l 48 -24"
+            fill="forestgreen" stroke="darkgreen"
+            stroke-width="2" stroke-linejoin="round" stroke-cap="round"
+        />
+        <path 
+            d="M 0 -60 l -48 -24"
+            fill="forestgreen" stroke="darkgreen"
+            stroke-width="2" stroke-linejoin="round" stroke-cap="round"
+        />
+        <path 
+            d="M 0 -60 l 0 48"
+            fill="forestgreen" stroke="darkgreen"
+            stroke-width="2" stroke-linejoin="round" stroke-cap="round"
+        />
+      </g>
+    </g>
+  </svg>

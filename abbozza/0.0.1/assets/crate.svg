@@ -1,0 +1,62 @@
+<svg viewBox="-80 -160 160 320" xmlns="http://www.w3.org/2000/svg">
+    <g id="tree" transform="scale(1,1)">
+      <g transform="translate(0,0)">
+        <path 
+            d="M 0 16 l 32 -16 l 0 -32 l -32 -16 l -32 16 l 0 32 z"
+            fill="tan" stroke="sienna"
+            stroke-width="2" stroke-linejoin="round" stroke-cap="round"
+        />
+        <path 
+            d="M 0 -16 l 32 -16"
+            fill="forestgreen" stroke="sienna"
+            stroke-width="2" stroke-linejoin="round" stroke-cap="round"
+        />
+        <path 
+            d="M 0 -16 l -32 -16"
+            fill="forestgreen" stroke="sienna"
+            stroke-width="2" stroke-linejoin="round" stroke-cap="round"
+        />
+        <path 
+            d="M 0 -16 l 0 32"
+            fill="forestgreen" stroke="sienna"
+            stroke-width="2" stroke-linejoin="round" stroke-cap="round"
+        />
+        <path 
+            d="M -4 -14 l 0 24 l -24 -12 l 0 -24 z "
+            fill="transparent" stroke="sienna"
+            stroke-width="1" stroke-linejoin="round" stroke-cap="round"
+        />
+        <path 
+            d="M 4 -14 l 0 24 l 24 -12 l 0 -24 z "
+            fill="transparent" stroke="sienna"
+            stroke-width="1" stroke-linejoin="round" stroke-cap="round"
+        />
+        <path 
+            d="M 0 -44.5 l 25 12.5 l -25 12.5 l -25 -12.5 z "
+            fill="sienna" stroke="sienna" 
+            stroke-width="1" stroke-linejoin="round" stroke-cap="round"
+        />
+        <path 
+            d="M 0 -44.5 l 0 25"
+            fill="sienna" stroke="black" 
+            stroke-width="1" stroke-linejoin="round" stroke-cap="round"
+        />
+        <path 
+            d="M -6 9 l -22 -32 l 0 -3 l 3 1.5 l 21 32 l 0 3 z"
+            fill="tan" stroke="sienna" 
+            stroke-width="1" stroke-linejoin="round" stroke-cap="round"
+        />
+        <path 
+            d="M -6 9 l -22 -32 l 0 -3 l 3 1.5 l 21 32 l 0 3 z"
+            fill="tan" stroke="sienna" 
+            stroke-width="1" stroke-linejoin="round" stroke-cap="round"
+            transform="scale(-1,1)"
+        />
+      </g>
+      <g transform="rotate(-10,0,-10) translate(15,0)">
+        <rect x="-32" y="-16" width="64" height="28" stroke="sienna" fill="sienna"/>
+        <rect x="-30" y="-14" width="60" height="24" stroke="white" fill="white"/>
+        <text id="counter" x="0" y="-1" dominant-baseline="middle" baseline-shift="-1" text-anchor="middle" font-size="24px" font-family="sans">9999</text>
+      </g>
+    </g>
+  </svg>

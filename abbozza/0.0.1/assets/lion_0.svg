@@ -1,0 +1,25 @@
+<svg viewBox="-100 -200 200 400"
+    xmlns="http://www.w3.org/2000/svg">
+
+    <g id="lion" transform="translate(-6,-3)">
+        <path d="M 0 -24 l -48 -24 l 48 -24 l 48 24" stroke-width="0" stroke="gold" fill="gold"/>
+        <path d="M 28 10 l 0 -16 l -10 -5 l 0 16 z" stroke-width="0" stroke="darkgoldenrod" fill="darkgoldenrod"/>
+        <path d="M 0 24 l 20 -10 l 0 -16 l 8 -4 l 0 16 l 20 -10 l 0 -48 l -48 24 z" stroke-width="0" stroke="goldenrod" fill="goldenrod"/>
+        <path d="M -28 10 l 0 -16 l 10 -5 l 0 16 z" stroke="goldenrod" fill="goldenrod" stroke-width="0"/>
+        <path d="M 0 24 l -20 -10 l 0 -16 l -8 -4 l 0 16 l -20 -10 l 0 -48 l 48 24 z" stroke="darkgoldenrod" fill="darkgoldenrod" stroke-width="0"/>
+        <path d="M -24 0 l 32 16 l 56 -28 l 0 -56 l -32 -16 l -56 28 z" stroke="saddlebrown" fill="sienna" stroke-width="1"/>
+        <path d="M 8 16 l 0 -56 l 56 -28" stroke="saddlebrown" fill="sienna" stroke-width="1"/>
+        <path d="M 8 -40 l -32 -16" stroke="saddlebrown" fill="sienna" stroke-width="1"/>
+        <path d="M 16 -36 l 42 -21 l 0 32 l -42 21 z" stroke="goldenrod" fill="goldenrod" stroke-width="0"/>
+        <g transform="skewY(-26.5)">
+            <circle cx="26" cy="-20" r="4" fill="white"/>
+            <circle cx="26" cy="-18" r="2" fill="black"/>
+            <circle cx="48" cy="-20" r="4" fill="white"/>
+            <circle cx="48" cy="-18" r="2" fill="black"/>
+        </g>
+        <path d="M 30 -30 l 16 -8 l 6 12 l -8 4 z" stroke-width="0" stroke="gold" fill="gold"/>
+        <path d="M 30 -30 l 14 8 l 0 8 l -14 0 z" stroke-width="0" stroke="darkgoldenrod" fill="darkgoldenrod"/>
+        <path d="M 44 -22 l 8 -4  l 0 8 l -8 4 z" stroke-width="0" stroke="black" fill="black"/>
+    </g>
+
+</svg>
