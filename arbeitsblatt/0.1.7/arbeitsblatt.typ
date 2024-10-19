@@ -35,6 +35,7 @@
 /// - class (string): Desired class ex. IF-11.
 /// - paper (string): Page size.
 /// - print (boolean): Difffernt margins for printing.
+/// - equal-margins (boolean): A document for used in printing but not intended for attaching in a physical folder
 /// - font-size (length): Document font size.
 /// - title-font-size (length): title font size.
 /// - landscape (boolean): Page orientation.
@@ -48,6 +49,7 @@
   class: "",
   paper: "a4",
   print: false,
+  equal-margins: false,
   duplex: true,
   workspaces: false,
   font-size: 12pt,
@@ -91,7 +93,11 @@
         if duplex {
           (top: 2.2cm, inside: 2.25cm, outside: 1.25cm, bottom: 1cm)
         } else {
-          (top: 2.2cm, left: 2.25cm, right: 1.25cm, bottom: 1cm)
+          if equal-margins {
+            (top: 2.2cm, x: 1.75cm, bottom: 1.75cm)
+          } else {
+            (top: 2.2cm, left: 2.25cm, right: 1.25cm, bottom: 1cm)
+          }
         }
       }
     } else {
@@ -124,7 +130,9 @@
     },
   )
 
-  print-state.update(_ => {print})
+  print-state.update(_ => {
+    print
+  })
 
   // font-size for aufgaben, large and small
   show heading.where(level: 1): it => block[
@@ -173,7 +181,7 @@
   }
 
   show: codly-init.with()
-  codly(display-name: false)  
+  codly(display-name: false)
   set raw(syntaxes: "processing.sublime-syntax")
 
   body
