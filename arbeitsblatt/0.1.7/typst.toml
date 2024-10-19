@@ -3,3 +3,4 @@ name = "arbeitsblatt"
 version = "0.1.7"
 entrypoint = "arbeitsblatt.typ"
 exclude = ["/assets/*", "*.pdf", "example.typ"]
+compiler = "0.12"
