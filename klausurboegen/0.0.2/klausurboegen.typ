@@ -74,7 +74,7 @@
               [#if not result [#text(14pt, weight: "semibold")[Name:]]],
               ..if not result {([],)},
               [#text(14pt, weight: "semibold")[
-                #if sub [#hide[Ergebnis:]] else [#if not result [Ergebnis:]]
+                #if not sub [#if not result [Ergebnis:]]
               ]],if not result {table.hline(stroke: 0.5pt+gray)},
               [#if result and not sub [#note-content] ]
             )
