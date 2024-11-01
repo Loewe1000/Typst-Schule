@@ -20,7 +20,6 @@
 
     context [
       #let operatoren = operatoren-state.final().map(op => lower(op))
-      #v(1fr)
       #label("-def")
       = Operatorenliste
       #set text(10pt, hyphenate: false)
