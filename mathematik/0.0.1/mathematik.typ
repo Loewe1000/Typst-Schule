@@ -1,6 +1,6 @@
 #import "@preview/tablex:0.0.7": *
 #import "@schule/random:0.0.1": *
-#import "@schule/aufgaben:0.0.3": teilaufgabe, loesung
+#import "@schule/aufgaben:0.0.4": teilaufgabe, loesung
 
 #let fkt-plot(
   term,
