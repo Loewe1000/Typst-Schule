@@ -24,9 +24,7 @@
             text(12pt, weight: "regular")[#subtitle],
           )],
         cellx(align: right + horizon)[#text(11pt, weight: "regular")[#date]],
-        cellx(
-          align: right + horizon,
-        )[#text(11pt, weight: "regular")[#class - #teacher]],
+        cellx(align: right + horizon)[#text(11pt, weight: "regular")[#class - #teacher]],
       )
     } else {
       (
@@ -54,6 +52,7 @@
   table: (),
   stufe: false,
   loesungen: none,
+  info-table: true,
   erwartungen: false,
   punkte: "keine",
   bewertung: false,
@@ -73,7 +72,7 @@
     ]
   })
 
-  __s_punkte.update(punkte)
+  context __s_punkte.update(punkte)
 
   show: arbeitsblatt.with(
     title: title,
@@ -93,23 +92,36 @@
     ..args,
   )
 
-  text(14pt, weight: "semibold")[Name:#h(0.25em) #schueler] 
+  if info-table {
 
-  tablex(
-    columns: (auto, 1fr),
-    align: left,
-    auto-lines: false,
-    inset: 6pt,
-    stroke: 0.5pt,
-    hlinex(),
-    ..if table.len() > 0 {
-      range(0, table.len()).map(key => ((cellx(
-        inset: (left: 0pt, top: 6pt, bottom: 6pt, right: 6pt),
-        [*#{ table.at(key).at(0) }:*],
-      ), [#{ table.at(key).at(1) }]))).flatten()
-    },
-    hlinex(),
-  )
+    text(14pt, weight: "semibold")[Name:#h(0.25em) #schueler]
+
+    tablex(
+      columns: (auto, 1fr),
+      align: left,
+      auto-lines: false,
+      inset: 6pt,
+      stroke: 0.5pt,
+      hlinex(),
+      ..if table.len() > 0 {
+        range(0, table.len())
+          .map(key => (
+              (
+                cellx(
+                  inset: (left: 0pt, top: 6pt, bottom: 6pt, right: 6pt),
+                  [*#{ table.at(key).at(0) }:*],
+                ),
+                [#{
+                    table.at(key).at(1)
+                  }],
+              )
+            ))
+          .flatten()
+      },
+      hlinex(),
+    )
+
+  }
 
   body
   if bewertung == true {
@@ -136,9 +148,19 @@
         teacher: teacher,
         class: class,
         date: date,
-        sek1: if stufe == "II" { false } else if stufe == "I" { true },
-        result: if ergebnisse != none { true } else { false },
-        ..if ergebnisse != none { (students: ergebnisse) },
+        sek1: if stufe == "II" {
+          false
+        } else if stufe == "I" {
+          true
+        },
+        result: if ergebnisse != none {
+          true
+        } else {
+          false
+        },
+        ..if ergebnisse != none {
+          (students: ergebnisse)
+        },
         ..klausurboegen-settings,
       )
     }
