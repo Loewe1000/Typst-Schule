@@ -312,7 +312,7 @@
                 ]
               },
             )
-            #punkte(func: p => if p > 0 and __s_punkte.get() in ("aufgaben", "alle") {
+            #context punkte(func: p => if p > 0 and __s_punkte.get() in ("aufgaben", "alle") {
               text(fill: black, size: 0.88em)[#d_punkte(p)]
             }) <aufgabe>],
         )
@@ -345,7 +345,7 @@
   }
 }
 
-#let teilaufgabe(use: true, numb: "a)", workspace: none, body) = {
+#let teilaufgabe(use: true, numb: "a)", workspace: none, lbl: none, body) = {
   if use {
     __c_aufgaben.step(level: 2)
     __s_in_teilaufgabe.update(true)
@@ -381,14 +381,14 @@
             dy: 0cm,
             dx: 7mm,
             top + right,
-            sub-punkte(
+            context sub-punkte(
               subnr: taufg,
               func: p => if p > 0 and __s_punkte.get() in ("alle", "teilaufgaben") {
                 text(fill: black, size: 0.88em)[(#p)]
               },
             ),
           )],
-      )
+      ); if lbl != none { label(lbl)}
     })
     __s_in_teilaufgabe.update(false)
   }

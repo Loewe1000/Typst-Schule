@@ -1,4 +1,4 @@
-#import "@schule/arbeitsblatt:0.1.6": *
+#import "@schule/arbeitsblatt:0.1.9": *
 #import "./bewertung.typ": *
 
 #let header(title: "", subtitle: "", class: "", date: "", teacher: "", logo: []) = {

@@ -1,6 +1,6 @@
 
 #import "@preview/tablex:0.0.8": *
-#import "@schule/patterns:0.0.1": *
+#import "@schule/patterns:0.0.1": kariert
 
 #let klausurbögen(
   exam: "",
