@@ -17,18 +17,6 @@
 
 #let print-state = state("print", false)
 
-#let header(title: none, class: none, font-size: 16pt) = {
-  text(font-size, font: "Myriad Pro", weight: "semibold")[#title]
-  h(1fr)
-  text(
-    font-size,
-    font: "Myriad Pro",
-    weight: "semibold",
-    fill: luma(130),
-  )[#class]
-  move(dy: -.4em, line(length: 100%, stroke: 0.5pt + luma(200)))
-}
-
 /// Creates a new arbeitsblatt
 ///
 /// - title (string): Title of the document.
@@ -76,6 +64,18 @@
       it
     }
     it
+  }
+
+  let header(title: none, class: none, font-size: 16pt) = {
+    text(font-size, font: "Myriad Pro", weight: "semibold")[#title]
+    h(1fr)
+    text(
+      font-size,
+      font: "Myriad Pro",
+      weight: "semibold",
+      fill: luma(130),
+    )[#class]
+    move(dy: -.4em, line(length: 100%, stroke: 0.5pt + luma(200)))
   }
 
   // Set page properties
@@ -162,8 +162,8 @@
           } else {
             0pt
           },
-          [#if it.numbering != none [*M#it.counter.display(it.numbering)*:] ],
-          [#if it.caption != none [#align(left, it.caption.body)]],
+          align: top,
+          [#if it.numbering != none [*M#counter("aufgaben").get().at(0).#counter(figure).display()*:] ], [#if it.caption != none [#align(left, it.caption.body)]],
         )
       ],
     )
@@ -173,7 +173,7 @@
     let el = it.element
     if el != none and el.func() == figure {
       // Override figure references.
-      [*M#numbering(el.numbering, ..counter(figure).at(el.location()))*]
+      [*M#counter("aufgaben").get().at(0).#numbering(el.numbering, ..counter(figure).at(el.location()))*]
     } else {
       // Other references as usual.
       it
