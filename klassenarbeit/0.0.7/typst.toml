@@ -1,0 +1,4 @@
+[package]
+name = "klassenarbeit"
+version = "0.0.7"
+entrypoint = "klassenarbeit.typ"

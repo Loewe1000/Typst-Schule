@@ -1,21 +1,21 @@
-angeben,Für die Angabe bzw. Nennung ist keine Begründung notwendig.
-nennen,Für die Angabe bzw. Nennung ist keine Begründung notwendig.
-entscheiden,Für die Entscheidung ist keine Begründung notwendig.
-beurteilen,Das zu fällende Urteil ist zu begründen.
-beschreiben,Bei einer Beschreibung kommt einer sprachlich angemessenen Formulierung und ggf. einer korrekten Verwendung der Fachsprache besondere Bedeutung zu. Eine Begründung für die Beschreibung ist nicht notwendig.
-erläutern,"Die Erläuterung liefert Informationen, mithilfe derer sich z. B. das Zustandekommen einer grafischen Darstellung oder ein mathematisches Vorgehen nachvollziehen lassen."
-deuten,"Die Deutung bzw. Interpretation stellt einen Zusammenhang her z. B. zwischen einer grafischen Darstellung, einem Term oder dem Ergebnis einer Rechnung und einem vorgegebenen Sachzusammenhang."
-interpretieren,"Die Deutung bzw. Interpretation stellt einen Zusammenhang her z. B. zwischen einer grafischen Darstellung, einem Term oder dem Ergebnis einer Rechnung und einem vorgegebenen Sachzusammenhang."
-begründen,Aussagen oder Sachverhalte sind durch logisches Schließen zu bestätigen. Die Art des Vorgehens kann – sofern nicht durch einen Zusatz anders angegeben – frei gewählt werden (z. B. Anwenden rechnerischer oder grafischer Verfahren). Das Vorgehen ist darzustellen.
-nachweisen,Aussagen oder Sachverhalte sind durch logisches Schließen zu bestätigen. Die Art des Vorgehens kann – sofern nicht durch einen Zusatz anders angegeben – frei gewählt werden (z. B. Anwenden rechnerischer oder grafischer Verfahren). Das Vorgehen ist darzustellen.
-zeigen,Aussagen oder Sachverhalte sind durch logisches Schließen zu bestätigen. Die Art des Vorgehens kann – sofern nicht durch einen Zusatz anders angegeben – frei gewählt werden (z. B. Anwenden rechnerischer oder grafischer Verfahren). Das Vorgehen ist darzustellen.
-herleiten,Aus bekannten Sachverhalten oder Aussagen muss nach gültigen Schlussregeln mit Berechnungen oder logischen Begründungen die Entstehung eines neuen Sachverhaltes dargelegt werden. In einer mehrstufigen Argumentationskette können Zwischenschritte mit digitalen Mathematikwerkzeugen durchgeführt werden – sofern nicht durch einen Zusatz anders angegeben.
-berechnen,"Die Berechnung ist ausgehend von einem Ansatz darzustellen. Für die Berechnung der Extrempunkte einer Funktion f ist es beispielsweise nicht zulässig, diese direkt aus dem Graphen von f abzulesen."
-bestimmen,Ein möglicher Lösungsweg muss dargestellt und das Ergebnis formuliert werden. Die Art des Vorgehens kann – sofern nicht durch einen Zusatz anders angegeben – frei gewählt werden (z. B. Anwenden rechnerischer oder grafischer Verfahren). Das Vorgehen ist darzustellen.
-ermitteln,Ein möglicher Lösungsweg muss dargestellt und das Ergebnis formuliert werden. Die Art des Vorgehens kann – sofern nicht durch einen Zusatz anders angegeben – frei gewählt werden (z. B. Anwenden rechnerischer oder grafischer Verfahren). Das Vorgehen ist darzustellen.
-klassifizieren,Eine Menge von Objekten muss nach vorgegebenen oder selbstständig zu wählenden Kriterien in Klassen eingeteilt werden. Eine Begründung der vorgegebenen bzw. selbstgewählten Kriterien wird ggf. gesondert gefordert.
-vergleichen,"Sachverhalte, Objekte oder Verfahren müssen gegenübergestellt und Gemeinsamkeiten, Ähnlichkeiten und Unterschiede müssen festgestellt werden. Ggf. müssen Vergleichskriterien festgelegt werden. Eine Bewertung wird ggf. gesondert gefordert."
-untersuchen,"Eigenschaften von oder Beziehungen zwischen Objekten müssen herausgefunden und dargelegt werden. Je nach Sachverhalt kann zum Beispiel ein Strukturieren, Ordnen oder Klassifizieren notwendig sein. Die Art des Vorgehens kann – sofern nicht durch einen Zusatz anders angegeben – frei gewählt werden (z. B. Anwenden rechnerischer oder grafischer Verfahren). Das Vorgehen ist darzustellen."
-grafisch darstellen,Die grafische Darstellung bzw. Zeichnung ist möglichst genau anzufertigen.
-zeichnen,Die grafische Darstellung bzw. Zeichnung ist möglichst genau anzufertigen.
-skizzieren,"Die Skizze ist so anzufertigen, dass sie das im betrachteten Zusammenhang Wesentliche grafisch beschreibt."
+angeben;Für die Angabe bzw. Nennung ist keine Begründung notwendig.
+nennen;Für die Angabe bzw. Nennung ist keine Begründung notwendig.
+entscheiden;Für die Entscheidung ist keine Begründung notwendig.
+beurteilen;Das zu fällende Urteil ist zu begründen.
+beschreiben;Bei einer Beschreibung kommt einer sprachlich angemessenen Formulierung und ggf. einer korrekten Verwendung der Fachsprache besondere Bedeutung zu. Eine Begründung für die Beschreibung ist nicht notwendig.
+erläutern;"Die Erläuterung liefert Informationen; mithilfe derer sich z. B. das Zustandekommen einer grafischen Darstellung oder ein mathematisches Vorgehen nachvollziehen lassen."
+deuten;"Die Deutung bzw. Interpretation stellt einen Zusammenhang her z. B. zwischen einer grafischen Darstellung; einem Term oder dem Ergebnis einer Rechnung und einem vorgegebenen Sachzusammenhang."
+interpretieren;"Die Deutung bzw. Interpretation stellt einen Zusammenhang her z. B. zwischen einer grafischen Darstellung; einem Term oder dem Ergebnis einer Rechnung und einem vorgegebenen Sachzusammenhang."
+begründen;Aussagen oder Sachverhalte sind durch logisches Schließen zu bestätigen. Die Art des Vorgehens kann – sofern nicht durch einen Zusatz anders angegeben – frei gewählt werden (z. B. Anwenden rechnerischer oder grafischer Verfahren). Das Vorgehen ist darzustellen.
+nachweisen;Aussagen oder Sachverhalte sind durch logisches Schließen zu bestätigen. Die Art des Vorgehens kann – sofern nicht durch einen Zusatz anders angegeben – frei gewählt werden (z. B. Anwenden rechnerischer oder grafischer Verfahren). Das Vorgehen ist darzustellen.
+zeigen;Aussagen oder Sachverhalte sind durch logisches Schließen zu bestätigen. Die Art des Vorgehens kann – sofern nicht durch einen Zusatz anders angegeben – frei gewählt werden (z. B. Anwenden rechnerischer oder grafischer Verfahren). Das Vorgehen ist darzustellen.
+herleiten;Aus bekannten Sachverhalten oder Aussagen muss nach gültigen Schlussregeln mit Berechnungen oder logischen Begründungen die Entstehung eines neuen Sachverhaltes dargelegt werden. In einer mehrstufigen Argumentationskette können Zwischenschritte mit digitalen Mathematikwerkzeugen durchgeführt werden – sofern nicht durch einen Zusatz anders angegeben.
+berechnen;"Die Berechnung ist ausgehend von einem Ansatz darzustellen. Für die Berechnung der Extrempunkte einer Funktion f ist es beispielsweise nicht zulässig; diese direkt aus dem Graphen von f abzulesen."
+bestimmen;Ein möglicher Lösungsweg muss dargestellt und das Ergebnis formuliert werden. Die Art des Vorgehens kann – sofern nicht durch einen Zusatz anders angegeben – frei gewählt werden (z. B. Anwenden rechnerischer oder grafischer Verfahren). Das Vorgehen ist darzustellen.
+ermitteln;Ein möglicher Lösungsweg muss dargestellt und das Ergebnis formuliert werden. Die Art des Vorgehens kann – sofern nicht durch einen Zusatz anders angegeben – frei gewählt werden (z. B. Anwenden rechnerischer oder grafischer Verfahren). Das Vorgehen ist darzustellen.
+klassifizieren;Eine Menge von Objekten muss nach vorgegebenen oder selbstständig zu wählenden Kriterien in Klassen eingeteilt werden. Eine Begründung der vorgegebenen bzw. selbstgewählten Kriterien wird ggf. gesondert gefordert.
+vergleichen;"Sachverhalte; Objekte oder Verfahren müssen gegenübergestellt und Gemeinsamkeiten; Ähnlichkeiten und Unterschiede müssen festgestellt werden. Ggf. müssen Vergleichskriterien festgelegt werden. Eine Bewertung wird ggf. gesondert gefordert."
+untersuchen;"Eigenschaften von oder Beziehungen zwischen Objekten müssen herausgefunden und dargelegt werden. Je nach Sachverhalt kann zum Beispiel ein Strukturieren; Ordnen oder Klassifizieren notwendig sein. Die Art des Vorgehens kann – sofern nicht durch einen Zusatz anders angegeben – frei gewählt werden (z. B. Anwenden rechnerischer oder grafischer Verfahren). Das Vorgehen ist darzustellen."
+grafisch darstellen;Die grafische Darstellung bzw. Zeichnung ist möglichst genau anzufertigen.
+zeichnen;Die grafische Darstellung bzw. Zeichnung ist möglichst genau anzufertigen.
+skizzieren;"Die Skizze ist so anzufertigen; dass sie das im betrachteten Zusammenhang Wesentliche grafisch beschreibt."

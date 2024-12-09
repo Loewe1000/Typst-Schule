@@ -1,5 +1,5 @@
 #import "@schule/typopst:0.0.1": *
-#import "@schule/aufgaben:0.0.3": *
+#import "@schule/aufgaben:0.0.4": *
 #import "@schule/random:0.0.1": *
 #import "@schule/insert-a-word:0.0.1": *
 #import "@schule/energy-sketch:0.0.1": *
@@ -10,33 +10,13 @@
 
 #import "@preview/cades:0.3.0": qr-code
 #import "@preview/cetz:0.3.1": *
+#import "@preview/cetz-plot:0.1.0": *
 #import "@preview/codly:1.0.0": *
 #import "@preview/colorful-boxes:1.3.1": *
 #import "@preview/tablex:0.0.8": *
 #import "@preview/unify:0.6.0": *
 
 #let print-state = state("print", false)
-
-#let header(title: none, class: none, font-size: 16pt, copyright: none) = {
-  text(font-size, font: "Myriad Pro", weight: "semibold")[#title]
-
-  h(1fr)
-
-  if copyright != none {
-    box(
-      qr-code(copyright, width: 0.9em, color: luma(130)),
-    )
-    h(0.5em)
-  }
-
-  text(
-    font-size,
-    font: "Myriad Pro",
-    weight: "semibold",
-    fill: luma(130),
-  )[#class]
-  move(dy: -.4em, line(length: 100%, stroke: 0.5pt + luma(200)))
-}
 
 /// Creates a new arbeitsblatt
 ///
@@ -68,7 +48,6 @@
   header-ascent: 20%,
   page-settings: (),
   loesungen: "false",
-  copyright: none,
   ..args,
   body,
 ) = {
@@ -88,11 +67,27 @@
     it
   }
 
+  let header(title: none, class: none, font-size: 16pt) = {
+    text(font-size, font: "Myriad Pro", weight: "semibold")[#title]
+    h(1fr)
+    text(
+      font-size,
+      font: "Myriad Pro",
+      weight: "semibold",
+      fill: luma(130),
+    )[#class]
+    move(dy: -.4em, line(length: 100%, stroke: 0.5pt + luma(200)))
+  }
+
   // Set page properties
   set page(
     paper: paper,
     ..if not print {
-      (height: auto)
+      if landscape {
+        (width: auto)
+      } else {
+        (height: auto)
+      }
     },
     flipped: landscape,
     header-ascent: header-ascent,
@@ -114,7 +109,7 @@
       (top: 2.2cm, x: 1.75cm, bottom: 1cm)
     },
     header: if custom-header == none {
-      header(title: title, class: class, font-size: title-font-size, copyright: copyright)
+      header(title: title, class: class, font-size: title-font-size)
     } else {
       custom-header
     },
@@ -172,8 +167,8 @@
           } else {
             0pt
           },
-          [#if it.numbering != none [*M#it.counter.display(it.numbering)*:] ],
-          [#if it.caption != none [#align(left, it.caption.body)]],
+          align: top,
+          [#if it.numbering != none [*M#counter("aufgaben").get().at(0).#counter(figure).display()*:] ], [#if it.caption != none [#align(left, it.caption.body)]],
         )
       ],
     )
@@ -183,7 +178,7 @@
     let el = it.element
     if el != none and el.func() == figure {
       // Override figure references.
-      [*M#numbering(el.numbering, ..counter(figure).at(el.location()))*]
+      [*M#counter("aufgaben").get().at(0).#numbering(el.numbering, ..counter(figure).at(el.location()))*]
     } else {
       // Other references as usual.
       it

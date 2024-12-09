@@ -7,12 +7,12 @@
     s.push(str(name))
     s
   })
-  [#if text == "" [#link(label("-def"), emph(name))] else [#link(label("-def"), emph(text))]]
+  [#if text == "" [#link(label("-def"), name)] else [#link(label("-def"), text)]]
 }
 
 #let operatoren-liste(fach: "Mathe") = [
   #context {
-    let operatoren-definitionen-array = csv(fach + ".csv")
+    let operatoren-definitionen-array = csv(fach + ".csv", delimiter: ";")
     let operatoren-definitionen = (:)
     for operator in operatoren-definitionen-array {
       operatoren-definitionen.insert(operator.at(0), operator.at(1))
@@ -20,7 +20,6 @@
 
     context [
       #let operatoren = operatoren-state.final().map(op => lower(op))
-      #v(1fr)
       #label("-def")
       = Operatorenliste
       #set text(10pt, hyphenate: false)
