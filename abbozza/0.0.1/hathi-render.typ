@@ -1,8 +1,16 @@
-#import "@preview/cetz:0.2.2": *
+#import "@preview/cetz:0.3.1": *
 
 #let render-hathi-level(level, scale: 1) = {
   let _scale = scale
-  let level-tiles = level.at(0).children.find(e => e.tag == "world").children.at(0).children.filter(e => type(e) == dictionary and (e.tag == "tile" or e.tag == "item")).map(c => {
+  let level-tiles = level
+    .at(0)
+    .children
+    .find(e => e.tag == "world")
+    .children
+    .at(0)
+    .children
+    .filter(e => type(e) == dictionary and (e.tag == "tile" or e.tag == "item"))
+    .map(c => {
     let data = (
       type: c.attrs.type,
       pos: ((int(c.attrs.x) - int(c.attrs.y)), -1 * (int(c.attrs.x) + int(c.attrs.y)) / 2),

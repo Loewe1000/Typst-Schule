@@ -9,7 +9,7 @@
 #import "@schule/operatoren:0.0.1": operator, operatoren-liste
 
 #import "@preview/cades:0.3.0": qr-code
-#import "@preview/cetz:0.2.2": *
+#import "@preview/cetz:0.3.1": *
 #import "@preview/codly:1.0.0": *
 #import "@preview/colorful-boxes:1.3.1": *
 #import "@preview/tablex:0.0.8": *
@@ -17,9 +17,18 @@
 
 #let print-state = state("print", false)
 
-#let header(title: none, class: none, font-size: 16pt) = {
+#let header(title: none, class: none, font-size: 16pt, copyright: none) = {
   text(font-size, font: "Myriad Pro", weight: "semibold")[#title]
+
   h(1fr)
+
+  if copyright != none {
+    box(
+      qr-code(copyright, width: 0.9em, color: luma(130)),
+    )
+    h(0.5em)
+  }
+
   text(
     font-size,
     font: "Myriad Pro",
@@ -59,6 +68,7 @@
   header-ascent: 20%,
   page-settings: (),
   loesungen: "false",
+  copyright: none,
   ..args,
   body,
 ) = {
@@ -104,7 +114,7 @@
       (top: 2.2cm, x: 1.75cm, bottom: 1cm)
     },
     header: if custom-header == none {
-      header(title: title, class: class, font-size: title-font-size)
+      header(title: title, class: class, font-size: title-font-size, copyright: copyright)
     } else {
       custom-header
     },

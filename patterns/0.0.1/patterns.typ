@@ -1,4 +1,4 @@
-#import "@preview/cetz:0.2.2": *
+#import "@preview/cetz:0.3.1": *
 
 // Was ist items? Gibts da nicht schönere Variablennamen?
 #let kariert(
@@ -22,29 +22,36 @@
         autoheight = rows * grid-size
       }
     }
-    canvas(length: grid-size, {
-      import draw: *
+    canvas(
+      length: grid-size,
+      {
+        import draw: *
 
-      set-style(stroke: line-stroke)
+        set-style(stroke: line-stroke)
 
-      if width != auto {
-        rect((0, 0), (width, autoheight), ..if fill-color != none {(fill: fill-color)})
-        grid((0, 0), (width, autoheight))
-      } else {
-        rect((0, 0), (calc.round((size.width / grid-size)), autoheight), ..if fill-color != none {(fill: fill-color)})
-        grid((0, 0), (calc.round((size.width / grid-size)), autoheight))
-      }
-
-      if items.len() != 0 {
-        for (key, item) in items.enumerate() {
-          content(
-            (0.75, autoheight + grid-size - (key+1) * items-spacing * grid-size),
-            [#box(fill: white, inset: 4pt)[#item]],
-            anchor: "west",
+        if width != auto {
+          rect((0, 0), (width, autoheight), ..if fill-color != none { (fill: fill-color) })
+          grid((0, 0), (width, autoheight))
+        } else {
+          rect(
+            (0, 0),
+            (calc.round((size.width / grid-size)), autoheight),
+            ..if fill-color != none { (fill: fill-color) },
           )
+          grid((0, 0), (calc.round((size.width / grid-size)), autoheight))
         }
-      }
-    })
+
+        if items.len() != 0 {
+          for (key, item) in items.enumerate() {
+            content(
+              (0.75, autoheight + grid-size - (key + 1) * items-spacing * grid-size),
+              [#box(fill: white, inset: 4pt)[#item]],
+              anchor: "west",
+            )
+          }
+        }
+      },
+    )
   })
 }
 
@@ -56,19 +63,22 @@
 ) = {
   move(dy: lineheight * 0.5)[
     #layout(size => {
-      canvas(length: lineheight, {
-        import draw: *
-        set-style(stroke: line-stroke)
-        if width != auto {
-          for row in range(rows) {
-            line((0, row), (width, row))
+      canvas(
+        length: lineheight,
+        {
+          import draw: *
+          set-style(stroke: line-stroke)
+          if width != auto {
+            for row in range(rows) {
+              line((0, row), (width, row))
+            }
+          } else {
+            for row in range(rows) {
+              line((0, row), (size.width, row))
+            }
           }
-        } else {
-          for row in range(rows) {
-            line((0, row), (size.width, row))
-          }
-        }
-      })
+        },
+      )
     })
   ]
 
