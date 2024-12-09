@@ -2,7 +2,7 @@
 #import "@schule/aufgaben:0.0.4": *
 #import "@schule/random:0.0.1": *
 #import "@schule/insert-a-word:0.0.1": *
-#import "@schule/energy-sketch:0.0.1": *
+#import "@schule/energy-sketch:0.0.2": *
 #import "@schule/mathematik:0.0.1": *
 #import "@schule/patterns:0.0.1": *
 #import "@schule/messwerttabellen:0.0.1": datensatz, messdaten, messwerttabelle, berechnung
