@@ -64,57 +64,40 @@
 
 = Erster Lückentext
 
-
 #insert-a-word(hide-words: false)[
-  "Die #iaword[Banane] ist gelb.
-  Ein #iaword[Apfel] ist meist rot oder grün.
-  Das #iaword[Wasser] ist transparent."
-  "Die #iaword[Banane] ist gelb.
-  Ein #iaword[Apfel] ist meist rot oder grün.
-  Das #iaword[Wasser] ist transparent."
-  "Die #iaword[Banane] ist gelb.
-  Ein #iaword[Apfel] ist meist rot oder grün.
-  Das #iaword[Wasser] ist transparent."
-]
-
-= Zweiter Lückentext
-
-#insert-a-word(hide-words: false, solution: true)[
   "Der #iaword[Hund] bellt.
   Die #iaword[Katze] miaut.
   Ein #iaword[Auto] fährt."
   "Die #iaword[Banane] ist gelb.
   Ein #iaword[Apfel] ist meist rot oder grün.
   Das #iaword[Wasser] ist transparent."
-
-]
-
-
-= Erster Lückentext
-
-
-#insert-a-word(hide-words: false)[
-  "Die #iaword[Banane] ist gelb.
-  Ein #iaword[Apfel] ist meist rot oder grün.
-  Das #iaword[Wasser] ist transparent."
-  "Die #iaword[Banane] ist gelb.
-  Ein #iaword[Apfel] ist meist rot oder grün.
-  Das #iaword[Wasser] ist transparent."
-  "Die #iaword[Banane] ist gelb.
-  Ein #iaword[Apfel] ist meist rot oder grün.
-  Das #iaword[Wasser] ist transparent."
-  "Die #iaword[Banane] ist gelb.
-  Ein #iaword[Apfel] ist meist rot oder grün.
-  Das #iaword[Wasser] ist transparent."
-  "Die #iaword[Banane] ist gelb.
-  Ein #iaword[Apfel] ist meist rot oder grün.
-  Das #iaword[Wasser] ist transparent."
 ]
 
 
 = Zweiter Lückentext
 
-#insert-a-word(hide-words: false)[
+#insert-a-word(hide-words: false, line-spacing: 2em)[
+  "Die #iaword[Banane] ist gelb.
+  Ein #iaword[Apfel] ist meist rot oder grün.
+  Das #iaword[Wasser] ist transparent."
+  "Die #iaword[Banane] ist gelb.
+  Ein #iaword[Apfel] ist meist rot oder grün.
+  Das #iaword[Wasser] ist transparent."
+  "Die #iaword[Banane] ist gelb.
+  Ein #iaword[Apfel] ist meist rot oder grün.
+  Das #iaword[Wasser] ist transparent."
+  "Die #iaword[Banane] ist gelb.
+  Ein #iaword[Apfel] ist meist rot oder grün.
+  Das #iaword[Wasser] ist transparent."
+  "Die #iaword[Banane] ist gelb.
+  Ein #iaword[Apfel] ist meist rot oder grün.
+  Das #iaword[Wasser] ist transparent."
+]
+
+
+= Dritter Lückentext
+
+#insert-a-word(hide-words: false, item-spacing: 4em)[
   "Der #iaword[Hund] bellt.
   Die #iaword[Katze] miaut.
   Ein #iaword[Auto] fährt."
@@ -127,7 +110,5 @@
   "Die #iaword[Banane] ist gelb.
   Ein #iaword[Apfel] ist meist rot oder grün.
   Das #iaword[Wasser] ist transparent."
-
-
 ]
 

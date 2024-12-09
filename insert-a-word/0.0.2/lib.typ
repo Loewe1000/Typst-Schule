@@ -27,7 +27,7 @@
 }
 
 // Funktion zum Einfügen eines Wortes mit Anpassungsoptionen
-#let insert-a-word(hide-words: false, line-spacing: 1.5em, body) = {
+#let insert-a-word(hide-words: false, line-spacing: 1.5em, item-spacing: 1em, body) = {
   // Definiert eine Farbpalette für die Wort-Boxen
   let colors = (
     rgb("#B3D4EC"), // Hellblau
@@ -47,15 +47,19 @@
       let shuffled = shuffle(words, position) // Zufällige Reihenfolge der Wörter
       let shuffled-colors = shuffle(colors, position) // Zufällige Reihenfolge der Farben
 
+      align(center,
       // Erstellt eine Box für jedes Wort mit zugewiesener Farbe
-      for (index, word) in shuffled.enumerate() [
-        #box(
+      for (index, word) in shuffled.enumerate() {
+        h(item-spacing / 2)
+        box(
           fill: shuffled-colors.at(calc.rem(index, colors.len())), // Farbe aus Palette
           inset: 8pt, // Innenabstand
           radius: 4pt, // Abgerundete Ecken
           [#word.at(1)], // Einfügtes Wort
         )
-      ]
+        h(item-spacing / 2)
+        }
+      )
     }
 
     iaword-counter.step() // Erhöht den Zähler für die nächste Position
