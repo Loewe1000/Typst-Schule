@@ -1,0 +1,5 @@
+[package]
+name = "mathematik"
+version = "0.0.2"
+entrypoint = "mathematik.typ"
+

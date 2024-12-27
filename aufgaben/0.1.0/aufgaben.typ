@@ -23,11 +23,11 @@
 }
 
 #let show_loesung(aufg, teil: false) = {
-  goal(
-    title: [Lösung #if teil == false {aufg.nummer}],
-    accent-color: gray,
-    {
-      if teil == false {
+  if teil == false and aufg.loesung.len() > 0 {
+    goal(
+      title: [Lösung #{aufg.nummer}],
+      accent-color: gray,
+      {
         // Main solutions
         for l in aufg.loesung.filter(l => l.teil == 0) {
           l.body
@@ -41,14 +41,20 @@
             ..aufg.loesung.filter(l => l.teil > 0).sorted(key: l => l.teil).map(l => l.body),
           )
         }
-      } else {
-        // Sub-solutions
+      },
+    )
+  } else if aufg.loesung.filter(l => l.teil == teil).len() > 0 {
+    // Sub-solutions
+    goal(
+      title: [Lösung #numbering("a)", teil)],
+      accent-color: gray,
+      {
         for l in aufg.loesung.filter(l => l.teil == teil) {
           l.body
         }
-      }
-    },
-  )
+      },
+    )
+  }
 }
 
 #let show_loesungen(curr: false, teil: false) = {
@@ -149,11 +155,11 @@
     block(width: 100%, inset: 0.5em)[#workspace]
   }
   // "sofort" solutions
-  context if _state_options.get().loesungen == "sofort" {
+  context if _state_options.final().loesungen == "sofort" {
     show_loesungen(curr: true, teil: 0)
   }
   // "folgend" solutions
-  context if _state_options.get().loesungen == "folgend" {
+  context if _state_options.final().loesungen == "folgend" {
     show_loesungen(curr: true)
   }
 }
@@ -203,18 +209,15 @@
         if workspace != none and opts.workspaces {
           workspace
         }
-        // "sofort" display
-        context {
-          if _state_options.get().loesungen == "sofort" {
-            let curr_aufg = _counter_aufgaben.get().at(0)
-            let curr_teil = if _counter_aufgaben.get().len() > 1 {
-              _counter_aufgaben.get().at(1)
-            } else { 0 }
-            show_loesungen(curr: true, teil: curr_teil)
-          }
-        }
       },
     )
+  }
+  context if _state_options.final().loesungen == "sofort" {
+    let curr_aufg = _counter_aufgaben.get().at(0)
+    let curr_teil = if _counter_aufgaben.get().len() > 1 {
+      _counter_aufgaben.get().at(1)
+    } else { 0 }
+    show_loesungen(curr: true, teil: curr_teil)
   }
 }
 
