@@ -15,6 +15,7 @@
   scale: 1,
   sub: false,
   numbering: "a)",
+  mv: (dx: 0cm, dy: 0cm),
   weißer-rand: true,
   result-table: true,
   vorschlag: false,
@@ -29,7 +30,7 @@
     rand = 0cm
   }
 
-  #let klausurbogen(result: false, name: "", note-content: [], student-table: [], grade-table: [], sub: sub, vorschlag: vorschlag, line-stroke: line-stroke) = [
+  #let klausurbogen(result: false, name: "", note-content: [], student-table: [], grade-table: [], mv: mv, sub: sub, vorschlag: vorschlag, line-stroke: line-stroke) = [
     #let insetPageNumber = 6mm
 
     #let header(title: "", subtitle: "", class: "", date: "", teacher: "", logo: []) = {
@@ -223,11 +224,10 @@
       lastLowerBound = lowerBound
 
 
-
       if sek1 {
         gradeRegions.push(text(fill: black, (str(upperBound) + " - " + str(lowerBound)).replace(".", ",")))
       } else {
-        gradeRegions.push(text(fill: black, size: 9pt, par(leading: 0.6em, ([#str(lowerBound).replace(".", ",")]))))
+        gradeRegions.push(text(fill: black, size: 9pt, par(leading: 0.6em, [#str(lowerBound).replace(".", ",")])))
         seperationLines = (1, 4, 7, 10, 13, 16).map(x => vlinex(
           x: x,
           stroke: if result {
@@ -241,22 +241,25 @@
 
     set text(9pt)
     if result {
-      tablex(
-        columns: (auto,) + (1fr,) * gradeBorders.len(),
-        inset: 6pt,
-        stroke: if result {
-          print-color
-        } else {
-          print-color
-        } + 1pt,
-        align: center + horizon,
-        ..seperationLines,
-        [*Note*],
-        ..grades,
-        [#if sek1 [*Punktegrenzen*] else [*Punktegrenze $>=$*] ],
-        ..if result {
-          gradeRegions
-        },
+      move(
+        ..mv,
+        tablex(
+          columns: (auto,) + (1fr,) * gradeBorders.len(),
+          inset: 6pt,
+          stroke: if result {
+            print-color
+          } else {
+            print-color
+          } + 1pt,
+          align: center + horizon,
+          ..seperationLines,
+          [*Note*],
+          ..grades,
+          [#if sek1 [*Punktegrenzen*] else [*Punktegrenze $>=$*] ],
+          ..if result {
+            gradeRegions
+          },
+        ),
       )
     }
   }
@@ -292,7 +295,7 @@
         stringGradeInPercent += "0"
       }
     }
-    text(14pt, finelinerRed, weight: "bold")[#stringGradeInPercent % #h(2mm) $eq.est$ #h(2mm) #grade]
+    move(..mv, text(14pt, finelinerRed, weight: "bold")[#stringGradeInPercent % #h(2mm) $eq.est$ #h(2mm) #grade])
   }
 
   #let studentHeader(name: "Max Mustermann", percentage: 0.8462, note: 6) = {
@@ -347,84 +350,85 @@
     }
     if result {
       if not subtasks {
-        tablex(
-          columns: (auto,) + (1fr,) * (numberOfColumns + 1),
-          inset: 6pt,
-          stroke: if result {
-            print-color + 1pt
-          } else {
-            print-color + 1pt
-          },
-          align: horizon + center,
-          [*Aufgabe*],
-          ..headerRow,
-          [$sum$],
-          ..subtaskRow.map(x => [*#x*]),
-          text(size: 8pt, [*mögliche Punkte*]),
-          ..maxPoints.map(x => if result {
-            cellx(inset: 0mm, text(size: 10pt, fill: black, str(x).replace(".", ",")))
-          }),
-          if result {
-            cellx(inset: 0mm, text(size: 10pt, fill: black, str(maxPoints.sum()).replace(".", ",")))
-          },
-          text(size: 8pt, [*erreichte Punkte*]),
-          ..if result {
-            achievedPoints.map(x => cellx(inset: 0mm, text(size: 10pt, fill: black, str(x).replace(".", ","))))
-          },
-          if result {
-            cellx(inset: 0mm, text(size: 10pt, fill: black, str(achievedPoints.sum()).replace(".", ",")))
-          },
+        move(
+          ..mv,
+          tablex(
+            columns: (auto,) + (1fr,) * (numberOfColumns + 1),
+            inset: 6pt,
+            stroke: if result {
+              print-color + 1pt
+            } else {
+              print-color + 1pt
+            },
+            align: horizon + center,
+            [*Aufgabe*],
+            ..headerRow,
+            [$sum$],
+            ..subtaskRow.map(x => [*#x*]),
+            text(size: 8pt, [*mögliche Punkte*]),
+            ..maxPoints.map(x => if result {
+              cellx(inset: 0mm, text(size: 10pt, fill: black, str(x).replace(".", ",")))
+            }),
+            if result {
+              cellx(inset: 0mm, text(size: 10pt, fill: black, str(maxPoints.sum()).replace(".", ",")))
+            },
+            text(size: 8pt, [*erreichte Punkte*]),
+            ..if result {
+              achievedPoints.map(x => cellx(inset: 0mm, text(size: 10pt, fill: black, str(x).replace(".", ","))))
+            },
+            if result {
+              cellx(inset: 0mm, text(size: 10pt, fill: black, str(achievedPoints.sum()).replace(".", ",")))
+            },
+          ),
         )
       } else {
-        tablex(
-          columns: (auto,) + (1fr,) * (numberOfColumns + 1),
-          inset: 6pt,
-          stroke: if result {
-            print-color + 1pt
-          } else {
-            print-color + 1pt
-          },
-          align: horizon + center,
-
-
-
-          map-cols: (col, cells) => cells.map(c => if c == none {
-            c
-          } else {
-            (
-              ..c,
-              fill: if col > numberOfColumns {
-                if result {
-                  print-color.lighten(90%)
-                } else {
-                  print-color
-                }
-              },
-            )
-          }),
-          rowspanx(2)[*Aufgabe*],
-          ..headerRow,
-          rowspanx(2)[$sum$],
-          ..subtaskRow.map(x => [*#x*]),
-          text(size: 8pt, [*mögliche Punkte*]),
-          ..maxPoints.map(x => if result {
-            cellx(inset: 0mm, text(size: 10pt, fill: black, str(x).replace(".", ",")))
-          }),
-          if result {
-            cellx(inset: 0mm, text(size: 10pt, fill: black, str(maxPoints.sum()).replace(".", ",")))
-          },
-          text(size: 8pt, [*erreichte Punkte*]),
-          ..if result {
-            achievedPoints.map(x => cellx(inset: 0mm, text(size: 10pt, fill: black, str(x).replace(".", ","))))
-          },
-          if result {
-            cellx(inset: 0mm, text(size: 10pt, fill: black, str(achievedPoints.sum()).replace(".", ",")))
-          },
+        move(
+          ..mv,
+          tablex(
+            columns: (auto,) + (1fr,) * (numberOfColumns + 1),
+            inset: 6pt,
+            stroke: if result {
+              print-color + 1pt
+            } else {
+              print-color + 1pt
+            },
+            align: horizon + center,
+            map-cols: (col, cells) => cells.map(c => if c == none {
+              c
+            } else {
+              (
+                ..c,
+                fill: if col > numberOfColumns {
+                  if result {
+                    print-color.lighten(90%)
+                  } else {
+                    print-color
+                  }
+                },
+              )
+            }),
+            rowspanx(2)[*Aufgabe*],
+            ..headerRow,
+            rowspanx(2)[$sum$],
+            ..subtaskRow.map(x => [*#x*]),
+            text(size: 8pt, [*mögliche Punkte*]),
+            ..maxPoints.map(x => if result {
+              cellx(inset: 0mm, text(size: 10pt, fill: black, str(x).replace(".", ",")))
+            }),
+            if result {
+              cellx(inset: 0mm, text(size: 10pt, fill: black, str(maxPoints.sum()).replace(".", ",")))
+            },
+            text(size: 8pt, [*erreichte Punkte*]),
+            ..if result {
+              achievedPoints.map(x => cellx(inset: 0mm, text(size: 10pt, fill: black, str(x).replace(".", ","))))
+            },
+            if result {
+              cellx(inset: 0mm, text(size: 10pt, fill: black, str(achievedPoints.sum()).replace(".", ",")))
+            },
+          ),
         )
       }
     }
-
-
   }
 
   #v(1fr)
@@ -441,7 +445,7 @@
             while (n < value.len()) {
               if (value.at(n).contains(".")) {
                 let aufgabe = str(value.at(n).split(".").at(0))
-                cols.insert(aufgabe, cols.at(aufgabe) + 1) // 
+                cols.insert(aufgabe, cols.at(aufgabe) + 1) //
               } else if (value.at(n).contains(" ")) {
                 let aufgabe = value.at(n).split(" ").at(0)
                 cols.insert(aufgabe, cols.at(aufgabe) + 1)
@@ -450,7 +454,6 @@
               }
               n = n + 1
             }
-
           } else if (key == 1) {
             let n = 2
 
@@ -460,7 +463,6 @@
               }
               n += 1
             }
-
           } else {
             let name = value.at(0)
             let note = value.at(1)
@@ -477,10 +479,10 @@
             }
 
 
-
             klausurbogen(
               result: result,
               name: name,
+              mv: mv,
               note-content: note-display(percentage: points.sum() / maxPoints.sum(), note: note),
               student-table: createTable(cols: cols, maxPoints: maxPoints, achievedPoints: points, result: result),
               grade-table: gradeBoundaries(maxPoints: maxPoints.sum()),

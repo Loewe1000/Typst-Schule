@@ -59,7 +59,7 @@
   page-numbering: true,
   klausurboegen: false,
   ergebnisse: none,
-  klausurboegen-settings: (sub: false, numbering: "a)", rand: 6cm, weißer-rand: true),
+  klausurboegen-settings: (sub: false, numbering: "a)", rand: 6cm, weißer-rand: true, move: (dx: 0cm, dy: 0cm),),
   ..args,
   body,
 ) = {
@@ -140,7 +140,7 @@
     }
 
     #if klausurboegen {
-      import "@schule/klausurboegen:0.0.2": *
+      import "@schule/klausurboegen:0.0.3": *
 
       klausurbögen(
         exam: title,
