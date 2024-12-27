@@ -1,0 +1,267 @@
+#import "@preview/fontawesome:0.1.0": *
+#import "@preview/gentle-clues:1.1.0": *
+
+// States
+#let _state_aufgaben = state("aufgaben", ())
+#let _state_options = state(
+  "options",
+  (
+    loesungen: "keine", //
+    workspaces: true,
+    punkte: "keine", // "keine", "aufgaben", "teilaufgaben", "alle"
+  ),
+)
+
+// Counter
+#let _counter_aufgaben = counter("aufgaben")
+
+// Options management
+#let set_options(options) = {
+  _state_options.update(curr => {
+    curr + options
+  })
+}
+
+#let show_loesung(aufg, teil: false) = {
+  goal(
+    title: [Lösung #if teil == false {aufg.nummer}],
+    accent-color: gray,
+    {
+      if teil == false {
+        // Main solutions
+        for l in aufg.loesung.filter(l => l.teil == 0) {
+          l.body
+        }
+
+        // Sub-solutions
+        if aufg.teile > 0 {
+          enum(
+            numbering: "a)",
+            tight: false,
+            ..aufg.loesung.filter(l => l.teil > 0).sorted(key: l => l.teil).map(l => l.body),
+          )
+        }
+      } else {
+        // Sub-solutions
+        for l in aufg.loesung.filter(l => l.teil == teil) {
+          l.body
+        }
+      }
+    },
+  )
+}
+
+#let show_loesungen(curr: false, teil: false) = {
+  context {
+    let all = _state_aufgaben.get()
+    if curr { all = (all.last(),) }
+
+    for aufg in all {
+      if aufg.loesung.len() > 0 {
+        if _state_options.get().loesungen == "seiten" {
+          page(show_loesung(aufg, teil: teil))
+        } else {
+          show_loesung(aufg, teil: teil)
+        }
+      }
+    }
+  }
+}
+
+// Helper functions
+#let get_points(aufg, teil: none) = {
+  let all = _state_aufgaben.final()
+  if aufg == none or aufg > all.len() { return 0 }
+
+  let current = all.at(aufg - 1)
+  if not "erwartungen" in current { return 0 }
+
+  let erw = current.erwartungen
+  if teil != none {
+    erw = erw.filter(e => e.teil == teil)
+  }
+
+  return erw.fold(0, (sum, e) => sum + e.punkte)
+}
+
+// Main components
+#let aufgabe(
+  title: none,
+  method: "",
+  icons: (),
+  large: false,
+  number: true,
+  workspace: none,
+  body,
+) = {
+  _counter_aufgaben.step()
+
+  // Icon handling
+  let ic = ()
+  if method == "EA" { ic.push(fa-user-large()) }
+  if method == "PA" { ic.push(fa-user-group()) }
+  if method == "GA" { ic.push(fa-users()) }
+  ic += icons
+
+  // Update state
+  context {
+    let ct_aufgaben = _counter_aufgaben.get().at(0)
+    _state_aufgaben.update(all => {
+      all.push((
+        nummer: ct_aufgaben,
+        title: title,
+        teile: 0,
+        loesung: (),
+        erwartungen: (),
+      ))
+      all
+    })
+  }
+
+  // Render heading
+  if title != none or number {
+    context {
+      heading(
+        level: if large { 1 } else { 2 },
+        [
+          #let nums = _counter_aufgaben.get()
+          #if ic.len() > 0 { ic.join() }
+          #if number { "Aufgabe " + str(nums.first()) }
+          #if title != none [ $-$ #title]
+          #h(1fr)
+          // Gesamtpunkte der Aufgabe
+          #let opts = _state_options.get()
+          #if opts.punkte in ("aufgaben", "alle") {
+            let points = get_points(_counter_aufgaben.get().at(0))
+            if points > 0 {
+              if points == 1 [#p Punkt] else [#points Punkte]
+            }
+          }
+        ],
+      )
+    }
+  }
+
+  // Content
+  body
+  // Workspace
+  context if workspace != none and _state_options.get().workspaces {
+    block(width: 100%, inset: 0.5em)[#workspace]
+  }
+  // "sofort" solutions
+  context if _state_options.get().loesungen == "sofort" {
+    show_loesungen(curr: true, teil: 0)
+  }
+  // "folgend" solutions
+  context if _state_options.get().loesungen == "folgend" {
+    show_loesungen(curr: true)
+  }
+}
+
+#let teilaufgabe(
+  label: "a)",
+  workspace: none,
+  body,
+) = {
+  _counter_aufgaben.step(level: 2)
+  context {
+    let curr_aufg = _counter_aufgaben.get().at(0)
+    let curr_teil = _counter_aufgaben.get().at(1)
+
+    // Update state
+    _state_aufgaben.update(all => {
+      all.at(curr_aufg - 1).teile += 1
+      all
+    })
+    // Render
+    enum(
+      start: curr_teil,
+      numbering: label,
+      {
+        body
+        // Punkte der Teilaufgabe
+        let opts = _state_options.get()
+        if opts.punkte in ("teilaufgaben", "alle") {
+          context {
+            let points = get_points(
+              _counter_aufgaben.get().at(0),
+              teil: _counter_aufgaben.get().at(1),
+            )
+            if points > 0 {
+              h(1fr)
+              place(
+                dy: 0cm,
+                dx: 7mm,
+                top + right,
+                text(fill: black, size: 0.88em)[(#points)],
+              )
+              v(0fr)
+            }
+          }
+        }
+        // Workspace
+        if workspace != none and opts.workspaces {
+          workspace
+        }
+        // "sofort" display
+        context {
+          if _state_options.get().loesungen == "sofort" {
+            let curr_aufg = _counter_aufgaben.get().at(0)
+            let curr_teil = if _counter_aufgaben.get().len() > 1 {
+              _counter_aufgaben.get().at(1)
+            } else { 0 }
+            show_loesungen(curr: true, teil: curr_teil)
+          }
+        }
+      },
+    )
+  }
+}
+
+#let loesung(body) = {
+  context {
+    let curr_aufg = _counter_aufgaben.get().at(0)
+    let curr_teil = if _counter_aufgaben.get().len() > 1 {
+      _counter_aufgaben.get().at(1)
+    } else { 0 }
+
+    // Store solution
+    _state_aufgaben.update(all => {
+      all
+        .at(curr_aufg - 1)
+        .loesung
+        .push((
+          teil: curr_teil,
+          body: body,
+        ))
+      all
+    })
+  }
+}
+
+#let erwartung(text, punkte) = {
+  context {
+    let curr_aufg = _counter_aufgaben.get().at(0)
+    let curr_teil = if _counter_aufgaben.get().len() > 1 {
+      _counter_aufgaben.get().at(1)
+    } else { 0 }
+
+    _state_aufgaben.update(all => {
+      all
+        .at(curr_aufg - 1)
+        .erwartungen
+        .push((
+          teil: curr_teil,
+          text: text,
+          punkte: punkte,
+        ))
+      all
+    })
+  }
+}
+
+// Solution pages
+#let d_loesungen() = {
+  pagebreak()
+  show_loesungen()
+}

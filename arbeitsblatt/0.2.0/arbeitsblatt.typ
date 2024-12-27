@@ -1,5 +1,4 @@
-#import "@schule/typopst:0.0.1": *
-#import "@schule/aufgaben:0.0.4": *
+#import "@schule/aufgaben:0.1.0": *
 #import "@schule/random:0.0.1": *
 #import "@schule/insert-a-word:0.0.2": *
 #import "@schule/energy-sketch:0.0.2": *
@@ -7,7 +6,7 @@
 #import "@schule/patterns:0.0.1": *
 #import "@schule/messwerttabellen:0.0.1": datensatz, messdaten, messwerttabelle, berechnung
 #import "@schule/operatoren:0.0.1": operator, operatoren-liste
-
+#import "@preview/fontawesome:0.5.0": *
 #import "@preview/cades:0.3.0": qr-code
 #import "@preview/cetz:0.3.1": *
 #import "@preview/cetz-plot:0.1.0": *
@@ -73,9 +72,7 @@
     h(1fr)
 
     if copyright != none {
-      box(
-        qr-code(copyright, width: 0.9em, color: luma(130)),
-      )
+      box(qr-code(copyright, width: 0.9em, color: luma(130)))
       h(0.5em)
     }
 
@@ -126,24 +123,12 @@
     ..page-settings,
   )
 
-  // To show solutions for exercises: use "loesungen: "sofort""
-  options.add-argument("loesungen", default: "")
-  options.add-argument("print", default: "false")
-  options.add-argument("workspaces", default: "false")
-
-  options.parseconfig(
-    loesungen: loesungen,
-    print: if print {
-      "true"
-    } else {
-      "false"
-    },
-    workspaces: if workspaces {
-      "true"
-    } else {
-      "false"
-    },
-  )
+  set_options((
+    "loesungen": loesungen,
+    "workspaces": workspaces,
+    "punkte": "keine",
+    "print": print
+  ))
 
   print-state.update(_ => {
     print
@@ -178,8 +163,7 @@
             0pt
           },
           align: top,
-          [#if it.numbering != none [*M#counter("aufgaben").get().at(0).#counter(figure).display()*:] ],
-          [#if it.caption != none [#align(left, it.caption.body)]],
+          [#if it.numbering != none [*M#counter("aufgaben").get().at(0).#counter(figure).display()*:] ], [#if it.caption != none [#align(left, it.caption.body)]],
         )
       ],
     )
@@ -203,10 +187,8 @@
   body
 
   // To show solutions on a seperate page
-  if loesungen == "seite" {
-    d_loesungen(pages: false)
-  } else if loesungen == "seiten" {
-    d_loesungen(pages: true)
+  if loesungen in ("seite", "seiten") {
+    d_loesungen()
   }
 }
 
@@ -219,21 +201,23 @@
     ..args,
     {
       import draw: *
-      set-style(axes: (
-        tick: (offset: -50%, minor-offset: -25%, minor-length: 100%),
-        grid: (
-          stroke: (paint: rgb("#AAAAAA").lighten(10%), dash: "solid", thickness: 0.5pt),
-          fill: none,
+      set-style(
+        axes: (
+          tick: (offset: -50%, minor-offset: -25%, minor-length: 100%),
+          grid: (
+            stroke: (paint: rgb("#AAAAAA").lighten(10%), dash: "solid", thickness: 0.5pt),
+            fill: none,
+          ),
+          minor-grid: (
+            stroke: (paint: rgb("#AAAAAA").lighten(10%), dash: "solid", thickness: 0.5pt),
+            fill: none,
+          ),
+          mark: (end: "straight"),
+          x: (label: (anchor: "south-east", offset: -0.2)),
+          y: (label: (anchor: "north-west", offset: -0.2)),
+          overshoot: 8pt,
         ),
-        minor-grid: (
-          stroke: (paint: rgb("#AAAAAA").lighten(10%), dash: "solid", thickness: 0.5pt),
-          fill: none,
-        ),
-        mark: (end: "straight"),
-        x: (label: (anchor: "south-east", offset: -0.2)),
-        y: (label: (anchor: "north-west", offset: -0.2)),
-        overshoot: 8pt,
-      ))
+      )
       body
     },
   )
