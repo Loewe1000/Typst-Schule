@@ -46,7 +46,7 @@
   } else if aufg.loesung.filter(l => l.teil == teil).len() > 0 {
     // Sub-solutions
     goal(
-      title: [Lösung #numbering("a)", teil)],
+      title: [Lösung #if teil == 0 { {aufg.nummer} } else { numbering("a)", teil) }],
       accent-color: gray,
       {
         for l in aufg.loesung.filter(l => l.teil == teil) {
@@ -165,7 +165,8 @@
 }
 
 #let teilaufgabe(
-  label: "a)",
+  item-label: "a)",
+  label-ref: none,
   workspace: none,
   body,
 ) = {
@@ -180,9 +181,10 @@
       all
     })
     // Render
-    enum(
+
+    let ta-enum = enum(
       start: curr_teil,
-      numbering: label,
+      numbering: item-label,
       {
         body
         // Punkte der Teilaufgabe
@@ -211,6 +213,11 @@
         }
       },
     )
+    if label-ref != none [
+      #figure(kind: "teilaufgabe", supplement: "Teilaufgabe", ta-enum, numbering: "a)") #label(label-ref)
+    ] else [
+      #figure(kind: "teilaufgabe", supplement: "Teilaufgabe", ta-enum, numbering: "a)")
+    ]
   }
   context if _state_options.final().loesungen == "sofort" {
     let curr_aufg = _counter_aufgaben.get().at(0)
