@@ -135,7 +135,8 @@
           #let nums = _counter_aufgaben.get()
           #if ic.len() > 0 { ic.join() }
           #if number { "Aufgabe " + str(nums.first()) }
-          #if title != none [ $-$ #title]
+          #if number and title != none [ $-$ ]
+          #if title != none [#title]
           #h(1fr)
           // Gesamtpunkte der Aufgabe
           #let opts = _state_options.get()
