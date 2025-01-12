@@ -67,14 +67,19 @@
     it
   }
 
+  set heading(
+    numbering: "1.",
+    supplement: none,
+  )
+
   show ref: it => {
     let el = it.element
     if el != none and el.func() == figure and el.kind in ("image", "table") {
       // Override figure references.
       [*M#counter("aufgaben").get().at(0).#numbering(el.numbering, ..counter(figure).at(el.location()))*]
-    } else if el.kind == "teilaufgabe" {
+    } else if el != none and el.func() == figure and el.kind == "teilaufgabe" {
       // Other references as usual.
-      numbering("a)", counter(figure.where(kind: "teilaufgabe")).at(el.location()).first() + 1)
+      numbering("a)", counter(figure.where(kind: "teilaufgabe")).at(el.location()).first())
     } else {
       // Other references as usual.
       it

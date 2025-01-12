@@ -98,9 +98,11 @@
   large: false,
   number: true,
   workspace: none,
+  label-ref: none,
   body,
 ) = {
   _counter_aufgaben.step()
+  counter(figure.where(kind: "teilaufgabe")).update(0)
 
   // Icon handling
   let ic = ()
@@ -127,7 +129,7 @@
   // Render heading
   if title != none or number {
     context {
-      heading(
+      let auf-head = heading(
         level: if large { 1 } else { 2 },
         [
           #let nums = _counter_aufgaben.get()
@@ -145,6 +147,11 @@
           }
         ],
       )
+      if label-ref != none [
+        #auf-head #label(label-ref)
+      ] else [
+        #auf-head
+      ]
     }
   }
 
