@@ -1,4 +1,6 @@
-#import "@schule/arbeitsblatt:0.1.6": *
+#import "@preview/tablex:0.0.9": *
+#import "@preview/unify:0.7.0": *
+#import "@schule/random:0.0.1": *
 
 // Definition der Datensatz-Struktur
 #let datensatz(name, einheit, werte, prefix: "1") = (
