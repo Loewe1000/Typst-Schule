@@ -38,7 +38,7 @@
           enum(
             numbering: "a)",
             tight: false,
-            ..aufg.loesung.filter(l => l.teil > 0).sorted(key: l => l.teil).map(l => l.body),
+            ..aufg.loesung.filter(l => l.teil > 0).sorted(key: l => l.teil).map(l => enum.item(l.teil, l.body)),
           )
         }
       },
