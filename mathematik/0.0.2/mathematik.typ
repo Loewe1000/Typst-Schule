@@ -1,4 +1,4 @@
-#import "@preview/tablex:0.0.7": *
+#import "@preview/tablex:0.0.9": *
 #import "@schule/random:0.0.1": *
 #import "@schule/aufgaben:0.1.0": teilaufgabe, loesung
 
@@ -129,7 +129,7 @@
   }
   let tasks-show = ()
   for (key, task) in tasks.enumerate() {
-    tasks-show.push(teilaufgabe(numb: numbering)[
+    tasks-show.push(teilaufgabe()[
       #task
       #if loesungen.len() > key [
         #loesung[#loesungen.at(key)]
