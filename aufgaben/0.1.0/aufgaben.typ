@@ -129,9 +129,8 @@
   // Render heading
   if title != none or number {
     context {
-      let auf-head = heading(
-        level: if large { 1 } else { 2 },
-        [
+      let auf-head = figure(kind: "aufgabe", supplement: none, heading(
+        text(if large { 14pt } else { 12pt }, [
           #let nums = _counter_aufgaben.get()
           #if ic.len() > 0 { ic.join() }
           #if number { "Aufgabe " + str(nums.first()) }
@@ -146,8 +145,8 @@
               if points == 1 [#p Punkt] else [#points Punkte]
             }
           }
-        ],
-      )
+        ]),
+      ))
       if label-ref != none [
         #auf-head #label(label-ref)
       ] else [
