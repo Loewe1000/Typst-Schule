@@ -129,7 +129,7 @@
   // Render heading
   if title != none or number {
     context {
-      let auf-head = figure(kind: "aufgabe", supplement: none, heading(
+      let auf-head = heading(figure(kind: "aufgabe", supplement: none, 
         text(if large { 14pt } else { 12pt }, [
           #let nums = _counter_aufgaben.get()
           #if ic.len() > 0 { ic.join() }
