@@ -1,0 +1,6 @@
+[package]
+name = "cheatsheets"
+version = "0.0.2"
+entrypoint = "cheatsheets.typ"
+exclude = ["/assets/*", "*.pdf", "example.typ"]
+

@@ -1,5 +1,4 @@
-#import "@schule/arbeitsblatt:0.1.4": *
-//#import "@preview/tablex:0.0.8": *
+#import "@schule/arbeitsblatt:0.2.1": *
 
 #let cheatsheets(
   title: "",
