@@ -100,7 +100,7 @@
     header-ascent: header-ascent,
     margin: if print {
       if landscape {
-        (top: 2.2cm + 1.5cm, x: 1.75cm, bottom: 1cm)
+        (top: 2.2cm, x: 1.75cm, bottom: 1cm)
       } else {
         if duplex {
           (top: 2.2cm, inside: 2.25cm, outside: 1.25cm, bottom: 1cm)
@@ -127,7 +127,7 @@
     "loesungen": loesungen,
     "workspaces": workspaces,
     "punkte": "keine",
-    "print": print
+    "print": print,
   ))
 
   print-state.update(_ => {
@@ -163,7 +163,8 @@
             0pt
           },
           align: top,
-          [#if it.numbering != none [*M#counter("aufgaben").get().at(0).#counter(figure).display()*:] ], [#if it.caption != none [#align(left, it.caption.body)]],
+          [#if it.numbering != none [*M#counter("aufgaben").get().at(0).#counter(figure).display()*:] ],
+          [#if it.caption != none [#align(left, it.caption.body)]],
         )
       ],
     )
