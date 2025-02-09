@@ -1,0 +1,4 @@
+[package]
+name = "aufgaben"
+version = "0.1.0"
+entrypoint = "aufgaben.typ"

@@ -61,6 +61,7 @@
 
   set text(font-size, font: font, hyphenate: true, lang: "de")
   show math.equation: set text(font: math-font)
+  
   show math.equation: it => {
     show regex("\d+\.\d+"): it => {
       show ".": {

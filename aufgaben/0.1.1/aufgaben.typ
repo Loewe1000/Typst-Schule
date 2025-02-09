@@ -98,6 +98,7 @@
   large: false,
   number: true,
   workspace: none,
+  label-ref: none,
   body,
 ) = {
   _counter_aufgaben.step()
@@ -128,7 +129,7 @@
   // Render heading
   if title != none or number {
     context {
-      let auf-head = heading( 
+      let auf-head = heading(figure(kind: "aufgabe", supplement: none, 
         text(if large { 14pt } else { 12pt }, [
           #let nums = _counter_aufgaben.get()
           #if ic.len() > 0 { ic.join() }
@@ -144,9 +145,13 @@
               if points == 1 [#p Punkt] else [#points Punkte]
             }
           }
-        ],
+        ]),
       ))
-      auf-head
+      if label-ref != none [
+        #auf-head #label(label-ref)
+      ] else [
+        #auf-head
+      ]
     }
   }
 
@@ -168,6 +173,7 @@
 
 #let teilaufgabe(
   item-label: "a)",
+  label-ref: none,
   workspace: none,
   body,
 ) = {
@@ -214,7 +220,11 @@
         }
       },
     )
-    ta-enum
+    if label-ref != none [
+      #figure(kind: "teilaufgabe", supplement: "Teilaufgabe", ta-enum, numbering: "a)") #label(label-ref)
+    ] else [
+      #figure(kind: "teilaufgabe", supplement: "Teilaufgabe", ta-enum, numbering: "a)")
+    ]
   }
   context if _state_options.final().loesungen == "sofort" {
     let curr_aufg = _counter_aufgaben.get().at(0)
