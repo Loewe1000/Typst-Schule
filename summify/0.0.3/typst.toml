@@ -1,0 +1,6 @@
+[package]
+name = "summify"
+version = "0.0.3"
+entrypoint = "summify.typ"
+exclude = ["/assets/*", "*.pdf", "example.typ"]
+
