@@ -11,7 +11,7 @@
 #import "@preview/cetz:0.3.1": *
 #import "@preview/cetz-plot:0.1.0": *
 #import "@preview/codly:1.0.0": *
-#import "@preview/colorful-boxes:1.3.1": *
+#import "@preview/colorful-boxes:1.4.2": *
 #import "@preview/tablex:0.0.8": *
 #import "@preview/unify:0.6.0": *
 
@@ -184,7 +184,8 @@
             0pt
           },
           align: top,
-          [#if it.numbering != none [*M#counter("aufgaben").get().at(0).#counter(figure).display()*:] ], [#if it.caption != none [#align(left, it.caption.body)]],
+          [#if it.numbering != none [*M#counter("aufgaben").get().at(0).#counter(figure).display()*:] ],
+          [#if it.caption != none [#align(left, it.caption.body)]],
         )
       ],
     )
