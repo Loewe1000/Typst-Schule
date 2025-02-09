@@ -42,6 +42,7 @@
   duplex: true,
   workspaces: false,
   font-size: 12pt,
+  figure-font-size: 9pt,
   title-font-size: 16pt,
   landscape: false,
   custom-header: none,
@@ -168,7 +169,7 @@
     #it.body
     #v(10pt, weak: true)
     #text(
-      size: 9pt,
+      size: figure-font-size,
       [
         #grid(
           columns: 2,

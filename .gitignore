@@ -1,3 +1,4 @@
 *.pdf
 !example.pdf
 .DS_Store
+cheatsheets/.vscode/settings.json

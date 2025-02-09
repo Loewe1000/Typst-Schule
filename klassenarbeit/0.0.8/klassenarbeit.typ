@@ -49,6 +49,7 @@
   teacher: "",
   schueler: "",
   font-size: 12pt,
+  figure-font-size: 12pt,
   table: (),
   stufe: false,
   loesungen: none,
@@ -79,6 +80,7 @@
     font-size: font-size,
     print: true,
     header-ascent: 0%,
+    figure-font-size: figure-font-size,
     page-settings: (margin: (top: 2cm, bottom: 1cm, left: 1.5cm, right: 1.5cm)),
     custom-header: header(
       title: title,
