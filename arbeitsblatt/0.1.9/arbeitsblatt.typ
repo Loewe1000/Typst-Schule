@@ -42,6 +42,8 @@
   duplex: true,
   workspaces: false,
   font-size: 12pt,
+  font: "Myriad Pro",
+  math-font: "Fira Math",
   figure-font-size: 9pt,
   title-font-size: 16pt,
   landscape: false,
@@ -57,8 +59,8 @@
   // Set font and text properties
   set par(justify: true, leading: 0.65em, linebreaks: "optimized")
 
-  set text(font-size, font: "Myriad Pro", hyphenate: true, lang: "de")
-  show math.equation: set text(font: "Fira Math")
+  set text(font-size, font: font, hyphenate: true, lang: "de")
+  show math.equation: set text(font: math-font)
   show math.equation: it => {
     show regex("\d+\.\d+"): it => {
       show ".": {
@@ -70,7 +72,7 @@
   }
 
   let header(title: none, class: none, font-size: 16pt, copyright: none) = {
-    text(font-size, font: "Myriad Pro", weight: "semibold")[#title]
+    text(font-size, font: font, weight: "semibold")[#title]
     h(1fr)
 
     if copyright != none {
@@ -83,7 +85,7 @@
 
     text(
       font-size,
-      font: "Myriad Pro",
+      font: font,
       weight: "semibold",
       fill: luma(130),
     )[#class]
