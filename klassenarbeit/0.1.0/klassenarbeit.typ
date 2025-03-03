@@ -20,6 +20,7 @@
   loesungen: none,
   info-table: true,
   erwartungen: false,
+  teilaufgaben-nummerierung: "1.", // "a)" "1."
   punkte: "keine",
   bewertung: false,
   page-numbering: true,
@@ -77,8 +78,6 @@
     move(dy: -1em, line(length: 100%, stroke: 0.5pt + luma(200)))
   }
 
-  context __s_punkte.update(punkte)
-
   show: arbeitsblatt.with(
     title: title,
     font-size: font-size,
@@ -87,6 +86,7 @@
     font: font,
     math-font: math-font,
     figure-font-size: figure-font-size,
+    punkte: punkte,
     page-settings: (margin: (top: 2cm, bottom: 1cm, left: 1.5cm, right: 1.5cm)),
     custom-header: header(
       title: title,

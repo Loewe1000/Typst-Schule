@@ -16,6 +16,7 @@
 #import "@preview/unify:0.7.1": *
 
 #let print-state = state("print", false)
+#let material-counter = counter("material")
 
 /// Creates a new arbeitsblatt
 ///
@@ -47,10 +48,12 @@
   figure-font-size: 9pt,
   landscape: false,
   custom-header: none,
+  teilaufgabe-numbering: "1.",
   header-ascent: 20%,
   page-settings: (),
   loesungen: "false",
   copyright: none,
+  punkte: "keine",
   ..args,
   body,
 ) = {
@@ -77,11 +80,9 @@
 
   show ref: it => {
     let el = it.element
-    if el != none and el.func() == figure and el.kind in ("image", "table") {
-      // Override figure references.
-      [*M#counter("aufgaben").get().at(0).#numbering(el.numbering, ..counter(figure).at(el.location()))*]
+    if el != none and el.func() == figure and el.kind in (image, table) {
+      "M" + numbering("1a", counter("material").at(el.location()).first(), counter(figure.where(kind: image)).at(el.location()).first())
     } else if el != none and el.func() == figure and el.kind == "teilaufgabe" {
-      // Other references as usual.
       numbering("a)", counter(figure.where(kind: "teilaufgabe")).at(el.location()).first())
     } else {
       // Other references as usual.
@@ -147,8 +148,9 @@
   set_options((
     "loesungen": loesungen,
     "workspaces": workspaces,
-    "punkte": "keine",
+    "punkte": punkte,
     "print": print,
+    "teilaufgabe-numbering": teilaufgabe-numbering,
   ))
 
   print-state.update(_ => {
@@ -168,27 +170,38 @@
   ]
 
   // Setting captions and numberings for figures
-  set figure(numbering: "1")
-
-  show figure.where(kind: "image"): it => align(center)[
-    #it.body
-    #v(10pt, weak: true)
-    #text(
-      size: figure-font-size,
-      [
-        #grid(
-          columns: 2,
-          column-gutter: if it.numbering != none {
-            4pt
-          } else {
-            0pt
-          },
-          align: top,
-          [#if it.numbering != none [*M#counter("aufgaben").get().at(0).#counter(figure).display()*:] ], [#if it.caption != none [#align(left, it.caption.body)]],
+  set figure(numbering: "1", supplement: none)
+  show figure.where(kind: image): it => {
+    context {
+      let header_count = counter("material").get().first()
+      let thm_count = it.counter.get().first()
+      let thm_num = if header_count > 0 {
+        "M" + numbering("1a", header_count, thm_count)
+      } else {
+        "M" + numbering("1.", thm_count)
+      }
+      set align(left)
+      align(center)[
+        #it.body
+        #v(10pt, weak: true)
+        #text(
+          size: figure-font-size,
+          [
+            #grid(
+              columns: 2,
+              column-gutter: if it.numbering != none {
+                4pt
+              } else {
+                0pt
+              },
+              align: top,
+              strong(thm_num), [#if it.caption != none [#align(left, it.caption.body)]],
+            )
+          ],
         )
-      ],
-    )
-  ]
+      ]
+    }
+  }
 
   show figure.where(kind: "teilaufgabe"): it => align(
     left,
@@ -207,6 +220,11 @@
   if loesungen in ("seite", "seiten") {
     d_loesungen()
   }
+}
+
+#let material(nummer) = {
+  counter("material").update(nummer)
+  counter(figure.where(kind: image)).update(0)
 }
 
 // In CeTZ-Diagrammen keine gestrichelten Linien mehr haben

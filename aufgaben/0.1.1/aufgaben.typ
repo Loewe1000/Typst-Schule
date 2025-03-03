@@ -8,7 +8,8 @@
   (
     loesungen: "keine", //
     workspaces: true,
-    punkte: "keine", // "keine", "aufgaben", "teilaufgaben", "alle"
+    teilaufgabe-numbering: "a)",
+    punkte: "alle", // "keine", "aufgaben", "teilaufgaben", "alle"
   ),
 )
 
@@ -129,24 +130,31 @@
   // Render heading
   if title != none or number {
     context {
-      let auf-head = heading(figure(kind: "aufgabe", supplement: none, 
-        text(if large { 14pt } else { 12pt }, [
-          #let nums = _counter_aufgaben.get()
-          #if ic.len() > 0 { ic.join() }
-          #if number { "Aufgabe " + str(nums.first()) }
-          #if number and title != none [ $-$ ]
-          #if title != none [#title]
-          #h(1fr)
-          // Gesamtpunkte der Aufgabe
-          #let opts = _state_options.get()
-          #if opts.punkte in ("aufgaben", "alle") {
-            let points = get_points(_counter_aufgaben.get().at(0))
-            if points > 0 {
-              if points == 1 [#p Punkt] else [#points Punkte]
-            }
-          }
-        ]),
-      ))
+      let auf-head = heading(
+        figure(
+          kind: "aufgabe",
+          supplement: none,
+          text(
+            if large { 14pt } else { 12pt },
+            [
+              #let nums = _counter_aufgaben.get()
+              #if ic.len() > 0 { ic.join() }
+              #if number { "Aufgabe " + str(nums.first()) }
+              #if number and title != none [ $-$ ]
+              #if title != none [#title]
+              #h(1fr)
+              // Gesamtpunkte der Aufgabe
+              #let opts = _state_options.get()
+              #if opts.punkte in ("aufgaben", "alle") {
+                let points = get_points(_counter_aufgaben.get().at(0))
+                if points > 0 {
+                  [#points BE]
+                }
+              }
+            ],
+          ),
+        ),
+      )
       if label-ref != none [
         #auf-head #label(label-ref)
       ] else [
@@ -191,7 +199,14 @@
 
     let ta-enum = enum(
       start: curr_teil,
-      numbering: item-label,
+      numbering: n => context [
+        #let opts = _state_options.get()
+        #if opts.teilaufgabe-numbering == "a)" {
+          numbering("a)", n)
+        } else if opts.teilaufgabe-numbering == "1." {
+          numbering("1.1", curr_aufg, n)
+        }
+      ],
       {
         body
         // Punkte der Teilaufgabe
@@ -204,13 +219,10 @@
             )
             if points > 0 {
               h(1fr)
-              place(
-                dy: 0cm,
-                dx: 7mm,
+              box(align(
                 top + right,
-                text(fill: black, size: 0.88em)[(#points)],
-              )
-              v(0fr)
+                text(fill: black, size: 0.88em)[*[#points BE]*],
+              ))
             }
           }
         }
