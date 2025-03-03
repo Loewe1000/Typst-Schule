@@ -83,7 +83,13 @@
     if el != none and el.func() == figure and el.kind in (image, table) {
       "M" + numbering("1a", counter("material").at(el.location()).first(), counter(figure.where(kind: image)).at(el.location()).first())
     } else if el != none and el.func() == figure and el.kind == "teilaufgabe" {
-      numbering("a)", counter(figure.where(kind: "teilaufgabe")).at(el.location()).first())
+      context {
+        if _state_options.get().at("teilaufgabe-numbering", default: "1.") == "1." {
+          numbering("1.1", counter(figure.where(kind: "aufgabe")).at(el.location()).first(), counter(figure.where(kind: "teilaufgabe")).at(el.location()).first())
+        } else if _state_options.get().at("teilaufgabe-numbering", default: "1.") == "a)" {
+          numbering("a)", counter(figure.where(kind: "teilaufgabe")).at(el.location()).first())
+        }
+      }
     } else {
       // Other references as usual.
       it
