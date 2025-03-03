@@ -1,4 +1,3 @@
-#import "@preview/cetz:0.3.1": *
 
 // Was ist items? Gibts da nicht schönere Variablennamen?
 #let kariert(
@@ -22,6 +21,7 @@
         autoheight = rows * grid-size
       }
     }
+    import "@preview/cetz:0.3.1": *
     canvas(
       length: grid-size,
       {
@@ -63,6 +63,7 @@
 ) = {
   move(dy: lineheight * 0.5)[
     #layout(size => {
+      import "@preview/cetz:0.3.1": *
       canvas(
         length: lineheight,
         {

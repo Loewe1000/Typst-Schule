@@ -1,5 +1,5 @@
 #import "@schule/typopst:0.0.1": *
-#import "@preview/fontawesome:0.1.0": *
+#import "@preview/fontawesome:0.5.0": *
 
 #let __c_aufgaben = counter("aufgaben")
 #let __c_punkte = counter("punkte")

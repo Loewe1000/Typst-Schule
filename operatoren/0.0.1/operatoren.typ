@@ -1,5 +1,3 @@
-#import "@preview/tablex:0.0.8": *
-
 #let operatoren-state = state("operatoren", ())
 
 #let operator(name, text: "") = {
@@ -11,6 +9,7 @@
 }
 
 #let operatoren-liste(fach: "Mathe") = [
+  #import "@preview/tablex:0.0.9": *
   #context {
     let operatoren-definitionen-array = csv(fach + ".csv", delimiter: ";")
     let operatoren-definitionen = (:)

@@ -1,5 +1,3 @@
-
-#import "@preview/tablex:0.0.8": *
 #import "@schule/patterns:0.0.1": kariert
 
 #let klausurbögen(
@@ -35,6 +33,7 @@
 
     #let header(title: "", subtitle: "", class: "", date: "", teacher: "", logo: []) = {
       set text(font: "Myriad Pro", hyphenate: true, lang: "de")
+      import "@preview/tablex:0.0.9": tablex
       tablex(
         columns: (2.5cm, 1fr, 2.5cm),
         row: (1fr,) * 2,
@@ -241,6 +240,7 @@
 
     set text(9pt)
     if result {
+      import "@preview/tablex:0.0.9": tablex
       move(
         ..mv,
         tablex(
@@ -350,6 +350,7 @@
     }
     if result {
       if not subtasks {
+        import "@preview/tablex:0.0.9": tablex
         move(
           ..mv,
           tablex(
@@ -382,6 +383,7 @@
           ),
         )
       } else {
+        import "@preview/tablex:0.0.9": tablex
         move(
           ..mv,
           tablex(

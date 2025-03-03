@@ -1,4 +1,3 @@
-#import "@preview/tablex:0.0.9": *
 #import "@preview/unify:0.7.0": *
 #import "@schule/random:0.0.1": *
 
@@ -58,8 +57,8 @@
 #let berechnung(name, einheit, datensatz, formel, prefix: "1", max-digits: 2, auto-einheit: true, fehler: 0) = {
   let neue_werte = datensatz.werte.map(formel)
   if prefix != "1" {
-    neue_werte = neue_werte.map(w => {w * float("1" + prefix)})
-  } 
+    neue_werte = neue_werte.map(w => { w * float("1" + prefix) })
+  }
   if fehler != 0 {
     for (key, wert) in neue_werte.enumerate() {
       neue_werte.at(key) = wert * (1 + ((0.5 - rand(key)) * fehler / 100))
@@ -85,7 +84,7 @@
     name: name,
     einheit: einheit,
     werte: neue_werte,
-    prefix: prefix
+    prefix: prefix,
   )
 }
 
@@ -94,38 +93,41 @@
   datensatze,
   row-height: auto,
   header: none,
-) = tablex(
-  stroke: 0.5pt,
-  inset: 2.5mm,
-  columns: (auto, ..(datensatze.at(0).werte.len()) * (1fr,)),
-  rows: datensatze.len() * (row-height, ),
-  align: (left + horizon, ..(datensatze.at(0).werte.len()) * (center + horizon,)),
-  map-cells: c => {
-    if c.x == 0 {
-      c.fill = rgb(255,255,255).darken(5%)
-    }
-    if header != none {
-      if c.y == 0 {
-        c.fill = rgb(255,255,255).darken(5%)
+) = [
+  #import "@preview/tablex:0.0.9": *
+  #tablex(
+    stroke: 0.5pt,
+    inset: 2.5mm,
+    columns: (auto, ..(datensatze.at(0).werte.len()) * (1fr,)),
+    rows: datensatze.len() * (row-height,),
+    align: (left + horizon, ..(datensatze.at(0).werte.len()) * (center + horizon,)),
+    map-cells: c => {
+      if c.x == 0 {
+        c.fill = rgb(255, 255, 255).darken(5%)
       }
-    }
-    c
-  },
+      if header != none {
+        if c.y == 0 {
+          c.fill = rgb(255, 255, 255).darken(5%)
+        }
+      }
+      c
+    },
 
-  // Kopfzeilen und Datenzeilen der Tabelle
-  ..if header != none {
-    while header.len() < datensatze.at(0).werte.len() {
-      header.push([])
-    }
-    ([],) + header.map(c => strong(c))
-  },
+    // Kopfzeilen und Datenzeilen der Tabelle
+    ..if header != none {
+      while header.len() < datensatze.at(0).werte.len() {
+        header.push([])
+      }
+      ([],) + header.map(c => strong(c))
+    },
 
     ..for datensatz in datensatze {
-      ((datensatz.name + " in " + if datensatz.prefix == "1" {unit(datensatz.einheit)} else {qty(datensatz.prefix, datensatz.einheit)}),
-      ..datensatz.werte.map(x => $#x$))
-    }
-
-)
+      (
+        (datensatz.name + if datensatz.einheit != none { " in " + if datensatz.prefix == "1" { unit(datensatz.einheit) } else { qty(datensatz.prefix, datensatz.einheit) } }),
+        ..datensatz.werte.map(x => $#x$),
+      )
+    },
+  )]
 
 // Funktion zur Erstellung der Tabellen
 #let messwerttabelle(datensatze, max_wert_pro_tabelle, row-height: auto, header: none, width: 100%) = {

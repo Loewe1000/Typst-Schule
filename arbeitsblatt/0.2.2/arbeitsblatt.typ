@@ -8,12 +8,12 @@
 #import "@schule/operatoren:0.0.1": operator, operatoren-liste
 #import "@preview/fontawesome:0.5.0": *
 #import "@preview/cades:0.3.0": qr-code
-#import "@preview/cetz:0.3.1": *
-#import "@preview/cetz-plot:0.1.0": *
-#import "@preview/codly:1.0.0": *
+#import "@preview/cetz:0.3.3": *
+#import "@preview/cetz-plot:0.1.1": *
+#import "@preview/codly:1.2.0": *
 #import "@preview/colorful-boxes:1.3.1": *
-#import "@preview/tablex:0.0.8": *
-#import "@preview/unify:0.6.0": *
+#import "@preview/tablex:0.0.9": *
+#import "@preview/unify:0.7.1": *
 
 #let print-state = state("print", false)
 

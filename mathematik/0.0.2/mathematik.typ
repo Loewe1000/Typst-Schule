@@ -1,6 +1,4 @@
-#import "@preview/tablex:0.0.9": *
 #import "@schule/random:0.0.1": *
-#import "@schule/aufgaben:0.1.0": teilaufgabe, loesung
 
 #let fkt-plot(
   term,
@@ -127,6 +125,7 @@
   if columns != auto {
     row-amount = columns
   }
+  import "@schule/aufgaben:0.1.1": teilaufgabe, loesung
   let tasks-show = ()
   for (key, task) in tasks.enumerate() {
     tasks-show.push(teilaufgabe()[
@@ -136,7 +135,7 @@
       ]
     ])
   }
-
+  import "@preview/tablex:0.9.0": *
   tablex(
     stroke: none,
     columns: (1fr,) * row-amount,
