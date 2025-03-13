@@ -57,9 +57,13 @@
             inset: 0pt,
           )[#text(16pt, weight: "semibold")[#box(height: 1cm)[#logo]]],
           rowspanx(2)[#stack(
-              spacing: 2mm,
+              spacing: 0mm,
               text(16pt, weight: "semibold")[#title],
-              text(12pt, weight: "regular")[#subtitle],
+
+              if subtitle != "" {
+                v(2mm)
+                text(12pt, weight: "regular")[#subtitle]
+              },
             )],
           cellx(align: right + horizon)[#text(11pt, weight: "regular")[#date]],
           cellx(align: right + horizon)[#text(11pt, weight: "regular")[#class - #teacher]],
