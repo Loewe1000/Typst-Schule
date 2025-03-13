@@ -84,7 +84,6 @@
     print: true,
     header-ascent: 0%,
     font: font,
-    teilaufgabe-numbering: teilaufgabe-numbering,
     math-font: math-font,
     figure-font-size: figure-font-size,
     punkte: punkte,
