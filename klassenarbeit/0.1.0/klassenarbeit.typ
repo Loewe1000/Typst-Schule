@@ -20,7 +20,7 @@
   loesungen: none,
   info-table: true,
   erwartungen: false,
-  teilaufgaben-nummerierung: "1.", // "a)" "1."
+  teilaufgabe-numbering: "1.", // "a)" "1."
   punkte: "keine",
   bewertung: false,
   page-numbering: true,
@@ -84,6 +84,7 @@
     print: true,
     header-ascent: 0%,
     font: font,
+    teilaufgabe-numbering: teilaufgabe-numbering,
     math-font: math-font,
     figure-font-size: figure-font-size,
     punkte: punkte,
