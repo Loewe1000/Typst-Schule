@@ -2,3 +2,7 @@
 name = "angela"
 version = "0.0.1"
 entrypoint = "angela.typ"
+description = "Package for Briefe der Angelaschule"
+license = "MIT"
+description = "Package for angela"
+license = "MIT"

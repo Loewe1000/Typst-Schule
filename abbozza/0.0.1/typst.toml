@@ -2,3 +2,6 @@
 name = "abbozza"
 version = "0.0.1"
 entrypoint = "hathi-render.typ"
+
+description = "Package for abbozza"
+license = "MIT"

@@ -2,3 +2,6 @@
 name = "aufgaben"
 version = "0.1.1"
 entrypoint = "aufgaben.typ"
+
+description = "Package for aufgaben"
+license = "MIT"

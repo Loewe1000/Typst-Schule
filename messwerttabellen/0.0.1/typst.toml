@@ -2,3 +2,6 @@
 name = "messwerttabellen"
 version = "0.0.1"
 entrypoint = "lib.typ"
+
+description = "Package for messwerttabellen"
+license = "MIT"

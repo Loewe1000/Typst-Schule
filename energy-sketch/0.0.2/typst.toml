@@ -5,3 +5,6 @@ entrypoint = "lib.typ"
 compiler = "0.12"
 exclude = ["*.pdf", "example.typ"]
 
+
+description = "Package for energy-sketch"
+license = "MIT"

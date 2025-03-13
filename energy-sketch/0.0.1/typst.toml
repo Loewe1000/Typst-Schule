@@ -3,3 +3,6 @@ name = "energy-sketch"
 version = "0.0.1"
 entrypoint = "lib.typ"
 
+
+description = "Package for energy-sketch"
+license = "MIT"

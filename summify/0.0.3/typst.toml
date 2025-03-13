@@ -4,3 +4,6 @@ version = "0.0.3"
 entrypoint = "summify.typ"
 exclude = ["/assets/*", "*.pdf", "example.typ"]
 
+
+description = "Package for summify"
+license = "MIT"

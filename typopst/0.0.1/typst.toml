@@ -3,3 +3,6 @@ name = "typopst"
 version = "0.0.1"
 entrypoint = "typopst.typ"
 
+
+description = "Package for typopst"
+license = "MIT"
