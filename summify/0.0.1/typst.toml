@@ -1,6 +1,9 @@
 [package]
-name = "cheatsheets"
+name = "summify"
 version = "0.0.1"
 entrypoint = "cheatsheets.typ"
 exclude = ["/assets/*", "*.pdf", "example.typ"]
 
+
+description = "Package for summify"
+license = "MIT"

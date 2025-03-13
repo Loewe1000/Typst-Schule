@@ -3,3 +3,6 @@ name = "arbeitsblatt"
 version = "0.0.6"
 entrypoint = "arbeitsblatt.typ"
 
+
+description = "Package for arbeitsblatt"
+license = "MIT"

@@ -3,3 +3,6 @@ name = "options"
 version = "0.0.5"
 entrypoint = "options.typ"
 
+
+description = "Package for options"
+license = "MIT"

@@ -3,3 +3,6 @@ name = "insert-a-word"
 version = "0.0.1"
 entrypoint = "lib.typ"
 
+
+description = "Package for insert-a-word"
+license = "MIT"

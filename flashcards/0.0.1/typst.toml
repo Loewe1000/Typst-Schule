@@ -3,3 +3,6 @@ name = "flashcards"
 version = "0.0.1"
 entrypoint = "flashcards.typ"
 
+
+description = "Package for flashcards"
+license = "MIT"

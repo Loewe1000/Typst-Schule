@@ -3,3 +3,6 @@ name = "operatoren"
 version = "0.0.1"
 entrypoint = "operatoren.typ"
 
+
+description = "Package for operatoren"
+license = "MIT"

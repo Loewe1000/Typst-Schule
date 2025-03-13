@@ -135,7 +135,7 @@
       ]
     ])
   }
-  import "@preview/tablex:0.9.0": *
+  import "@preview/tablex:0.0.9": *
   tablex(
     stroke: none,
     columns: (1fr,) * row-amount,

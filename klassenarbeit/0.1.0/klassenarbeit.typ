@@ -88,6 +88,7 @@
     math-font: math-font,
     figure-font-size: figure-font-size,
     punkte: punkte,
+    teilaufgabe-numbering: teilaufgabe-numbering,
     page-settings: (margin: (top: 2cm, bottom: 1cm, left: 1.5cm, right: 1.5cm)),
     custom-header: header(
       title: title,

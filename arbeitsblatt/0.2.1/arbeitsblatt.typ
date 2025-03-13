@@ -77,9 +77,9 @@
 
   show ref: it => {
     let el = it.element
-    if el != none and el.func() == figure and el.kind in ("image", "table") {
+    if el != none and el.func() == figure and el.kind in (image, table) {
       // Override figure references.
-      [*M#counter("aufgaben").get().at(0).#numbering(el.numbering, ..counter(figure).at(el.location()))*]
+      [*M#counter("aufgaben").get().at(0).#numbering(el.numbering, ..counter(figure.where(kind: image)).at(el.location()))*]
     } else if el != none and el.func() == figure and el.kind == "teilaufgabe" {
       // Other references as usual.
       numbering("a)", counter(figure.where(kind: "teilaufgabe")).at(el.location()).first())
@@ -170,7 +170,7 @@
   // Setting captions and numberings for figures
   set figure(numbering: "1")
 
-  show figure.where(kind: "image"): it => align(center)[
+  show figure.where(kind: image): it => align(center)[
     #it.body
     #v(10pt, weak: true)
     #text(
@@ -184,7 +184,7 @@
             0pt
           },
           align: top,
-          [#if it.numbering != none [*M#counter("aufgaben").get().at(0).#counter(figure).display()*:] ],
+          [#if it.numbering != none [*M#counter("aufgaben").get().at(0).#counter(figure.where(kind: image)).display()*#if it.caption != none [*:*]]],
           [#if it.caption != none [#align(left, it.caption.body)]],
         )
       ],

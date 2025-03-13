@@ -4,3 +4,6 @@ version = "0.1.1"
 entrypoint = "arbeitsblatt.typ"
 exclude = ["/assets/*", "*.pdf", "example.typ"]
 
+
+description = "Package for arbeitsblatt"
+license = "MIT"

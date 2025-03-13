@@ -2,3 +2,5 @@
 name = "klassenarbeit"
 version = "0.0.4"
 entrypoint = "klassenarbeit.typ"
+description = "Package for klassenarbeit"
+license = "MIT"

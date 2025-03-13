@@ -3,3 +3,6 @@ name = "random"
 version = "0.0.1"
 entrypoint = "random.typ"
 
+
+description = "Package for random"
+license = "MIT"
