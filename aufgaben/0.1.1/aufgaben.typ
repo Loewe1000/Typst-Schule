@@ -26,7 +26,7 @@
 #let show_loesung(aufg, teil: false) = {
   if teil == false and aufg.loesung.len() > 0 {
     goal(
-      title: [Lösung #{aufg.nummer}],
+      title: [Lösung #{aufg.nummer} #if aufg.title != none [-- #{aufg.title} ]],
       accent-color: gray,
       {
         // Main solutions
