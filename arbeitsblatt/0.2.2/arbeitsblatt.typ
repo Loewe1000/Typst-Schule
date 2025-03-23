@@ -48,7 +48,7 @@
   figure-font-size: 9pt,
   landscape: false,
   custom-header: none,
-  teilaufgabe-numbering: "1.",
+  teilaufgabe-numbering: "a)",
   header-ascent: 20%,
   page-settings: (),
   loesungen: "false",
