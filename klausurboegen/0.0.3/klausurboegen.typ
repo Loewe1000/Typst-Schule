@@ -33,7 +33,7 @@
 
     #let header(title: "", subtitle: "", class: "", date: "", teacher: "", logo: []) = {
       set text(font: "Myriad Pro", hyphenate: true, lang: "de")
-      import "@preview/tablex:0.0.9": tablex
+      import "@preview/tablex:0.0.9": tablex, rowspanx, cellx,
       tablex(
         columns: (2.5cm, 1fr, 2.5cm),
         row: (1fr,) * 2,
@@ -222,6 +222,7 @@
       lowerBound = roundedBorder
       lastLowerBound = lowerBound
 
+      import "@preview/tablex:0.0.9": tablex, vlinex
 
       if sek1 {
         gradeRegions.push(text(fill: black, (str(upperBound) + " - " + str(lowerBound)).replace(".", ",")))
@@ -240,7 +241,6 @@
 
     set text(9pt)
     if result {
-      import "@preview/tablex:0.0.9": tablex
       move(
         ..mv,
         tablex(

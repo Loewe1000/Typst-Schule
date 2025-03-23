@@ -26,7 +26,7 @@
   page-numbering: true,
   klausurboegen: false,
   ergebnisse: none,
-  klausurboegen-settings: (sub: false, numbering: "a)", rand: 6cm, weißer-rand: true, move: (dx: 0cm, dy: 0cm)),
+  klausurboegen-settings: (sub: false, numbering: "a)", rand: 6cm, weißer-rand: true),
   ..args,
   body,
 ) = {
