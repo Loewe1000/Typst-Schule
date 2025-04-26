@@ -1,4 +1,4 @@
-#import "@preview/cetz:0.3.1": canvas
+#import "@preview/cetz:0.3.1": canvas, draw
 
 #let energy-sketch(
   energy-name,
