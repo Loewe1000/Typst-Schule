@@ -8,7 +8,7 @@
 #import "@schule/operatoren:0.0.1": operator, operatoren-liste
 #import "@preview/fontawesome:0.5.0": *
 #import "@preview/cades:0.3.0": qr-code
-#import "@preview/cetz:0.3.3": *
+#import "@preview/cetz:0.3.4": *
 #import "@preview/cetz-plot:0.1.1": *
 #import "@preview/codly:1.2.0": *
 #import "@preview/colorful-boxes:1.3.1": *
@@ -81,7 +81,8 @@
   show ref: it => {
     let el = it.element
     if el != none and el.func() == figure and el.kind in (image, table) {
-      "M" + numbering("1a", counter("material").at(el.location()).first(), counter(figure.where(kind: image)).at(el.location()).first())
+      let material-counter = counter(figure.where(kind: image)).at(el.location()).first() + counter(figure.where(kind: table)).at(el.location()).first()
+      "M" + numbering("1a", counter("material").at(el.location()).first(), material-counter)
     } else if el != none and el.func() == figure and el.kind == "teilaufgabe" {
       context {
         if _state_options.get().at("teilaufgabe-numbering", default: "1.") == "1." {
@@ -177,10 +178,10 @@
 
   // Setting captions and numberings for figures
   set figure(numbering: "1", supplement: none)
-  show figure.where(kind: image): it => {
+  show figure.where(kind: image).or(figure.where(kind: table)): it => {
     context {
       let header_count = counter("material").get().first()
-      let thm_count = it.counter.get().first()
+      let thm_count = counter(figure.where(kind: image)).at(it.location()).first() + counter(figure.where(kind: table)).at(it.location()).first()
       let thm_num = if header_count > 0 {
         "M" + numbering("1a", header_count, thm_count)
       } else {
@@ -299,7 +300,7 @@
   )
 }
 
-#let icon-link(url, name, icon: fa-external-link(fill: blue)) = {
+#let icon-link(url, name, icon: emoji.chain) = {//fa-external-link(fill: blue)
   link(url)[#icon #text(fill: blue, [#name])]
 }
 
