@@ -185,6 +185,7 @@
   //#set text(12pt, fill: print-color, font: "Myriad Pro")
 
   #let gradeBoundaries(maxPoints: 100) = {
+    import "@preview/tablex:0.0.9": tablex, vlinex
     let gradeBordersSek1 = (0.875, 0.75, 0.625, 0.5, 0.2, 0)
     let gradeBordersSek2 = (0.95, 0.90, 0.85, 0.80, 0.75, 0.70, 0.65, 0.60, 0.55, 0.50, 0.45, 0.40, 0.33, 0.27, 0.20, 0)
     let gradeRegions = ()
@@ -222,7 +223,6 @@
       lowerBound = roundedBorder
       lastLowerBound = lowerBound
 
-      import "@preview/tablex:0.0.9": tablex, vlinex
 
       if sek1 {
         gradeRegions.push(text(fill: black, (str(upperBound) + " - " + str(lowerBound)).replace(".", ",")))
@@ -311,6 +311,7 @@
   }
 
   #let createTable(cols: none, maxPoints: none, achievedPoints: none, result: false) = {
+    import "@preview/tablex:0.0.9": tablex, colspanx, rowspanx, cellx
     let headerRow = ()
     let subtaskRow = ()
     let numberOfColumns = 0
@@ -350,7 +351,6 @@
     }
     if result {
       if not subtasks {
-        import "@preview/tablex:0.0.9": tablex
         move(
           ..mv,
           tablex(
