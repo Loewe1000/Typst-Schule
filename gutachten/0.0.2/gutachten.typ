@@ -114,7 +114,25 @@
 
     #if wahl.len() > 0 [
       #context [
-        #vorname wählt die #wahl.map(a => [#emph[#a: #state("aufgaben").get().at(a).name]]).join(", ", last: " und ").
+        #vorname wählt #if type(wahl) == array {
+          wahl.map(
+            a => {
+              let aufgaben-name = state("aufgaben").get().at(a).name
+              emph[#a#if aufgaben-name != "" [: #aufgaben-name]]
+            },
+          ).join(", ", last: " und ") + "."
+        } else if type(wahl) == dictionary {
+          let keys = wahl.keys()
+          keys.map( key => {
+            "im " + key + " "
+            wahl.at(key).map(
+              a => {
+                let aufgaben-name = state("aufgaben").get().at(a, default: a)
+                emph[#a#if type(aufgaben-name) == dictionary and aufgaben-name.at("name", default: "") != "" [: #aufgaben-name]]
+              },
+            ).join(", ", last: " und ")
+          }).join(", ", last: " und ") + "."
+        }
       ]
     ]
 
