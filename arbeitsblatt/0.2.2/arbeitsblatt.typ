@@ -232,6 +232,7 @@
 #let material(nummer) = {
   counter("material").update(nummer)
   counter(figure.where(kind: image)).update(0)
+  counter(figure.where(kind: table)).update(0)
 }
 
 // In CeTZ-Diagrammen keine gestrichelten Linien mehr haben
