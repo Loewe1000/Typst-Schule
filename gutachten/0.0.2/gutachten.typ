@@ -1,10 +1,19 @@
 #import "@preview/unify:0.7.0": *
 
-#let set-gutachten-infos(fach: "", niveau: "", kürzel: "", be: 1) = state("gutachten-infos").update((
+#let set-gutachten-infos(
+  fach: "",
+  niveau: "",
+  kürzel: "",
+  be: 1,
+  font: "New Computer Modern Sans",
+  math-font: "Fira Math",
+) = state("gutachten-infos").update((
   fach: fach,
   niveau: niveau,
   kürzel: kürzel,
   be: be,
+  font: font,
+  math-font: math-font,
 ))
 
 #let name = context state("schüler").get().vorname
@@ -60,36 +69,37 @@
   wahl: (),
   body,
 ) = [
-  #set text(font: "New Computer Modern Sans", lang: "de")
-  #show math.equation: set text(font: "Fira Math")
-  #set par(justify: true)
-  #show math.equation: it => {
-    show regex("\d+\.\d+"): it => {
-      show ".": {
-        "," + h(0pt)
+  #context [
+    #let gutachten-infos = state("gutachten-infos").final()
+
+    #set text(font: gutachten-infos.font, lang: "de")
+    #show math.equation: set text(font: gutachten-infos.math-font)
+    #set par(justify: true)
+    #show math.equation: it => {
+      show regex("\d+\.\d+"): it => {
+        show ".": {
+          "," + h(0pt)
+        }
+        it
       }
       it
     }
-    it
-  }
 
-  #state("schüler").update((vorname: vorname, nachname: nachname))
-  #state("punkte").update(0)
-  #counter(page).update(1)
+    #state("schüler").update((vorname: vorname, nachname: nachname))
+    #state("punkte").update(0)
+    #counter(page).update(1)
 
-  #set page(
-    header-ascent: 20%,
-    numbering: (i, n) => {
-      context [
-        #let schüler = state("schüler").get()
-        #let label-name = schüler.vorname + "-" + schüler.nachname + "-pages"
-        #i von #counter(page).at(label(label-name)).at(0)
-      ]
-     },
-    margin: (top: 3cm, y: 3cm),
-    header: [
-      #context [
-        #let gutachten-infos = state("gutachten-infos").final()
+    #set page(
+      header-ascent: 20%,
+      numbering: (i, n) => {
+        context [
+          #let schüler = state("schüler").get()
+          #let label-name = schüler.vorname + "-" + schüler.nachname + "-pages"
+          #i von #counter(page).at(label(label-name)).at(0)
+        ]
+      },
+      margin: (top: 3cm, y: 3cm),
+      header: [
         #grid(
           columns: (auto, 1fr, auto),
           align: (left + top, center + horizon, right + horizon),
@@ -97,44 +107,44 @@
           [Gutachten über die schriftliche Prüfung von \ *#vorname #nachname*],
           [Abitur 2025 \ #gutachten-infos.fach (#gutachten-infos.niveau) - #gutachten-infos.kürzel],
         )
-      ]
-      #v(-3mm)
-      #line(length: 100%, stroke: 1.5pt)
-    ],
-  )
-
-  #if wahl.len() > 0 [
-    #context [
-      #vorname wählt die #wahl.map(a => [#emph[#a: #state("aufgaben").get().at(a).name]]).join(", ", last: " und ").
-    ]
-  ]
-
-  #body
-
-  #box[
-    #context [
-      #let be = state("gutachten-infos").final().be
-      #let punkte = state("punkte").get()
-
-      #v(1em)
-
-      Insgesamt erreicht der Prüfling *$#punkte$* von *$#be$* Bewertungseinheiten ($#calc.round(100 * punkte/be, digits: 1)$%).\
-      Daher bewerte ich die Arbeit mit\
-      #align(center)[*#bewertungsskala(punkte/be)*.]
-    ]
-
-    #v(1cm)
-
-    #grid(
-      columns: (1fr, 5em, 1fr), rows: 1cm, row-gutter: 0.5em,
-      [], [], [#text(gray)[_Mit Korrektur und  Bewertung einverstanden_]],
-      grid.cell(stroke: (bottom: 1pt), []), [], grid.cell(stroke: (bottom: 1pt), []),
-      text(9pt, [Ort, Datum, Unterschrift]), [], text(9pt, [Ort, Datum, Unterschrift])
+        #v(-3mm)
+        #line(length: 100%, stroke: 1.5pt)
+      ],
     )
-  ]
-  //#label()
-  #context [
-    #let schüler = state("schüler").get()
-    #label(schüler.vorname + "-" + schüler.nachname + "-pages")
+
+    #if wahl.len() > 0 [
+      #context [
+        #vorname wählt die #wahl.map(a => [#emph[#a: #state("aufgaben").get().at(a).name]]).join(", ", last: " und ").
+      ]
+    ]
+
+    #body
+
+    #box[
+      #context [
+        #let be = state("gutachten-infos").final().be
+        #let punkte = state("punkte").get()
+
+        #v(1em)
+
+        Insgesamt erreicht der Prüfling *$#punkte$* von *$#be$* Bewertungseinheiten ($#calc.round(100 * punkte / be, digits: 1)$%).\
+        Daher bewerte ich die Arbeit mit\
+        #align(center)[*#bewertungsskala(punkte / be)*.]
+      ]
+
+      #v(1cm)
+
+      #grid(
+        columns: (1fr, 5em, 1fr), rows: 1cm, row-gutter: 0.5em,
+        [], [], [#text(gray)[_Mit Korrektur und Bewertung einverstanden_]],
+        grid.cell(stroke: (bottom: 1pt), []), [], grid.cell(stroke: (bottom: 1pt), []),
+        text(9pt, [Ort, Datum, Unterschrift]), [], text(9pt, [Ort, Datum, Unterschrift])
+      )
+    ]
+    //#label()
+    #context [
+      #let schüler = state("schüler").get()
+      #label(schüler.vorname + "-" + schüler.nachname + "-pages")
+    ]
   ]
 ]
