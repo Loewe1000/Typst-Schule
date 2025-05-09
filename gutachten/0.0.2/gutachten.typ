@@ -69,7 +69,11 @@
   wahl: (),
   body,
 ) = [
+  #state("schüler").update((vorname: vorname, nachname: nachname))
+  #state("punkte").update(0)
+  #counter(page).update(1)
   #context [
+
     #let gutachten-infos = state("gutachten-infos").final()
 
     #set text(font: gutachten-infos.font, lang: "de")
@@ -84,10 +88,6 @@
       }
       it
     }
-
-    #state("schüler").update((vorname: vorname, nachname: nachname))
-    #state("punkte").update(0)
-    #counter(page).update(1)
 
     #set page(
       header-ascent: 20%,
@@ -112,6 +112,7 @@
       ],
     )
 
+
     #if wahl.len() > 0 [
       #context [
         #vorname wählt #if type(wahl) == array {
@@ -123,15 +124,17 @@
           ).join(", ", last: " und ") + "."
         } else if type(wahl) == dictionary {
           let keys = wahl.keys()
-          keys.map( key => {
-            "im " + key + " "
-            wahl.at(key).map(
-              a => {
-                let aufgaben-name = state("aufgaben").get().at(a, default: a)
-                emph[#a#if type(aufgaben-name) == dictionary and aufgaben-name.at("name", default: "") != "" [: #aufgaben-name]]
-              },
-            ).join(", ", last: " und ")
-          }).join(", ", last: " und ") + "."
+          keys.map(
+            key => {
+              "im " + key + " "
+              wahl.at(key).map(
+                a => {
+                  let aufgaben-name = state("aufgaben").get().at(a, default: a)
+                  emph[#a#if type(aufgaben-name) == dictionary and aufgaben-name.at("name", default: "") != "" [: #aufgaben-name]]
+                },
+              ).join(", ", last: " und ")
+            },
+          ).join(", ", last: " und ") + "."
         }
       ]
     ]
