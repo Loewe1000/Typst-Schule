@@ -58,7 +58,7 @@
   #context par[
     #let schüler = state("schüler").get()
     #let be = state("aufgaben").get().at(name).be
-    #state("punkte").update(state("punkte").get() + punkte)
+    #state("punkte").update(i => {punkte + i})
     In #name erreicht #schüler.at("vorname") insgesamt *$#punkte$* von *$#be$* Bewertungseinheiten.
   ]
 ]
@@ -72,6 +72,7 @@
   #state("schüler").update((vorname: vorname, nachname: nachname))
   #state("punkte").update(0)
   #counter(page).update(1)
+  
   #context [
 
     #let gutachten-infos = state("gutachten-infos").final()
