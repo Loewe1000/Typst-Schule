@@ -1,0 +1,15 @@
+<svg viewBox="-80 -160 160 320"
+  xmlns="http://www.w3.org/2000/svg">
+  <g>
+    <!-- base -->
+    <g>
+      <path d="M 0 32 l 64 -32 l 0 8 l -64 32 l -64 -32 l 0 -8 z" fill="#87CEFA" stroke="black" stroke-width="0.5" stroke-linejoin="round" stroke-linecap="round"/>
+      <path d="M 0 32 l 64 -32 l -64 -32 l -64 32 z" fill="#87CEFA" stroke="black" stroke-width="0.5" stroke-linejoin="round" stroke-linecap="round"/>
+      <path d="M 0 32 l 0 8" fill="#87CEFA" stroke="black" stroke-width="0.5" stroke-linejoin="round" stroke-linecap="round"/>
+    </g>
+  </g>
+  <g id="Group" transform="translate(-42, -24)" fill="#FFFFFF" fill-opacity="0.5">
+    <polygon id="Path" points="78.5 16.5 68.5 23.75 65.25 23.75 66 16.5 62.75 22.75 59 23.75 52.75 20.25 57 25.5 55.25 30 46.5 34 48.75 34 47.75 36.5 39.25 42 49.75 37.5 50.5 33.25 56.25 32.5 62.75 35.25 57 30.75 59 26.75 63.5 25.5 74.75 27.75 70.5 25.5 74.75 21.25 80.5 21.25 76 20.25"></polygon>
+    <polygon id="Path2" points="41.75 17.75 28.25 16.25 31 14 33 8.75 43.5 4.25 36.75 5.5 39.25 -3.87884169e-14 34.25 5.5 30 8.75 28.75 11.5 19.75 8.75 27.25 13 19.75 18.25 14.75 17.25 -1.02626241e-14 22.25 9 21 6.25 25 12 20.5 20.25 21 24.5 25.25 20.5 30.25 25 27.25 24.75 32.25 27.5 25.5 24.5 20.5 25.75 18.25"></polygon>
+  </g>
+</svg>

@@ -1,8 +1,8 @@
 <svg viewBox="-100 -200 200 400"
     xmlns="http://www.w3.org/2000/svg">
     <g id="goal">
-        <path d="M 2 -1 l 0 -128" stroke="sienna" stroke-width="10" stroke-linecap="round" />
+        <path d="M 2 -1 l 0 -128" stroke="#A0522D" stroke-width="10" stroke-linecap="round" />
         <path d="M 0 0 l 0 -128" stroke="tan" stroke-width="10" stroke-linecap="round" />
-        <path id="cloth" d="M 7 -96 l 0 -32 q -6 4 -12 0 l 0 32 q 6 4 12 0 z" stroke="black" fill="blue" />
+        <path id="cloth" d="M 7 -96 l 0 -32 q -6 4 -12 0 l 0 32 q 6 4 12 0 z" stroke="black" fill="#0000FF" />
     </g>
 </svg>
