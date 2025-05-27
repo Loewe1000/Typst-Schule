@@ -242,6 +242,23 @@
   counter(figure.where(kind: table)).update(0)
 }
 
+#let lücke(body, tight: false) = {
+  box(
+    move(
+      dy: 0.33em,
+      box(
+        stroke: (bottom: 0.5pt),
+        [
+          #if not tight {
+            h(2em)
+          }
+          #hide(body)
+        ],
+      ),
+    ),
+  )
+}
+
 // In CeTZ-Diagrammen keine gestrichelten Linien mehr haben
 // + Position der Achsenbeschriftungen innen statt außen
 
