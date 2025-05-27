@@ -208,7 +208,7 @@
         }
       ],
       {
-        body
+        box(width: 100%, body)
         // Punkte der Teilaufgabe
         let opts = _state_options.get()
         if opts.punkte in ("teilaufgaben", "alle") {
