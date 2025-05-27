@@ -101,7 +101,7 @@
       teacher: teacher,
       logo: logo,
     ),
-    //loesungen: false,
+    loesungen: loesungen,
     ..args,
   )
 
@@ -143,11 +143,7 @@
       d_loesungen()
     }
     #if erwartungen == true {
-      if stufe == "II" {
-        d_ew_oberstufe()
-      } else if stufe == "I" {
-        d_ew_unterstufe()
-      }
+      d_ew()
     }
 
     #if klausurboegen {
