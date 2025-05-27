@@ -139,9 +139,6 @@
     d_ew_bewertung()
   }
   [
-    #if loesungen == "seite" {
-      d_loesungen()
-    }
     #if erwartungen == true {
       d_ew()
     }
