@@ -124,7 +124,7 @@
               }
             ]])
           cells.push(table.cell(inset: (x: 1.5mm, y: 2mm), [#aufg.erwartungen.filter(e => e.teil == i + 1).map(e => e.text).join("")]))
-          cells.push(table.cell(inset: 2mm, [#aufg.erwartungen.filter(e => e.teil == i + 1).map(e => e.punkte).sum()]))
+          cells.push(table.cell(inset: 2mm, [#aufg.erwartungen.filter(e => e.teil == i + 1).map(e => e.punkte).sum(default: 0)]))
         }
 
         cells
@@ -132,6 +132,6 @@
       .flatten()
     table(columns: (auto, 1fr, auto), align: (center + horizon, left + horizon, center), table.cell(fill: cell-highlight-color)[*Aufg.*], table.cell(
         fill: cell-highlight-color,
-      )[*Die Schüler:innen #sym.dots.h*], table.cell(fill: cell-highlight-color)[*mögli. \ Punkte*], ..zellen, table.cell(colspan:2, align: right, [*Summe*]),[*#aufgaben.map(a => a.erwartungen.map(e => e.punkte).sum()).sum()*], )
+      )[*Die Schüler:innen #sym.dots.h*], table.cell(fill: cell-highlight-color)[*mögli. \ Punkte*], ..zellen, table.cell(colspan:2, align: right, [*Summe*]),[*#aufgaben.map(a => a.erwartungen.map(e => e.punkte).sum(default: 0)).sum(default: 0)*], )
   }
 ]
