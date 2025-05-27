@@ -325,7 +325,8 @@
   )
 }
 
-#let icon-link(url, name, icon: emoji.chain) = {//fa-external-link(fill: blue)
+#let icon-link(url, name, icon: emoji.chain) = {
+  //fa-external-link(fill: blue)
   link(url)[#icon #text(fill: blue, [#name])]
 }
 
