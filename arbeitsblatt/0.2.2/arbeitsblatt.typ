@@ -62,7 +62,14 @@
   set par(justify: true, leading: 0.65em, linebreaks: "optimized")
 
   set text(font-size, font: font, hyphenate: true, lang: "de")
-  show math.equation: set text(font: math-font)
+  show math.equation: it => {
+    show text: it2 => {
+      set text(font: font)
+      it2
+    }
+    set text(font: math-font)
+    it
+  }
   show math.equation: it => {
     show regex("\d+\.\d+"): it => {
       show ".": {
