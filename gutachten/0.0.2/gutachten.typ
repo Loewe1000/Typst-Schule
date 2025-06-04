@@ -4,6 +4,7 @@
   fach: "",
   niveau: "",
   kürzel: "",
+  print: false,
   be: 1,
   font: "New Computer Modern Sans",
   math-font: "Fira Math",
@@ -11,6 +12,7 @@
   fach: fach,
   niveau: niveau,
   kürzel: kürzel,
+  print: print,
   be: be,
   font: font,
   math-font: math-font,
@@ -58,7 +60,7 @@
   #context par[
     #let schüler = state("schüler").get()
     #let be = state("aufgaben").get().at(name).be
-    #state("punkte").update(i => {punkte + i})
+    #state("punkte").update(i => { punkte + i })
     In #name erreicht #schüler.at("vorname") insgesamt *$#punkte$* von *$#be$* Bewertungseinheiten.
   ]
 ]
@@ -72,7 +74,7 @@
   #state("schüler").update((vorname: vorname, nachname: nachname))
   #state("punkte").update(0)
   #counter(page).update(1)
-  
+
   #context [
 
     #let gutachten-infos = state("gutachten-infos").final()
@@ -146,22 +148,23 @@
       #context [
         #let be = state("gutachten-infos").final().be
         #let punkte = state("punkte").get()
+        #let print = state("gutachten-infos").final().print
 
         #v(1em)
 
         Insgesamt erreicht der Prüfling *$#punkte$* von *$#be$* Bewertungseinheiten ($#calc.round(100 * punkte / be, digits: 1)$%).\
         Daher bewerte ich die Arbeit mit\
         #align(center)[*#bewertungsskala(punkte / be)*.]
+
+        #v(1cm)
+
+        #grid(
+          columns: (1fr, 5em, 1fr), rows: 1cm, row-gutter: 0.5em,
+          [], [], if print { grid.cell(stroke: (bottom: 1pt), []) } else { grid.cell([#text(gray)[_Mit Korrektur und Bewertung einverstanden_]]) },
+          grid.cell(stroke: (bottom: 1pt), []), [], grid.cell(stroke: (bottom: 1pt), []),
+          text(9pt, [Ort, Datum, Unterschrift]), [], text(9pt, [Ort, Datum, Unterschrift])
+        )
       ]
-
-      #v(1cm)
-
-      #grid(
-        columns: (1fr, 5em, 1fr), rows: 1cm, row-gutter: 0.5em,
-        [], [], [#text(gray)[_Mit Korrektur und Bewertung einverstanden_]],
-        grid.cell(stroke: (bottom: 1pt), []), [], grid.cell(stroke: (bottom: 1pt), []),
-        text(9pt, [Ort, Datum, Unterschrift]), [], text(9pt, [Ort, Datum, Unterschrift])
-      )
     ]
     //#label()
     #context [
