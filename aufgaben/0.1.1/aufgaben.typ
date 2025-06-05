@@ -26,7 +26,7 @@
 #let show_loesung(aufg, teil: false) = {
   if teil == false and aufg.loesung.len() > 0 {
     goal(
-      title: [Lösung #{aufg.nummer} #if aufg.title != none [-- #{aufg.title} ]],
+      title: [Lösung #{ aufg.nummer } #if aufg.title != none [-- #{ aufg.title } ]],
       accent-color: gray,
       {
         // Main solutions
@@ -47,7 +47,7 @@
   } else if aufg.loesung.filter(l => l.teil == teil).len() > 0 {
     // Sub-solutions
     goal(
-      title: [Lösung #if teil == 0 { {aufg.nummer} } else { numbering("a)", teil) }],
+      title: [Lösung #if teil == 0 { { aufg.nummer } } else { numbering("a)", teil) }],
       accent-color: gray,
       {
         for l in aufg.loesung.filter(l => l.teil == teil) {
@@ -208,28 +208,34 @@
         }
       ],
       {
-        box(width: 100%, body)
-        // Punkte der Teilaufgabe
-        let opts = _state_options.get()
-        if opts.punkte in ("teilaufgaben", "alle") {
-          context {
-            let points = get_points(
-              _counter_aufgaben.get().at(0),
-              teil: _counter_aufgaben.get().at(1),
-            )
-            if points > 0 {
-              h(1fr)
-              box(align(
-                top + right,
-                text(fill: black, size: 0.88em)[*[#points BE]*],
-              ))
+        box(
+          width: 100%,
+          {
+            body
+            let opts = _state_options.get()
+            if opts.punkte in ("teilaufgaben", "alle") {
+              context {
+                let points = get_points(
+                  _counter_aufgaben.get().at(0),
+                  teil: _counter_aufgaben.get().at(1),
+                )
+                if points > 0 {
+                  h(1fr)
+                  box(
+                    align(
+                      top + right,
+                      text(fill: black, size: 0.88em)[*[#points BE]*],
+                    ),
+                  )
+                }
+              }
             }
-          }
-        }
-        // Workspace
-        if workspace != none and opts.workspaces {
-          workspace
-        }
+            // Workspace
+            if workspace != none and opts.workspaces {
+              workspace
+            }
+          },
+        )
       },
     )
     if label-ref != none [
