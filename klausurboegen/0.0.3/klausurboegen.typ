@@ -441,52 +441,104 @@
       if students.len() == 0 {
         klausurbogen(result: result, name: "", note-content: [], student-table: createTable(cols: cols, maxPoints: 1, achievedPoints: 1, result: result), grade-table: gradeBoundaries(maxPoints: 1))
       } else {
-        for (key, value) in students.enumerate() {
-          if (key == 0) {
-            let n = 2
-            while (n < value.len()) {
-              if (value.at(n).contains(".")) {
-                let aufgabe = str(value.at(n).split(".").at(0))
-                cols.insert(aufgabe, cols.at(aufgabe) + 1) //
-              } else if (value.at(n).contains(" ")) {
-                let aufgabe = value.at(n).split(" ").at(0)
-                cols.insert(aufgabe, cols.at(aufgabe) + 1)
-              } else {
-                cols.insert(value.at(n), 0)
-              }
-              n = n + 1
+        // Erste Zeile: Header-Analyse für Spaltenstruktur
+        if students.len() > 0 {
+          let headerRow = students.at(0)
+          let n = 2
+          while (n < headerRow.len()) {
+            let headerCell = headerRow.at(n)
+            
+            // Erkenne Teilaufgaben durch verschiedene Muster
+            let isSubtask = false
+            let mainTask = ""
+            
+            // Muster: "A1 a)", "A2 b)", etc.
+            if headerCell.contains(" ") and (headerCell.ends-with("a)") or headerCell.ends-with("b)") or headerCell.ends-with("c)") or headerCell.ends-with("d)") or headerCell.ends-with("e)")) {
+              isSubtask = true
+              mainTask = headerCell.split(" ").at(0)
             }
-          } else if (key == 1) {
+            // Muster: "A1.1", "A2.2", etc.
+            else if headerCell.contains(".") and headerCell.split(".").len() == 2 {
+              let parts = headerCell.split(".")
+              if parts.at(1).match(regex("^\d+$")) != none {
+                isSubtask = true
+                mainTask = parts.at(0)
+              }
+            }
+            
+            if isSubtask and mainTask != "" {
+              // Ist eine Teilaufgabe
+              if mainTask not in cols {
+                cols.insert(mainTask, 1)
+              } else {
+                cols.at(mainTask) = cols.at(mainTask) + 1
+              }
+            } else {
+              // Ist eine Hauptaufgabe ohne Teilaufgaben
+              cols.insert(headerCell, 0)
+            }
+            n = n + 1
+          }
+        }
+        
+        for (key, value) in students.enumerate() {
+          if (key == 1) {
+            // Zweite Zeile: Maximalpunkte - nur für Spalten sammeln, die auch in der Struktur verwendet werden
+            let headerRow = students.at(0)
             let n = 2
-
-            while (n < value.len()) {
-              if (not value.at(n).contains(" ")) {
-                maxPoints.push(float(value.at(n)))
+            let tempPoints = ()
+            while (n < value.len() and n < headerRow.len()) {
+              let headerCell = headerRow.at(n)
+              
+              // Nur Punkte für Spalten sammeln, die keine Hauptaufgaben mit Teilaufgaben sind
+              let isMainTaskWithSubtasks = false
+              for (taskName, subtaskCount) in cols {
+                if subtaskCount > 0 and headerCell == taskName {
+                  isMainTaskWithSubtasks = true
+                  break
+                }
+              }
+              
+              if not isMainTaskWithSubtasks and not value.at(n).contains(" ") {
+                tempPoints.push(float(value.at(n)))
               }
               n += 1
             }
-          } else {
+            maxPoints = tempPoints
+          } else if (key > 1) {
+            // Ab dritter Zeile: Schülerdaten - gleiche Logik wie bei Maximalpunkten
             let name = value.at(0)
             let note = value.at(1)
+            let headerRow = students.at(0)
             let n = 2
-            let points = ()
+            let tempPoints = ()
 
-            while (n < value.len()) {
-              if (not value.at(n).contains(" ") and value.at(n) != "") {
-                points.push(float(value.at(n)))
-              } else if (not value.at(n).contains(" ")) {
-                points.push(0)
+            while (n < value.len() and n < headerRow.len()) {
+              let headerCell = headerRow.at(n)
+              
+              // Nur Punkte für Spalten sammeln, die keine Hauptaufgaben mit Teilaufgaben sind
+              let isMainTaskWithSubtasks = false
+              for (taskName, subtaskCount) in cols {
+                if subtaskCount > 0 and headerCell == taskName {
+                  isMainTaskWithSubtasks = true
+                  break
+                }
+              }
+              
+              if not isMainTaskWithSubtasks and not value.at(n).contains(" ") and value.at(n) != "" {
+                tempPoints.push(float(value.at(n)))
+              } else if not isMainTaskWithSubtasks and not value.at(n).contains(" ") {
+                tempPoints.push(0)
               }
               n += 1
             }
-
 
             klausurbogen(
               result: result,
               name: name,
               mv: mv,
-              note-content: note-display(percentage: points.sum() / maxPoints.sum(), note: note),
-              student-table: createTable(cols: cols, maxPoints: maxPoints, achievedPoints: points, result: result),
+              note-content: note-display(percentage: tempPoints.sum() / maxPoints.sum(), note: note),
+              student-table: createTable(cols: cols, maxPoints: maxPoints, achievedPoints: tempPoints, result: result),
               grade-table: gradeBoundaries(maxPoints: maxPoints.sum()),
             )
           }
