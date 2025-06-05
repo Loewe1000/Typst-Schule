@@ -6,8 +6,8 @@
 ) = {
   set page(
     "a4",
-    margin: (top: 5cm, bottom: 2cm, left: 2.5cm, right: 2.5cm),
-    header-ascent: 45%,
+    margin: (top: 4.5cm, bottom: 2cm, left: 2.5cm, right: 2.5cm),
+    header-ascent: 40%,
     header: [
       #stack(
         dir: ttb,
@@ -25,8 +25,8 @@
       #place(top + right, dy: 0.5cm, image("logo.svg", height: 4cm))
     ],
   )
-  set text(size: 11pt, font: "Calibri")
-  set par(leading: 1.15em, justify: true)
+  set text(size: 11pt, font: "Calibri", lang: "de")
+  set par(leading: 0.75em, justify: true)
   set text(hyphenate: true)
   body
 }
