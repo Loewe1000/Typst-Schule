@@ -135,9 +135,9 @@
       ]
     ])
   }
-  import "@preview/tablex:0.0.9": *
-  tablex(
+  table(
     stroke: none,
+    inset: 0mm,
     columns: (1fr,) * row-amount,
     column-gutter: gutter,
     row-gutter: gutter,
