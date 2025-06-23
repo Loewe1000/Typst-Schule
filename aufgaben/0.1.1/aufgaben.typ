@@ -167,7 +167,7 @@
   body
   // Workspace
   context if workspace != none and _state_options.get().workspaces {
-    block(width: 100%, inset: 0.5em)[#workspace]
+    block(width: 100%, inset: (x: 0em, y: 0.5em))[#workspace]
   }
   // "sofort" solutions
   context if _state_options.final().loesungen == "sofort" {
