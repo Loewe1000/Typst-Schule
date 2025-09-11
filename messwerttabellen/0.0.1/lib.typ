@@ -55,13 +55,48 @@
 
 // Funktion zur Berechnung von Werten basierend auf einem anderen Datensatz
 #let berechnung(name, einheit, datensatz, formel, prefix: "1", max-digits: 2, auto-einheit: true, fehler: 0) = {
-  let neue_werte = datensatz.werte.map(formel)
+  // Erst die ursprünglichen Werte mit dem Multiplikator der Einheit umrechnen
+  let umgerechnete_werte = datensatz.werte.map(wert => {
+    if type(wert) == content or wert == none {
+      return wert
+    }
+    // Multiplikator für die Einheit des Datensatzes finden
+    let datensatz_multiplikator = 1
+    if datensatz.prefix != "1" {
+      if datensatz.prefix.starts-with("e") {
+        datensatz_multiplikator = calc.pow(10, int(datensatz.prefix.slice(1)))
+      } else if datensatz.prefix in multiplikatoren {
+        datensatz_multiplikator = multiplikatoren.at(datensatz.prefix)
+      }
+    }
+    
+    // Zusätzlich prüfen, ob die Einheit selbst einen Prefix enthält
+    if datensatz.einheit != none {
+      for (prefix_key, prefix_value) in multiplikatoren {
+        if prefix_key != "" and datensatz.einheit.starts-with(prefix_key) {
+          datensatz_multiplikator = datensatz_multiplikator * prefix_value
+          break
+        }
+      }
+    }
+    
+    return wert * datensatz_multiplikator
+  })
+  
+  let neue_werte = umgerechnete_werte.map(formel)
   if prefix != "1" {
-    neue_werte = neue_werte.map(w => { w * float("1" + prefix) })
+    let prefix_factor = if prefix.starts-with("e") {
+      calc.pow(10, int(prefix.slice(1)))
+    } else if prefix in multiplikatoren {
+      multiplikatoren.at(prefix)
+    } else {
+      float("1" + prefix)
+    }
+    neue_werte = neue_werte.map(w => {calc.round(w / prefix_factor, digits: max-digits)})
   }
   if fehler != 0 {
     for (key, wert) in neue_werte.enumerate() {
-      neue_werte.at(key) = wert * (1 + ((0.5 - rand(key)) * fehler / 100))
+      neue_werte.at(key) = calc.round(wert * (1 + ((0.5 - rand(key)) * fehler / 100)), digits: max-digits)
     }
   }
   if auto-einheit {
