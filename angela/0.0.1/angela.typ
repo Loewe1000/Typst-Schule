@@ -4,6 +4,8 @@
 #let brief(
   body,
 ) = {
+  show heading: set block(above:2em, below: 1em)
+    
   set page(
     "a4",
     margin: (top: 4.5cm, bottom: 2cm, left: 2.5cm, right: 2.5cm),

@@ -2,9 +2,7 @@
 name = "insert-a-word"
 version = "0.0.2"
 entrypoint = "lib.typ"
-compiler = "0.12"
+compiler = "0.12.0"
 exclude = ["*.pdf", "example.typ"]
-
-
 description = "Package for insert-a-word"
 license = "MIT"

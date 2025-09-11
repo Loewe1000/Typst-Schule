@@ -47,23 +47,25 @@
       let shuffled = shuffle(words, position) // Zufällige Reihenfolge der Wörter
       let shuffled-colors = shuffle(colors, position) // Zufällige Reihenfolge der Farben
 
-      align(center,
-      // Erstellt eine Box für jedes Wort mit zugewiesener Farbe
-      for (index, word) in shuffled.enumerate() {
-        h(item-spacing / 2)
-        box(
-          fill: shuffled-colors.at(calc.rem(index, colors.len())), // Farbe aus Palette
-          inset: 8pt, // Innenabstand
-          radius: 4pt, // Abgerundete Ecken
-          [#word.at(1)], // Einfügtes Wort
-        )
-        h(item-spacing / 2)
-        }
+      align(
+        center,
+        // Erstellt eine Box für jedes Wort mit zugewiesener Farbe
+        for (index, word) in shuffled.enumerate() {
+          h(item-spacing / 2)
+          box(
+            fill: shuffled-colors.at(calc.rem(index, colors.len())), // Farbe aus Palette
+            inset: 8pt, // Innenabstand
+            radius: 4pt, // Abgerundete Ecken
+            [#word.at(1)], // Einfügtes Wort
+          )
+          h(item-spacing / 2)
+        },
       )
     }
 
     iaword-counter.step() // Erhöht den Zähler für die nächste Position
   }
 
-  par(leading: line-spacing, body) // Formatiert den Text mit festem Zeilenabstand
+  set par(leading: line-spacing) // Setzt den Zeilenabstand für den Text
+  body
 }
