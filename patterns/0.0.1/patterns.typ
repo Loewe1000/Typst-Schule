@@ -21,7 +21,7 @@
         autoheight = rows * grid-size
       }
     }
-    import "@preview/cetz:0.3.1": *
+    import "@preview/cetz:0.4.2": *
     canvas(
       length: grid-size,
       {
@@ -63,7 +63,7 @@
 ) = {
   move(dy: lineheight * 0.5)[
     #layout(size => {
-      import "@preview/cetz:0.3.1": *
+      import "@preview/cetz:0.4.2": *
       canvas(
         length: lineheight,
         {
