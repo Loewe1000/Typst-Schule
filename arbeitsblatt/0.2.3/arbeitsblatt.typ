@@ -341,7 +341,7 @@
 
 #let qrbox(url, name, width: 3cm, ..args) = {
   stickybox(width: width, ..args)[
-    #qr-code(url, width: width - 0.5cm, light-color: "#ffffff00", quiet-zone: false)
+    #qr-code(url, width: width - 0.5cm, light-color: "#ffffff00", quiet-zone: false, alt: "QR-Code")
     #align(
       center,
       text(
