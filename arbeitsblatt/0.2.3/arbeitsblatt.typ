@@ -115,7 +115,7 @@
     h(1fr)
 
     if copyright != none {
-      box(qr-code(copyright, width: 0.9em, color: luma(130)))
+      box(qr-code(copyright, width: 0.9em, dark-color: "#828282"))
       h(0.5em)
     }
 
@@ -148,7 +148,7 @@
           (top: 2.2cm, inside: 2.25cm, outside: 1.25cm, bottom: 1cm)
         } else {
           if equal-margins {
-            (top: 2.2cm, x: 1.75cm, bottom: 1.75cm)
+            (top: 2.2cm, x: 1.5cm, bottom: 1cm)
           } else {
             (top: 2.2cm, left: 2.25cm, right: 1.25cm, bottom: 1cm)
           }
