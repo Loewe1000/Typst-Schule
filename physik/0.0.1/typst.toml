@@ -1,0 +1,7 @@
+[package]
+name = "physik"
+version = "0.0.1"
+entrypoint = "lib.typ"
+
+description = "Package for physical things"
+license = "MIT"

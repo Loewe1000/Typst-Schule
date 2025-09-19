@@ -1,10 +1,10 @@
 #import "@schule/aufgaben:0.1.1": *
 #import "@schule/random:0.0.1": *
+#import "@schule/physik:0.0.1": berechnung, datensatz, messdaten, messwerttabelle, regressionen, zap, schaltkreis, multimeter, simple-source
 #import "@schule/insert-a-word:0.0.3": *
 #import "@schule/energy-sketch:0.0.2": *
 #import "@schule/mathematik:0.0.2": tasks
 #import "@schule/patterns:0.0.1": *
-#import "@schule/messwerttabellen:0.0.1": berechnung, datensatz, messdaten, messwerttabelle
 #import "@schule/operatoren:0.0.1": operator, operatoren-liste
 #import "@preview/fontawesome:0.6.0": *
 #import "@preview/rustycure:0.1.0": qr-code

@@ -1,5 +1,5 @@
 #import "@preview/fontawesome:0.1.0": *
-#import "@preview/gentle-clues:1.1.0": *
+#import "@preview/gentle-clues:1.2.0": *
 
 // States
 #let _state_aufgaben = state("aufgaben", ())
