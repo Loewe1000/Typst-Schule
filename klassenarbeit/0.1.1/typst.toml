@@ -1,0 +1,7 @@
+[package]
+name = "klassenarbeit"
+version = "0.1.1"
+entrypoint = "klassenarbeit.typ"
+
+description = "Package for klassenarbeit"
+license = "MIT"

@@ -1,0 +1,7 @@
+[package]
+name = "aufgaben"
+version = "0.1.2"
+entrypoint = "aufgaben.typ"
+
+description = "Package for aufgaben"
+license = "MIT"

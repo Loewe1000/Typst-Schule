@@ -1,0 +1,6 @@
+[package]
+name = "arbeitsblatt"
+version = "0.2.4"
+entrypoint = "arbeitsblatt.typ"
+description = "Package for arbeitsblatt"
+license = "MIT"
