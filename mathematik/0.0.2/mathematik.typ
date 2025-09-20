@@ -42,10 +42,10 @@
   dx: -1mm,
   dy: -1mm,
   [#box(
-      fill: clr,
-      inset: 1.5mm,
-      radius: (top-left: 2mm, top-right: 0mm, bottom-left: 0mm, bottom-right: 2mm),
-    )[#text(fill: white, [#nmb])]],
+    fill: clr,
+    inset: 1.5mm,
+    radius: (top-left: 2mm, top-right: 0mm, bottom-left: 0mm, bottom-right: 2mm),
+  )[#text(fill: white, [#nmb])]],
 )
 
 #let nbr = counter("nbr")
@@ -71,8 +71,7 @@
   text-scale: 1,
   x-ticks: true,
   y-ticks: true,
-) = block(
-  )[
+) = block()[
   #nbr.step()
 
   #locate(
@@ -121,11 +120,15 @@
   loesungen: (),
   ..args,
 ) = {
+  tasks = if tasks.len() == 0 and args.pos() != none {
+    let items = args.pos().at(0).children.filter(it => it.func() == enum.item).map(it => it.body)
+    items
+  } else { tasks }
   let row-amount = tasks.len()
   if columns != auto {
     row-amount = columns
   }
-  import "@schule/aufgaben:0.1.1": teilaufgabe, loesung
+  import "@schule/aufgaben:0.1.2": loesung, teilaufgabe
   let tasks-show = ()
   for (key, task) in tasks.enumerate() {
     tasks-show.push(teilaufgabe()[
@@ -142,7 +145,7 @@
     column-gutter: gutter,
     row-gutter: gutter,
     ..tasks-show,
-    ..args,
+    ..args.named(),
   )
 }
 
@@ -205,11 +208,11 @@
         radius: 10%,
         inset: (left: 2mm, right: 2mm),
       )[#align(
-          center + horizon,
-          move(dy: 0mm, text(9pt, white, font: "Open Sans", weight: 400, [
-    #name
-  ])),
-        )],
+        center + horizon,
+        move(dy: 0mm, text(9pt, white, font: "Open Sans", weight: 400, [
+          #name
+        ])),
+      )],
     ),
   )
   #h(1pt)
