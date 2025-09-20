@@ -28,6 +28,14 @@
 /// - landscape (boolean): Page orientation.
 /// - custom-header (module): Set a custom header
 /// - header-ascent (percentage): Raise or lower the header
+/// - teilaufgabe-numbering (string): Numbering of sub-tasks, either "a)" or "1."
+/// - workspaces (boolean): Whether to include workspaces for tasks.
+/// - font (string): Main document font.
+/// - math-font (string): Math font.
+/// - figure-font-size (length): Font size for figure captions.
+/// - materialien (string): To show materials, use "seiten", "folgend", "sofort"
+/// - punkte (string): To show points, use "keine", "aufgaben", "teilaufgaben", "alle"
+/// - aufgaben-shortcode (string): To show tasks and sub-tasks as shortcodes, use "false", "aufgaben", "teilaufgaben", "alle"
 /// - page-settings (dicitonary): Optional arguments passed to page
 /// - loesungen (string): To show solutions, use "seite", "folgend", "sofort"
 /// - ..args (any): Optional arguments.
@@ -50,6 +58,7 @@
   loesungen: "false",
   materialien: "seiten",
   punkte: "keine",
+  aufgaben-shortcode: "alle",
   copyright: none,
   ..args,
   body,
@@ -232,6 +241,9 @@
   show: codly-init.with()
   codly(display-name: false)
   set raw(syntaxes: "processing.sublime-syntax")
+
+  show heading.where(level: 1): it => if aufgaben-shortcode in ("alle", "aufgaben") { aufgabe(title: it.body, large: true)[] } else { it }
+  show enum.item: it => if aufgaben-shortcode in ("alle", "teilaufgaben") { teilaufgabe(it.body) } else { it }
 
   body
 
