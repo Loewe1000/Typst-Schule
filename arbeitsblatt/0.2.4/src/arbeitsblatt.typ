@@ -88,8 +88,8 @@
     let el = it.element
     if el != none and el.func() == figure and el.kind == "material" {
       context {
-        let current-aufgabe = _state_current_material_aufgabe.get()
-        let material-index = _state_current_material_index.get()
+        let current-aufgabe = _state_current_material_aufgabe.at(el.location())
+        let material-index = _state_current_material_index.at(el.location())
 
         // Fallback falls nicht in Material-Sektion
         if current-aufgabe == 0 {
@@ -97,7 +97,7 @@
           material-index = counter(figure.where(kind: "material")).at(el.location()).first()
         }
 
-        "M" + str(current-aufgabe) + numbering("a", material-index)
+        "M" + str(current-aufgabe) + "-" + numbering("A", material-index)
       }
     } else if el != none and el.func() == figure and el.kind == "teilaufgabe" {
       context {
@@ -210,7 +210,7 @@
         material-index = counter(figure.where(kind: "material")).at(it.location()).first()
       }
 
-      let thm_num = "M" + str(current-aufgabe) + numbering("a", material-index)
+      let thm_num = "M" + str(current-aufgabe) + "-" + numbering("A", material-index)
 
       align(center)[
         #it.body
@@ -237,7 +237,7 @@
 
   body
 
-  // To show materials on a separate page  
+  // To show materials on a separate page
   if materialien in ("seite", "seiten") {
     d_materialien()
   }

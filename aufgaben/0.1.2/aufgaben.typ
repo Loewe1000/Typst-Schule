@@ -109,6 +109,7 @@
 }
 
 #let show_materialien(curr: false) = {
+  set figure(numbering: "1", supplement: "Abb.")
   context {
     let all = _state_aufgaben.get()
     if curr { all = (all.last(),) }
@@ -132,7 +133,7 @@
 
 #let material(body, caption: none, label: none) = {
   let mat = [#figure(
-      body,
+      align(left, body),
       caption: caption,
       kind: "material",
       supplement: none,
@@ -238,7 +239,7 @@
   context if _state_options.final().materialien == "sofort" {
     show_materialien(curr: true)
   }
-  // "folgend" materials  
+  // "folgend" materials
   context if _state_options.final().materialien == "folgend" {
     show_materialien(curr: true)
   }
