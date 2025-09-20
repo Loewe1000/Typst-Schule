@@ -435,6 +435,32 @@ Der Header kann vollständig angepasst oder ersetzt werden:
     ]
   ]
 
+  #argument("aufgaben-shortcodes", types: "string", default: "alle")[
+    Aktiviert automatische Konvertierung von Markdown-Syntax zu Aufgaben und Teilaufgaben.
+
+    #frame[
+      #set text(.88em)
+      *Verfügbare Modi:*
+      - `"false"`: Keine automatische Konvertierung
+      - `"aufgaben"`: Nur Überschriften werden zu Aufgaben konvertiert
+      - `"teilaufgaben"`: Nur Aufzählungspunkte werden zu Teilaufgaben konvertiert
+      - `"alle"`: Sowohl Überschriften als auch Aufzählungspunkte werden konvertiert
+
+      *Beispiel:*
+      ```typ
+      // Mit aufgaben-shortcodes: "alle"
+      = Meine Aufgabe
+      + Teilaufgabe a
+      + Teilaufgabe b
+      
+      // Wird automatisch zu:
+      #aufgabe(title: [Meine Aufgabe], large: true)[]
+      #teilaufgabe[Teilaufgabe a]
+      #teilaufgabe[Teilaufgabe b]
+      ```
+    ]
+  ]
+
   #argument("copyright", types: "content", default: none)[
     Copyright-Information, die als QR-Code im Header angezeigt wird.
   ]

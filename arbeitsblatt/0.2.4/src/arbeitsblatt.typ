@@ -58,7 +58,7 @@
   loesungen: "false",
   materialien: "seiten",
   punkte: "keine",
-  aufgaben-shortcode: "alle",
+  aufgaben-shortcodes: "alle",
   copyright: none,
   ..args,
   body,
@@ -242,8 +242,8 @@
   codly(display-name: false)
   set raw(syntaxes: "processing.sublime-syntax")
 
-  show heading.where(level: 1): it => if aufgaben-shortcode in ("alle", "aufgaben") { aufgabe(title: it.body, large: true)[] } else { it }
-  show enum.item: it => if aufgaben-shortcode in ("alle", "teilaufgaben") { teilaufgabe(it.body) } else { it }
+  show heading.where(level: 1): it => if aufgaben-shortcodes in ("alle", "aufgaben") { aufgabe(title: it.body, large: true)[] } else { it }
+  show enum.item: it => if aufgaben-shortcodes in ("alle", "teilaufgaben") { teilaufgabe(it.body) } else { it }
 
   body
 
