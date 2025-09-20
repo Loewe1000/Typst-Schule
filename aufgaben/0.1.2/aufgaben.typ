@@ -1,5 +1,5 @@
 #import "@preview/fontawesome:0.2.1": *
-#import "@preview/gentle-clues:1.1.0": *
+#import "@preview/gentle-clues:1.2.0": *
 
 // States
 #let _state_aufgaben = state("aufgaben", ())
@@ -167,7 +167,7 @@
   title: none,
   method: "",
   icons: (),
-  large: false,
+  large: true,
   number: true,
   workspace: none,
   label-ref: none,
