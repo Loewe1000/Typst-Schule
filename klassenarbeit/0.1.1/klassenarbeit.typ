@@ -18,6 +18,7 @@
   table: (),
   stufe: false,
   loesungen: none,
+  materialien: none,
   info-table: true,
   erwartungen: false,
   teilaufgabe-numbering: "1.", // "a)" "1."
@@ -102,6 +103,7 @@
       logo: logo,
     ),
     loesungen: loesungen,
+    materialien: materialien,
     ..args,
   )
 

@@ -1,4 +1,4 @@
-#import "@schule/aufgaben:0.1.1": *
+#import "@schule/aufgaben:0.1.2": *
 #import "@schule/random:0.0.1": *
 #import "@schule/insert-a-word:0.0.3": *
 #import "@schule/energy-sketch:0.0.2": *
@@ -15,7 +15,6 @@
 #import "@preview/fancy-units:0.1.1": add-macros, fancy-units-configure, num, qty, unit
 
 #let print-state = state("print", false)
-#let material-counter = counter("material")
 
 /// Creates a new arbeitsblatt
 ///
@@ -51,6 +50,7 @@
   header-ascent: 20%,
   page-settings: (),
   loesungen: "false",
+  materialien: "seiten",
   copyright: none,
   punkte: "keine",
   ..args,
@@ -86,12 +86,19 @@
 
   show ref: it => {
     let el = it.element
-    if el != none and el.func() == figure and el.kind in (image, table) {
-      let material-counter = (
-        counter(figure.where(kind: image)).at(el.location()).first()
-          + counter(figure.where(kind: table)).at(el.location()).first()
-      )
-      "M" + numbering("1a", counter("material").at(el.location()).first(), material-counter)
+    if el != none and el.func() == figure and el.kind == "material" {
+      context {
+        let current-aufgabe = _state_current_material_aufgabe.get()
+        let material-index = _state_current_material_index.get()
+
+        // Fallback falls nicht in Material-Sektion
+        if current-aufgabe == 0 {
+          current-aufgabe = _counter_aufgaben.get().at(0)
+          material-index = counter(figure.where(kind: "material")).at(el.location()).first()
+        }
+
+        "M" + str(current-aufgabe) + numbering("a", material-index)
+      }
     } else if el != none and el.func() == figure and el.kind == "teilaufgabe" {
       context {
         if _state_options.get().at("teilaufgabe-numbering", default: "1.") == "1." {
@@ -167,6 +174,7 @@
 
   set_options((
     "loesungen": loesungen,
+    "materialien": materialien,
     "workspaces": workspaces,
     "punkte": punkte,
     "print": print,
@@ -191,37 +199,27 @@
 
   // Setting captions and numberings for figures
   set figure(numbering: "1", supplement: none)
-  show figure.where(kind: image).or(figure.where(kind: table)): it => {
+  show figure.where(kind: "material"): it => {
     context {
-      let header_count = counter("material").get().first()
-      let thm_count = (
-        counter(figure.where(kind: image)).at(it.location()).first()
-          + counter(figure.where(kind: table)).at(it.location()).first()
-      )
-      let thm_num = if header_count > 0 {
-        "M" + numbering("1a", header_count, thm_count)
-      } else {
-        "M" + numbering("1.", thm_count)
+      let current-aufgabe = _state_current_material_aufgabe.get()
+      let material-index = _state_current_material_index.get()
+
+      // Fallback falls nicht in Material-Sektion
+      if current-aufgabe == 0 {
+        current-aufgabe = _counter_aufgaben.get().at(0)
+        material-index = counter(figure.where(kind: "material")).at(it.location()).first()
       }
-      set align(left)
+
+      let thm_num = "M" + str(current-aufgabe) + numbering("a", material-index)
+
       align(center)[
         #it.body
-        #v(10pt, weak: true)
-        #text(
-          size: figure-font-size,
-          [
-            #grid(
-              columns: 2,
-              column-gutter: if it.numbering != none {
-                4pt
-              } else {
-                0pt
-              },
-              align: top,
-              strong(thm_num), [#if it.caption != none [#align(left, it.caption.body)]],
-            )
-          ],
-        )
+        #v(5pt)
+        #align(left, grid(
+          columns: 2,
+          column-gutter: 0.5em,
+          text(size: 10pt, strong(thm_num) + ":"), it.caption,
+        ))
       ]
     }
   }
@@ -239,16 +237,14 @@
 
   body
 
+  // To show materials on a separate page  
+  if materialien in ("seite", "seiten") {
+    d_materialien()
+  }
   // To show solutions on a seperate page
   if loesungen in ("seite", "seiten") {
     d_loesungen()
   }
-}
-
-#let material(nummer) = {
-  counter("material").update(nummer)
-  counter(figure.where(kind: image)).update(0)
-  counter(figure.where(kind: table)).update(0)
 }
 
 #let lücke(body, tight: false) = {

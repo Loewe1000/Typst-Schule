@@ -3,10 +3,13 @@
 
 // States
 #let _state_aufgaben = state("aufgaben", ())
+#let _state_current_material_aufgabe = state("current_material_aufgabe", 0)
+#let _state_current_material_index = state("current_material_index", 0)
 #let _state_options = state(
   "options",
   (
     loesungen: "keine", //
+    materialien: "seiten", // "keine", "sofort", "folgend", "seiten"
     workspaces: true,
     teilaufgabe-numbering: "a)",
     punkte: "alle", // "keine", "aufgaben", "teilaufgaben", "alle"
@@ -91,6 +94,67 @@
   return erw.fold(0, (sum, e) => sum + e.punkte)
 }
 
+// Material system
+#let show_material(aufg) = {
+  if aufg.materialien.len() > 0 {
+    // Set current aufgabe for material numbering
+    _state_current_material_aufgabe.update(aufg.nummer)
+    heading([Material zu Aufgabe #aufg.nummer])
+    for (index, m) in aufg.materialien.enumerate() {
+      // Set current material index (1-based)
+      _state_current_material_index.update(index + 1)
+      m.body
+    }
+  }
+}
+
+#let show_materialien(curr: false) = {
+  context {
+    let all = _state_aufgaben.get()
+    if curr { all = (all.last(),) }
+
+    for aufg in all {
+      if aufg.materialien.len() > 0 {
+        if _state_options.get().materialien == "seiten" {
+          page(show_material(aufg))
+        } else {
+          show_material(aufg)
+        }
+      }
+    }
+  }
+}
+
+#let d_materialien() = {
+  pagebreak()
+  show_materialien()
+}
+
+#let material(body, caption: none, label: none) = {
+  let mat = [#figure(
+      body,
+      caption: caption,
+      kind: "material",
+      supplement: none,
+    ) #if label != none { std.label(label) }
+    #v(-0.5em)
+    #line(length: 100%, stroke: 0.5pt)
+  ]
+  context {
+    let curr_aufg = _counter_aufgaben.get().at(0)
+
+    _state_aufgaben.update(all => {
+      all
+        .at(curr_aufg - 1)
+        .materialien
+        .push((
+          body: mat,
+        ))
+      all
+    })
+  }
+}
+
 // Main components
 #let aufgabe(
   title: none,
@@ -121,6 +185,7 @@
         title: title,
         teile: 0,
         loesung: (),
+        materialien: (),
         erwartungen: (),
       ))
       all
@@ -168,6 +233,14 @@
   // Workspace
   context if workspace != none and _state_options.get().workspaces {
     block(width: 100%, inset: (x: 0em, y: 0.5em))[#workspace]
+  }
+  // "sofort" materials
+  context if _state_options.final().materialien == "sofort" {
+    show_materialien(curr: true)
+  }
+  // "folgend" materials  
+  context if _state_options.final().materialien == "folgend" {
+    show_materialien(curr: true)
   }
   // "sofort" solutions
   context if _state_options.final().loesungen == "sofort" {
@@ -243,6 +316,9 @@
     ] else [
       #figure(kind: "teilaufgabe", supplement: "Teilaufgabe", ta-enum, numbering: "a)")
     ]
+  }
+  context if _state_options.final().materialien == "sofort" {
+    show_materialien(curr: true)
   }
   context if _state_options.final().loesungen == "sofort" {
     let curr_aufg = _counter_aufgaben.get().at(0)
