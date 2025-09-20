@@ -45,7 +45,6 @@
     set text(font: font, hyphenate: true, lang: "de")
     std.table(
       columns: (2.5cm, 1fr, 2.5cm),
-      rows: (1fr,) * 2,
       align: center + horizon,
       stroke: none,
       inset: 3pt,
