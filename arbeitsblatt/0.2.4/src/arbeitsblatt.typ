@@ -4,7 +4,7 @@
 #import "@schule/energy-sketch:0.0.2": *
 #import "@schule/mathematik:0.0.2": tasks
 #import "@schule/patterns:0.0.1": *
-#import "@schule/messwerttabellen:0.0.1": berechnung, datensatz, messdaten, messwerttabelle
+#import "@schule/physik:0.0.1": berechnung, datensatz, lineare_regression, messdaten, messwerttabelle
 #import "@schule/operatoren:0.0.1": operator, operatoren-liste
 #import "@preview/fontawesome:0.6.0": *
 #import "@preview/rustycure:0.1.0": qr-code
@@ -36,9 +36,8 @@
   class: "",
   paper: "a4",
   print: false,
-  equal-margins: false,
   duplex: true,
-  workspaces: false,
+  workspaces: true,
   font-size: 12pt,
   font: "Myriad Pro",
   math-font: "Fira Math",
@@ -47,12 +46,11 @@
   landscape: false,
   custom-header: none,
   teilaufgabe-numbering: "a)",
-  header-ascent: 20%,
   page-settings: (),
   loesungen: "false",
   materialien: "seiten",
-  copyright: none,
   punkte: "keine",
+  copyright: none,
   ..args,
   body,
 ) = {
@@ -146,7 +144,11 @@
       }
     },
     flipped: landscape,
-    header-ascent: header-ascent,
+    header-ascent: if "header-ascent" in args.named().keys() {
+      args.named().at("header-ascent")
+    } else {
+      20%
+    },
     margin: if print {
       if landscape {
         (top: 2.2cm, x: 1.75cm, bottom: 1cm)
@@ -154,11 +156,7 @@
         if duplex {
           (top: 2.2cm, inside: 2.25cm, outside: 1.25cm, bottom: 1cm)
         } else {
-          if equal-margins {
-            (top: 2.2cm, x: 1.5cm, bottom: 1cm)
-          } else {
-            (top: 2.2cm, left: 2.25cm, right: 1.25cm, bottom: 1cm)
-          }
+          (top: 2.2cm, left: 2.25cm, right: 1.25cm, bottom: 1cm)
         }
       }
     } else {
@@ -226,9 +224,9 @@
 
   show figure.where(kind: "teilaufgabe"): it => align(
     left,
-    [
+    box(width: 100%, [
       #it.body
-    ],
+    ]),
   )
 
   show: codly-init.with()
@@ -238,12 +236,12 @@
   body
 
   // To show materials on a separate page
-  if materialien in ("seite", "seiten") {
-    d_materialien()
+  context if materialien in ("seite", "seiten") and _state_aufgaben.final().len() > 0 {
+    show_materialien()
   }
   // To show solutions on a seperate page
-  if loesungen in ("seite", "seiten") {
-    d_loesungen()
+  context if loesungen in ("seite", "seiten") and _state_aufgaben.final().len() > 0 {
+    show_loesungen()
   }
 }
 
@@ -330,9 +328,9 @@
   )
 }
 
-#let icon-link(url, name, icon: emoji.chain) = {
+#let icon-link(url, name, icon: emoji.chain, color: blue) = {
   //fa-external-link(fill: blue)
-  link(url)[#icon #text(fill: blue, [#name])]
+  link(url)[#icon #text(fill: color, [#name])]
 }
 
 #let qrbox(url, name, width: 3cm, ..args) = {

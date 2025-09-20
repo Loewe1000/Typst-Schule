@@ -1,4 +1,4 @@
-#import "@preview/fontawesome:0.1.0": *
+#import "@preview/fontawesome:0.2.1": *
 #import "@preview/gentle-clues:1.1.0": *
 
 // States
@@ -29,7 +29,7 @@
 #let show_loesung(aufg, teil: false) = {
   if teil == false and aufg.loesung.len() > 0 {
     goal(
-      title: [Lösung #{ aufg.nummer } #if aufg.title != none [-- #{ aufg.title } ]],
+      title: [Lösung #{ aufg.nummer } #if (aufg.title != none and aufg.title != []) [-- #{ aufg.title } ]],
       accent-color: gray,
       {
         // Main solutions
@@ -70,7 +70,10 @@
       if aufg.loesung.len() > 0 {
         if _state_options.get().loesungen == "seiten" {
           page(show_loesung(aufg, teil: teil))
+        } else if _state_options.get().loesungen in ("sofort", "folgend") {
+          show_loesung(aufg, teil: teil)
         } else {
+          pagebreak(weak: true)
           show_loesung(aufg, teil: teil)
         }
       }
@@ -118,7 +121,10 @@
       if aufg.materialien.len() > 0 {
         if _state_options.get().materialien == "seiten" {
           page(show_material(aufg))
+        } else if _state_options.get().materialien in ("sofort", "folgend") {
+          show_material(aufg)
         } else {
+          pagebreak(weak: true)
           show_material(aufg)
         }
       }
@@ -194,19 +200,24 @@
   }
 
   // Render heading
-  if title != none or number {
+  if (title != none and title != []) or number {
     context {
-      let auf-head = heading(
+      // Verwende block statt heading um Rekursion zu vermeiden
+      let auf-head = block(
+        width: 100%,
+        below: 1em,
+        above: 1.5em,
         figure(
           kind: "aufgabe",
           supplement: none,
           text(
-            if large { 14pt } else { 12pt },
+            weight: "bold",
+            size: if large { 14pt } else { 12pt },
             [
               #let nums = _counter_aufgaben.get()
               #if ic.len() > 0 { ic.join() }
               #if number { "Aufgabe " + str(nums.first()) }
-              #if number and title != none [ $-$ ]
+              #if number and (title != none and title != []) [ $-$ ]
               #if title != none [#title]
               #h(1fr)
               // Gesamtpunkte der Aufgabe
@@ -262,7 +273,7 @@
   _counter_aufgaben.step(level: 2)
   context {
     let curr_aufg = _counter_aufgaben.get().at(0)
-    let curr_teil = _counter_aufgaben.get().at(1)
+    let curr_teil = _counter_aufgaben.get().at(1, default: 1)
 
     // Update state
     _state_aufgaben.update(all => {
@@ -370,10 +381,4 @@
       all
     })
   }
-}
-
-// Solution pages
-#let d_loesungen() = {
-  pagebreak()
-  show_loesungen()
 }
