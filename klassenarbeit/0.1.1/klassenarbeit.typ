@@ -1,4 +1,4 @@
-#import "@schule/arbeitsblatt:0.2.2": *
+#import "@schule/arbeitsblatt:0.2.4": *
 #import "./bewertung.typ": *
 
 #let __s_punkte = state("punkte", "keine")
@@ -43,20 +43,21 @@
 
   let header(title: "", subtitle: "", class: "", date: "", teacher: "", logo: []) = {
     set text(font: font, hyphenate: true, lang: "de")
-    tablex(
+    std.table(
       columns: (2.5cm, 1fr, 2.5cm),
-      row: (1fr,) * 2,
+      rows: (1fr,) * 2,
       align: center + horizon,
       stroke: none,
       inset: 3pt,
       ..if logo != [] {
         (
-          rowspanx(
+          std.table.cell(rowspan:
             2,
             align: left + horizon,
             inset: 0pt,
           )[#text(16pt, weight: "semibold")[#box(height: 1cm)[#logo]]],
-          rowspanx(2)[#stack(
+          std.table.cell(rowspan:
+            2)[#stack(
               spacing: 0mm,
               text(16pt, weight: "semibold")[#title],
 
@@ -65,16 +66,16 @@
                 text(12pt, weight: "regular")[#subtitle]
               },
             )],
-          cellx(align: right + horizon)[#text(11pt, weight: "regular")[#date]],
-          cellx(align: right + horizon)[#text(11pt, weight: "regular")[#class - #teacher]],
+          std.table.cell(align: right + horizon)[#text(11pt, weight: "regular")[#date]],
+          std.table.cell(align: right + horizon)[#text(11pt, weight: "regular")[#class - #teacher]],
         )
       } else {
         (
           [],
-          rowspanx(2)[#text(16pt, weight: "semibold")[#title]],
-          cellx(align: right + horizon)[#date],
+          std.table.cell(rowspan: 2)[#text(16pt, weight: "semibold")[#title]],
+          std.table.cell(align: right + horizon)[#date],
           [],
-          cellx(align: right + horizon)[#class - #teacher],
+          std.table.cell(align: right + horizon)[#class - #teacher],
         )
       },
     )
@@ -108,18 +109,17 @@
   if info-table {
     text(14pt, weight: "semibold")[Name:#h(0.25em) #schueler]
 
-    tablex(
+    std.table(
       columns: (auto, 1fr),
       align: left,
-      auto-lines: false,
       inset: 6pt,
-      stroke: 0.5pt,
-      hlinex(),
+      stroke: none,
+      std.table.hline(stroke: 0.5pt),
       ..if table.len() > 0 {
         range(0, table.len())
           .map(key => (
             (
-              cellx(
+              std.table.cell(
                 inset: (left: 0pt, top: 6pt, bottom: 6pt, right: 6pt),
                 [*#{ table.at(key).at(0) }:*],
               ),
@@ -130,7 +130,7 @@
           ))
           .flatten()
       },
-      hlinex(),
+      std.table.hline(stroke: 0.5pt),
     )
   }
 
