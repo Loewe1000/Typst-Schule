@@ -275,11 +275,12 @@
   )]
 
 // Funktion zur Erstellung der Tabellen
-#let messwerttabelle(datensatze, max_wert_pro_tabelle, row-height: auto, header: none, width: 100%, max-digits: 2) = {
+#let messwerttabelle(datensatze, amount: auto, row-height: auto, header: none, width: 100%, max-digits: 2) = {
   // Prüfen, ob die Daten aufgeteilt werden müssen
   let teile = ()
   let max = 0
   let max-key = 0
+  let max_wert_pro_tabelle = if amount == auto { datensatze.at(0).werte.len() } else { max_wert_pro_tabelle }
   for (key, daten) in datensatze.enumerate() {
     if daten.werte.len() > max {
       max = daten.werte.len()

@@ -66,6 +66,9 @@
     let all = _state_aufgaben.get()
     if curr { all = (all.last(),) }
 
+    if _state_options.get().loesungen == "seite" {
+      pagebreak(weak: true)
+    }
     for aufg in all {
       if aufg.loesung.len() > 0 {
         if _state_options.get().loesungen == "seiten" {
@@ -73,7 +76,6 @@
         } else if _state_options.get().loesungen in ("sofort", "folgend") {
           show_loesung(aufg, teil: teil)
         } else {
-          pagebreak(weak: true)
           show_loesung(aufg, teil: teil)
         }
       }
@@ -102,7 +104,7 @@
   if aufg.materialien.len() > 0 {
     // Set current aufgabe for material numbering
     _state_current_material_aufgabe.update(aufg.nummer)
-    heading([Material zu Aufgabe #aufg.nummer])
+    block(width: 100%, below: 1em, above: 1.5em, text(14pt, weight: "bold")[Material zu Aufgabe #aufg.nummer]) // Materialüberschrift
     for (index, m) in aufg.materialien.enumerate() {
       // Set current material index (1-based)
       _state_current_material_index.update(index + 1)
@@ -116,25 +118,21 @@
   context {
     let all = _state_aufgaben.get()
     if curr { all = (all.last(),) }
-
+    if _state_options.get().materialien == "seite" {
+      pagebreak(weak: true)
+    }
     for aufg in all {
       if aufg.materialien.len() > 0 {
-        if _state_options.get().materialien == "seiten" {
-          page(show_material(aufg))
+        if _state_options.get().materialien == "seite" {
+          show_material(aufg)
         } else if _state_options.get().materialien in ("sofort", "folgend") {
           show_material(aufg)
         } else {
-          pagebreak(weak: true)
-          show_material(aufg)
+          page(show_material(aufg))
         }
       }
     }
   }
-}
-
-#let d_materialien() = {
-  pagebreak()
-  show_materialien()
 }
 
 #let material(body, caption: none, label: none) = {
@@ -199,10 +197,8 @@
     })
   }
 
-  // Render heading
   if (title != none and title != []) or number {
     context {
-      // Verwende block statt heading um Rekursion zu vermeiden
       let auf-head = block(
         width: 100%,
         below: 1em,
@@ -247,11 +243,10 @@
     block(width: 100%, inset: (x: 0em, y: 0.5em))[#workspace]
   }
   // "sofort" materials
-  context if _state_options.final().materialien == "sofort" {
-    show_materialien(curr: true)
-  }
-  // "folgend" materials
-  context if _state_options.final().materialien == "folgend" {
+  context if _state_options.final().materialien in ("sofort", "seiten", "folgend") and _state_aufgaben.get().last().materialien.len() > 0 {
+    if _state_options.final().materialien == "seiten" {
+      pagebreak(weak: true)
+    }
     show_materialien(curr: true)
   }
   // "sofort" solutions
@@ -328,9 +323,6 @@
     ] else [
       #figure(kind: "teilaufgabe", supplement: "Teilaufgabe", ta-enum, numbering: "a)")
     ]
-  }
-  context if _state_options.final().materialien == "sofort" {
-    show_materialien(curr: true)
   }
   context if _state_options.final().loesungen == "sofort" {
     let curr_aufg = _counter_aufgaben.get().at(0)

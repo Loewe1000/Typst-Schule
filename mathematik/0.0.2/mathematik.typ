@@ -116,7 +116,7 @@
   tasks: (),
   columns: auto,
   numbering: "a)",
-  gutter: 10pt,
+  gutter: 1.25em,
   loesungen: (),
   ..args,
 ) = {
