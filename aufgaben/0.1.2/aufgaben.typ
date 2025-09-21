@@ -226,7 +226,7 @@
               }
             ],
           ),
-        ),
+        )
       )
       if label-ref != none [
         #auf-head #label(label-ref)
@@ -235,7 +235,6 @@
       ]
     }
   }
-
   // Content
   body
   // Workspace

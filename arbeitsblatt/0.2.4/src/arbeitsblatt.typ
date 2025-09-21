@@ -206,6 +206,31 @@
 
   // Setting captions and numberings for figures
   set figure(numbering: "1", supplement: none)
+
+  show figure: it => {
+    let type = repr(it.kind)
+    let supplement = ("image": "A", "table": "T").at(type, default: "M")
+    let number = counter(figure.where(kind: it.kind)).get().first()
+    context {
+      align(center)[
+        #it.body
+        #if it.caption != none {
+          v(5pt)
+          align(left, grid(
+            columns: 2,
+            column-gutter: 0.5em,
+            text(size: figure-font-size, grid(
+              columns: 2,
+              align: top,
+              column-gutter: 0.25em,
+              [*#supplement#number:*], it.caption,
+            )),
+          ))
+        }
+      ]
+    }
+  }
+
   show figure.where(kind: "material"): it => {
     context {
       let current-aufgabe = _state_current_material_aufgabe.get()
@@ -225,7 +250,7 @@
         #align(left, grid(
           columns: 2,
           column-gutter: 0.5em,
-          text(size: 10pt, strong(thm_num) + ":"), it.caption,
+          text(size: figure-font-size, strong(thm_num) + ":"), it.caption,
         ))
       ]
     }
@@ -248,7 +273,7 @@
   body
 
   // To show materials on a separate page
-  context if materialien in ("seite") and _state_aufgaben.final().len() > 0 {
+  context if materialien == "seite" and _state_aufgaben.final().len() > 0 {
     show_materialien()
   }
   // To show solutions on a seperate page
