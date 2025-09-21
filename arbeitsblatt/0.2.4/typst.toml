@@ -12,6 +12,7 @@ keywords = [
 ]
 categories = ["office", "layout", "components"]
 disciplines = ["education", "mathematics", "physics", "computer-science"]
+homepage = "https://material.mathemensch.de/files/typst/arbeitsblatt-manual.pdf"
 
 [template]
 path = "template"
