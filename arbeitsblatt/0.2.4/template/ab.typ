@@ -14,3 +14,5 @@
   + Teilaufgabe
   + Teilaufgabe
 ]
+
+$1.2$

@@ -4,6 +4,8 @@
 #import "@schule/energy-sketch:0.0.2": *
 #import "@schule/mathematik:0.0.2": tasks
 #import "@schule/patterns:0.0.1": *
+#import "@preview/eqalc:0.1.3": *
+#import "@preview/zero:0.5.0": *
 #import "@schule/physik:0.0.1": berechnung, datensatz, lineare_regression, messdaten, messwerttabelle
 #import "@schule/operatoren:0.0.1": operator, operatoren-liste
 #import "@preview/fontawesome:0.6.0": *
@@ -76,13 +78,9 @@
     set text(font: math-font)
     it
   }
+  
   show math.equation: it => {
-    show regex("\d+\.\d+"): it => {
-      show ".": {
-        "," + h(0pt)
-      }
-      it
-    }
+    show regex("\d+\.\d+"): num => num.text.replace(".", ",")
     it
   }
 
