@@ -82,13 +82,56 @@
 
 // Funktion zur Umrechnung der Einheit
 #let umrechnungseinheit(wert, einheit) = {
-  for (k, v) in multiplikatoren {
-    if calc.abs(wert) / v >= 1 {
-      let umgerechneter_wert = wert / v
-      return (v, k + einheit)
+  // Debug: Prüfe Eingabewerte
+  if type(wert) != float and type(wert) != int {
+    return (1, einheit)
+  }
+  if calc.abs(wert) == 0 {
+    return (1, einheit)
+  }
+  
+  // Erst prüfen, ob die Einheit bereits einen Prefix hat
+  let basis_einheit = einheit
+  let aktueller_prefix_wert = 1
+  
+  // Erkenne aktuellen Prefix in der Einheit - aber nicht bei einzelnen Buchstaben!
+  if einheit.len() > 1 {
+    for (prefix_key, prefix_value) in multiplikatoren {
+      if prefix_key != "" and einheit.starts-with(prefix_key) {
+        aktueller_prefix_wert = prefix_value
+        basis_einheit = einheit.slice(prefix_key.len())
+        break
+      }
     }
   }
-  (1, einheit)
+  
+  // Wert in Basiseinheit umrechnen
+  let wert_in_basis = wert * aktueller_prefix_wert
+  
+  // Suche den besten Prefix für die Darstellung (von groß zu klein)
+  let prefix_liste = (
+    ("G", 1e9),
+    ("M", 1e6), 
+    ("k", 1e3),
+    ("", 1),
+    ("c", 1e-2),
+    ("m", 1e-3),
+    ("u", 1e-6),
+    ("n", 1e-9),
+    ("p", 1e-12)
+  )
+  
+  for (prefix_key, prefix_value) in prefix_liste {
+    let neuer_wert = calc.abs(wert_in_basis) / prefix_value
+    if neuer_wert >= 1 and neuer_wert < 1000 {
+      let neue_einheit = if prefix_key == "" { basis_einheit } else { prefix_key + basis_einheit }
+      return (prefix_value / aktueller_prefix_wert, neue_einheit)
+    }
+  }
+  
+  // Fallback: verwende den kleinsten Prefix (pico)
+  let neue_einheit = "p" + basis_einheit
+  return (1e-12 / aktueller_prefix_wert, neue_einheit)
 }
 
 // Funktion zur Berechnung der Anzahl der Nachkommastellen
@@ -140,11 +183,12 @@
 
 // Funktion zur Berechnung von Werten basierend auf einem anderen Datensatz
 #let berechnung(name, einheit, datensatz, formel, prefix: "1", auto-einheit: true, fehler: 0) = {
-  // Erst die ursprünglichen Werte mit dem Multiplikator der Einheit umrechnen
+  // Schritt 1: Eingabewerte in Basiseinheiten umrechnen (VOR der Berechnung)
   let umgerechnete_werte = datensatz.werte.map(wert => {
     if type(wert) == content or wert == none {
       return wert
     }
+    
     // Multiplikator für die Einheit des Datensatzes finden
     let datensatz_multiplikator = 1
     if datensatz.prefix != "1" {
@@ -168,37 +212,69 @@
     return wert * datensatz_multiplikator
   })
 
+  // Schritt 2: Formel anwenden (arbeitet mit Basiseinheiten)
   let neue_werte = umgerechnete_werte.map(formel)
+  
+  // Schritt 3: Ergebnis in Zieleinheit umrechnen (NACH der Berechnung)
+  // Multiplikator für die Zieleinheit finden
+  let ziel_multiplikator = 1
   if prefix != "1" {
-    let prefix_factor = if prefix.starts-with("e") {
-      calc.pow(10, int(prefix.slice(1)))
+    if prefix.starts-with("e") {
+      ziel_multiplikator = calc.pow(10, int(prefix.slice(1)))
     } else if prefix in multiplikatoren {
-      multiplikatoren.at(prefix)
+      ziel_multiplikator = multiplikatoren.at(prefix)
     } else {
-      float("1" + prefix)
+      ziel_multiplikator = float("1" + prefix)
     }
-    neue_werte = neue_werte.map(w => { w / prefix_factor })
   }
+  
+  // Zusätzlich prüfen, ob die Zieleinheit selbst einen Prefix enthält
+  if einheit != none and einheit.len() > 1 {
+    for (prefix_key, prefix_value) in multiplikatoren {
+      if prefix_key != "" and einheit.starts-with(prefix_key) {
+        ziel_multiplikator = ziel_multiplikator * prefix_value
+        break
+      }
+    }
+  }
+  
+  // Ergebnis in Zieleinheit umrechnen
+  neue_werte = neue_werte.map(w => { w / ziel_multiplikator })
+  
+  // Schritt 4: Fehler hinzufügen falls gewünscht
   if fehler != 0 {
     for (key, wert) in neue_werte.enumerate() {
       neue_werte.at(key) = wert * (1 + ((0.5 - rand(key)) * fehler / 100))
     }
   }
+  
+  // Schritt 5: Automatische Einheitenumrechnung (optional)
   if auto-einheit {
     let min-wert = none
     for (key, wert) in neue_werte.enumerate() {
-      if key == 0 and calc.abs(wert) != 0 {
-        min-wert = calc.abs(wert)
-        break
+      if type(wert) == content or wert == none {
+        continue
       }
-      if (min-wert == none or calc.abs(wert) < min-wert) and calc.abs(wert) != 0 {
-        min-wert = calc.abs(wert)
+      if calc.abs(wert) != 0 {
+        if min-wert == none or calc.abs(wert) < min-wert {
+          min-wert = calc.abs(wert)
+        }
       }
     }
-    let (faktor, neue_einheit) = umrechnungseinheit(min-wert, einheit)
-    let digits = calc.max(0, count_decimal_places(min-wert) - count_decimal_places(faktor))
-    neue_werte = neue_werte.map(wert => wert / faktor)
-    einheit = neue_einheit
+    
+    if min-wert != none {
+      let (faktor, neue_einheit) = umrechnungseinheit(min-wert, einheit)
+      // Debug: Prüfe ob neue_einheit gültig ist
+      if neue_einheit != none and neue_einheit != "" and faktor != 1 {
+        neue_werte = neue_werte.map(wert => {
+          if type(wert) == content or wert == none {
+            return wert
+          }
+          return wert / faktor
+        })
+        einheit = neue_einheit
+      }
+    }
   }
   (
     name: name,
