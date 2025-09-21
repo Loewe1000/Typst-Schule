@@ -280,7 +280,7 @@
   let teile = ()
   let max = 0
   let max-key = 0
-  let max_wert_pro_tabelle = if amount == auto { datensatze.at(0).werte.len() } else { max_wert_pro_tabelle }
+  let max_wert_pro_tabelle = if amount == auto { datensatze.at(0).werte.len() } else { amount }
   for (key, daten) in datensatze.enumerate() {
     if daten.werte.len() > max {
       max = daten.werte.len()
