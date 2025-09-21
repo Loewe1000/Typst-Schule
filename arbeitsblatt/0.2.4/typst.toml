@@ -4,3 +4,8 @@ version = "0.2.4"
 entrypoint = "src/arbeitsblatt.typ"
 description = "Package for arbeitsblatt"
 license = "MIT"
+
+[template]
+path = "template"
+entrypoint = "ab.typ"
+thumbnail = "thumbnail.png"
