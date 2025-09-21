@@ -181,39 +181,86 @@
   lineare_regression: lineare_regression,
 )
 
-// Funktion zur Berechnung von Werten basierend auf einem anderen Datensatz
-#let berechnung(name, einheit, datensatz, formel, prefix: "1", auto-einheit: true, fehler: 0) = {
-  // Schritt 1: Eingabewerte in Basiseinheiten umrechnen (VOR der Berechnung)
-  let umgerechnete_werte = datensatz.werte.map(wert => {
-    if type(wert) == content or wert == none {
-      return wert
-    }
-    
-    // Multiplikator für die Einheit des Datensatzes finden
-    let datensatz_multiplikator = 1
-    if datensatz.prefix != "1" {
-      if datensatz.prefix.starts-with("e") {
-        datensatz_multiplikator = calc.pow(10, int(datensatz.prefix.slice(1)))
-      } else if datensatz.prefix in multiplikatoren {
-        datensatz_multiplikator = multiplikatoren.at(datensatz.prefix)
+// Funktion zur Berechnung von Werten basierend auf einem oder mehreren Datensätzen
+#let berechnung(name, einheit, datensaetze, formel, prefix: "1", auto-einheit: true, fehler: 0) = {
+  // Unterstützung für einzelnen Datensatz (Rückwärtskompatibilität)
+  let datensatz_liste = if type(datensaetze) == array { datensaetze } else { (datensaetze,) }
+  
+  // Schritt 1: Alle Eingabewerte in Basiseinheiten umrechnen (VOR der Berechnung)
+  let alle_umgerechneten_werte = ()
+  
+  for datensatz in datensatz_liste {
+    let umgerechnete_werte = datensatz.werte.map(wert => {
+      if type(wert) == content or wert == none {
+        return wert
       }
-    }
-
-    // Zusätzlich prüfen, ob die Einheit selbst einen Prefix enthält
-    if datensatz.einheit != none {
-      for (prefix_key, prefix_value) in multiplikatoren {
-        if prefix_key != "" and datensatz.einheit.starts-with(prefix_key) {
-          datensatz_multiplikator = datensatz_multiplikator * prefix_value
-          break
+      
+      // Multiplikator für die Einheit des Datensatzes finden
+      let datensatz_multiplikator = 1
+      if datensatz.prefix != "1" {
+        if datensatz.prefix.starts-with("e") {
+          datensatz_multiplikator = calc.pow(10, int(datensatz.prefix.slice(1)))
+        } else if datensatz.prefix in multiplikatoren {
+          datensatz_multiplikator = multiplikatoren.at(datensatz.prefix)
         }
       }
-    }
 
-    return wert * datensatz_multiplikator
-  })
+      // Zusätzlich prüfen, ob die Einheit selbst einen Prefix enthält
+      if datensatz.einheit != none {
+        for (prefix_key, prefix_value) in multiplikatoren {
+          if prefix_key != "" and datensatz.einheit.starts-with(prefix_key) {
+            datensatz_multiplikator = datensatz_multiplikator * prefix_value
+            break
+          }
+        }
+      }
+
+      return wert * datensatz_multiplikator
+    })
+    alle_umgerechneten_werte.push(umgerechnete_werte)
+  }
 
   // Schritt 2: Formel anwenden (arbeitet mit Basiseinheiten)
-  let neue_werte = umgerechnete_werte.map(formel)
+  let neue_werte = ()
+  
+  // Bestimme die Anzahl der Werte (sollte für alle Datensätze gleich sein)
+  let anzahl_werte = alle_umgerechneten_werte.at(0).len()
+  
+  for i in range(anzahl_werte) {
+    // Extrahiere die i-ten Werte aus allen Datensätzen
+    let parameter_werte = ()
+    let hat_leeren_wert = false
+    
+    for j in range(alle_umgerechneten_werte.len()) {
+      let wert = alle_umgerechneten_werte.at(j).at(i)
+      if type(wert) == content or wert == none {
+        hat_leeren_wert = true
+        break
+      }
+      parameter_werte.push(wert)
+    }
+    
+    // Wenn einer der Parameter leer ist, überspringe diese Berechnung
+    if hat_leeren_wert {
+      neue_werte.push(none)
+    } else {
+      // Rufe die Formel mit allen Parametern auf
+      if parameter_werte.len() == 1 {
+        neue_werte.push(formel(parameter_werte.at(0)))
+      } else if parameter_werte.len() == 2 {
+        neue_werte.push(formel(parameter_werte.at(0), parameter_werte.at(1)))
+      } else if parameter_werte.len() == 3 {
+        neue_werte.push(formel(parameter_werte.at(0), parameter_werte.at(1), parameter_werte.at(2)))
+      } else if parameter_werte.len() == 4 {
+        neue_werte.push(formel(parameter_werte.at(0), parameter_werte.at(1), parameter_werte.at(2), parameter_werte.at(3)))
+      } else if parameter_werte.len() == 5 {
+        neue_werte.push(formel(parameter_werte.at(0), parameter_werte.at(1), parameter_werte.at(2), parameter_werte.at(3), parameter_werte.at(4)))
+      } else {
+        // Fallback für mehr Parameter - kann bei Bedarf erweitert werden
+        panic("Zu viele Parameter für die Formel. Maximal 5 Datensätze unterstützt.")
+      }
+    }
+  }
   
   // Schritt 3: Ergebnis in Zieleinheit umrechnen (NACH der Berechnung)
   // Multiplikator für die Zieleinheit finden
