@@ -2,8 +2,14 @@
 name = "arbeitsblatt"
 version = "0.2.4"
 entrypoint = "src/arbeitsblatt.typ"
-description = "Package for arbeitsblatt"
+description = "Ein umfassendes Typst-Paket zur Erstellung professioneller Arbeitsblätter für den Schulunterricht. Bietet vorgefertigte Funktionen und viele Einstellungsmöglichkeiten für Lehrer zur effizienten Gestaltung von Unterrichtsmaterialien."
 license = "MIT"
+keywords = [
+    "ab",
+    "arbeitsblatt",
+    "lehrer",
+]
+categories = ["office", "layout", "components"]
 
 [template]
 path = "template"
