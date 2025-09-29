@@ -21,6 +21,10 @@
 #let qty(..args) = {
   let positional = args.pos()
   if positional.len() == 2 and type(positional.at(0)) in (str, int, float) and type(positional.at(1)) == str {
+    let named = args.named()
+    if named != () {
+      return qty_old(..named)[#positional.at(0)][#positional.at(1)]
+    }
     return qty_old[#positional.at(0)][#positional.at(1)]
   } else {
     return qty_old(..args)
@@ -32,9 +36,28 @@
 #let num(..args) = {
   let positional = args.pos()
   if positional.len() == 1 and type(positional.at(0)) in (str, int, float) {
+    let named = args.named()
+    if named != () {
+      return num_old(..named)[#positional.at(0)]
+    }
     return num_old[#positional.at(0)]
   } else {
     return num_old(..args)
+  }
+}
+
+#let unit_old = unit
+
+#let unit(..args) = {
+  let positional = args.pos()
+  if positional.len() == 1 and type(positional.at(0)) in (str, int, float) {
+    let named = args.named()
+    if named != () {
+      return unit_old(..named)[#positional.at(0)]
+    }
+    return unit_old[#positional.at(0)]
+  } else {
+    return unit_old(..args)
   }
 }
 
