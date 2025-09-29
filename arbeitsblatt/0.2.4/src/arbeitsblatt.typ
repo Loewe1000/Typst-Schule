@@ -16,6 +16,28 @@
 #import "@preview/colorful-boxes:1.4.3": *
 #import "@preview/fancy-units:0.1.1": add-macros, fancy-units-configure, num, qty, unit
 
+#let qty_old = qty
+
+#let qty(..args) = {
+  let positional = args.pos()
+  if positional.len() == 2 and type(positional.at(0)) in (str, int, float) and type(positional.at(1)) == str {
+    return qty_old[#positional.at(0)][#positional.at(1)]
+  } else {
+    return qty_old(..args)
+  }
+}
+
+#let num_old = num
+
+#let num(..args) = {
+  let positional = args.pos()
+  if positional.len() == 1 and type(positional.at(0)) in (str, int, float) {
+    return num_old[#positional.at(0)]
+  } else {
+    return num_old(..args)
+  }
+}
+
 #let print-state = state("print", false)
 
 /// Creates a new arbeitsblatt
