@@ -123,7 +123,7 @@
     set text(font: math-font)
     it
   }
-  
+
   show math.equation: it => {
     show regex("\d+\.\d+"): num => num.text.replace(".", ",")
     it
@@ -185,143 +185,166 @@
     move(dy: -.4em, line(length: 100%, stroke: 0.5pt + luma(200)))
   }
 
-  // Set page properties
-  set page(
-    paper: paper,
-    ..if not print {
-      if landscape {
-        (width: auto)
-      } else {
-        (height: auto)
-      }
-    },
-    flipped: landscape,
-    header-ascent: if "header-ascent" in args.named().keys() {
-      args.named().at("header-ascent")
-    } else {
-      20%
-    },
-    margin: if print {
-      if landscape {
-        (top: 2.2cm, x: 1.75cm, bottom: 1cm)
-      } else {
-        if duplex {
-          (top: 2.2cm, inside: 2.25cm, outside: 1.25cm, bottom: 1cm)
+  context {
+    let header-height = measure(custom-header, width: page.width).height
+    // Set page properties
+    set page(
+      paper: paper,
+      ..if not print {
+        if landscape {
+          (width: auto)
         } else {
-          (top: 2.2cm, left: 2.25cm, right: 1.25cm, bottom: 1cm)
+          (height: auto)
         }
+      },
+      flipped: landscape,
+      header-ascent: if "header-ascent" in args.named().keys() {
+        args.named().at("header-ascent")
+      } else {
+        20%
+      },
+      // Margin-Logik: Prüfe zuerst page-settings.margin, dann Standard-Margins
+      margin: if "margin" in page-settings.keys() {
+        // Wenn explizit ein Margin in page-settings gesetzt wurde, verwende dieses
+        let top = page-settings.margin.at("top", default: 0cm)
+        let values = page-settings.margin
+        let _ = values.remove("top")
+        let _ = values.insert("top", top + header-height)
+        values
+      } else {
+        // Ansonsten verwende die Standard-Margins basierend auf print/landscape/duplex
+        if print {
+          if landscape {
+            (top: 2.2cm + header-height, x: 1.75cm, bottom: 1cm)
+          } else {
+            if duplex {
+              (top: 5cm, inside: 2.25cm, outside: 1.25cm, bottom: 1cm)
+            } else {
+              (top: 2.3cm + header-height, left: 2.25cm, right: 1.25cm, bottom: 1cm)
+            }
+          }
+        } else {
+          (top: 2.2cm + header-height, x: 1.75cm, bottom: 1cm)
+        }
+      },
+      header: if custom-header == none {
+        header(title: title, class: class, font-size: title-font-size, copyright: copyright)
+      } else {
+        custom-header
+      },
+      // Alle anderen page-settings außer margin anwenden
+      ..{
+        let filtered-settings = (:)
+        for (key, value) in page-settings.pairs() {
+          if key != "margin" {
+            filtered-settings.insert(key, value)
+          }
+        }
+        filtered-settings
+      },
+    )
+
+    set_options((
+      "loesungen": loesungen,
+      "materialien": materialien,
+      "workspaces": workspaces,
+      "punkte": punkte,
+      "print": print,
+      "teilaufgabe-numbering": teilaufgabe-numbering,
+    ))
+
+    print-state.update(_ => {
+      print
+    })
+
+    // font-size for aufgaben, large and small
+    show heading.where(level: 1): it => block[
+      #set text(14pt, weight: 700)
+      #it.body
+      #v(4pt)
+    ]
+
+    show heading.where(level: 2): it => block[
+      #set text(12pt, weight: 700)
+      #it.body
+    ]
+
+    // Setting captions and numberings for figures
+    set figure(numbering: "1", supplement: none)
+
+    show figure: it => {
+      let type = repr(it.kind)
+      let supplement = ("image": "A", "table": "T").at(type, default: "M")
+      let number = counter(figure.where(kind: it.kind)).get().first()
+      context {
+        align(center)[
+          #it.body
+          #if it.caption != none {
+            v(5pt)
+            align(left, grid(
+              columns: 2,
+              column-gutter: 0.5em,
+              text(size: figure-font-size, grid(
+                columns: 2,
+                align: top,
+                column-gutter: 0.25em,
+                [*#supplement#number:*], it.caption,
+              )),
+            ))
+          }
+        ]
       }
-    } else {
-      (top: 2.2cm, x: 1.75cm, bottom: 1cm)
-    },
-    header: if custom-header == none {
-      header(title: title, class: class, font-size: title-font-size, copyright: copyright)
-    } else {
-      custom-header
-    },
-    ..page-settings,
-  )
+    }
 
-  set_options((
-    "loesungen": loesungen,
-    "materialien": materialien,
-    "workspaces": workspaces,
-    "punkte": punkte,
-    "print": print,
-    "teilaufgabe-numbering": teilaufgabe-numbering,
-  ))
+    show figure.where(kind: "material"): it => {
+      context {
+        let current-aufgabe = _state_current_material_aufgabe.get()
+        let material-index = _state_current_material_index.get()
 
-  print-state.update(_ => {
-    print
-  })
+        // Fallback falls nicht in Material-Sektion
+        if current-aufgabe == 0 {
+          current-aufgabe = _counter_aufgaben.get().at(0)
+          material-index = counter(figure.where(kind: "material")).at(it.location()).first()
+        }
 
-  // font-size for aufgaben, large and small
-  show heading.where(level: 1): it => block[
-    #set text(14pt, weight: 700)
-    #it.body
-    #v(4pt)
-  ]
+        let thm_num = "M" + str(current-aufgabe) + "-" + numbering("A", material-index)
 
-  show heading.where(level: 2): it => block[
-    #set text(12pt, weight: 700)
-    #it.body
-  ]
-
-  // Setting captions and numberings for figures
-  set figure(numbering: "1", supplement: none)
-
-  show figure: it => {
-    let type = repr(it.kind)
-    let supplement = ("image": "A", "table": "T").at(type, default: "M")
-    let number = counter(figure.where(kind: it.kind)).get().first()
-    context {
-      align(center)[
-        #it.body
-        #if it.caption != none {
-          v(5pt)
-          align(left, grid(
+        align(center)[
+          #it.body
+          #v(5pt)
+          #align(left, grid(
             columns: 2,
             column-gutter: 0.5em,
-            text(size: figure-font-size, grid(
-              columns: 2,
-              align: top,
-              column-gutter: 0.25em,
-              [*#supplement#number:*], it.caption,
-            )),
+            text(size: figure-font-size, strong(thm_num) + ":"), it.caption,
           ))
-        }
-      ]
-    }
-  }
-
-  show figure.where(kind: "material"): it => {
-    context {
-      let current-aufgabe = _state_current_material_aufgabe.get()
-      let material-index = _state_current_material_index.get()
-
-      // Fallback falls nicht in Material-Sektion
-      if current-aufgabe == 0 {
-        current-aufgabe = _counter_aufgaben.get().at(0)
-        material-index = counter(figure.where(kind: "material")).at(it.location()).first()
+        ]
       }
-
-      let thm_num = "M" + str(current-aufgabe) + "-" + numbering("A", material-index)
-
-      align(center)[
-        #it.body
-        #v(5pt)
-        #align(left, grid(
-          columns: 2,
-          column-gutter: 0.5em,
-          text(size: figure-font-size, strong(thm_num) + ":"), it.caption,
-        ))
-      ]
     }
-  }
 
-  show figure.where(kind: "teilaufgabe"): it => align(
-    left,
-    box(width: 100%, [
-      #it.body
-    ]),
-  )
+    show figure.where(kind: "teilaufgabe"): it => align(
+      left,
+      box(width: 100%, [
+        #it.body
+      ]),
+    )
 
-  show: codly-init.with()
-  codly(display-name: false)
-  set raw(syntaxes: "processing.sublime-syntax")
+    show: codly-init.with()
+    codly(display-name: false)
+    set raw(syntaxes: "processing.sublime-syntax")
 
-  show heading.where(level: 1): it => if aufgaben-shortcodes in ("alle", "aufgaben") { aufgabe(title: it.body, large: true)[] } else { it }
-  show enum.item: it => if aufgaben-shortcodes in ("alle", "teilaufgaben") { teilaufgabe(it.body) } else { it }
+    show heading.where(level: 1): it => if aufgaben-shortcodes in ("alle", "aufgaben") { aufgabe(title: it.body, large: true)[] } else { it }
+    show enum.item: it => if aufgaben-shortcodes in ("alle", "teilaufgaben") { teilaufgabe(it.body) } else { it }
 
-  body
+    body
 
-  // To show materials on a separate page
-  context if materialien == "seite" and _state_aufgaben.final().len() > 0 {
-    show_materialien()
-  }
-  // To show solutions on a seperate page
-  context if loesungen in ("seite", "seiten") and _state_aufgaben.final().len() > 0 {
-    show_loesungen()
+    // To show materials on a separate page
+    context if materialien == "seite" and _state_aufgaben.final().len() > 0 {
+      show_materialien()
+    }
+    // To show solutions on a seperate page
+    context if loesungen in ("seite", "seiten") and _state_aufgaben.final().len() > 0 {
+      show_loesungen()
+    }
   }
 }
 
