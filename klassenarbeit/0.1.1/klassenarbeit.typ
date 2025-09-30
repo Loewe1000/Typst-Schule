@@ -114,7 +114,7 @@
 
   if info-table {
     text(14pt, weight: "semibold")[Name:#h(0.25em) #schueler]
-
+    
     std.table(
       columns: (auto, 1fr),
       align: left,
@@ -139,7 +139,7 @@
       std.table.hline(stroke: 0.5pt),
     )
   }
-
+  
   body
   if bewertung == true {
     d_ew_bewertung()

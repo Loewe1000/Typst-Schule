@@ -202,7 +202,6 @@
       let auf-head = block(
         width: 100%,
         below: 1em,
-        above: 2.5em,
         figure(
           kind: "aufgabe",
           supplement: none,
