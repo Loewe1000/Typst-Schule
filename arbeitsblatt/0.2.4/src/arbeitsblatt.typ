@@ -101,7 +101,7 @@
   landscape: false,
   custom-header: none,
   teilaufgabe-numbering: "a)",
-  page-settings: (),
+  page-settings: (:),
   loesungen: "false",
   materialien: "seiten",
   punkte: "keine",
