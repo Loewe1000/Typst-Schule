@@ -258,7 +258,7 @@
 }
 
 #let teilaufgabe(
-  item-label: "a)",
+  item-label: none,
   label-ref: none,
   workspace: none,
   body,
@@ -278,11 +278,17 @@
     let ta-enum = enum(
       start: curr_teil,
       numbering: n => context [
-        #let opts = _state_options.get()
-        #if opts.teilaufgabe-numbering == "a)" {
-          numbering("a)", n)
-        } else if opts.teilaufgabe-numbering == "1." {
-          numbering("1.1", curr_aufg, n)
+        #if item-label != none {
+          item-label
+        } else {
+          let opts = _state_options.get()
+          if opts.teilaufgabe-numbering == "a)" {
+            numbering("a)", n)
+          } else if opts.teilaufgabe-numbering == "1." {
+            numbering("1.1", curr_aufg, n)
+          } else {
+            numbering("a)", n) // Fallback
+          }
         }
       ],
       {
