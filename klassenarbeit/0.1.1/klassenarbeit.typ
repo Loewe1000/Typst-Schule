@@ -141,9 +141,6 @@
   }
   
   body
-  if bewertung == true {
-    d_ew_bewertung()
-  }
   [
     #if erwartungen == true {
       d_ew()
