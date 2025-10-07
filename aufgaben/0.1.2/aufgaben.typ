@@ -315,7 +315,7 @@
               }
             }
             // Workspace
-            if workspace != none and opts.workspaces {
+            if not workspace in (none, false) and opts.workspaces {
               workspace
             }
           },
