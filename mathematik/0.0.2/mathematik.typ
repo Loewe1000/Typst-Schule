@@ -238,6 +238,7 @@
 ) = {
   import "@preview/cetz:0.4.2": *
   import "@preview/cetz-plot:0.1.3": *
+  import "@preview/eqalc:0.1.3": math-to-func
 
   // Eigene Farbpalette mit 10 gut unterscheidbaren Farben für Plots
   let colors = (
@@ -255,6 +256,17 @@
 
   let plots = plots.pos()
 
+  // Hilfsfunktion: Konvertiere content (Mathe) oder function zu function
+  let to-func(term) = {
+    if type(term) == function {
+      term
+    } else if type(term) == content {
+      math-to-func(term)
+    } else {
+      term
+    }
+  }
+
   // Verarbeite die Plots in ein einheitliches Format
   let processed-plots = ()
 
@@ -266,29 +278,29 @@
       let clr = colors.at(calc.rem(index, colors.len())) // Rotiere Farben
       let label = none // Label-Definition (position, content)
 
-      if type(plot-def) == function {
-        // Nur Funktion übergeben
-        term = plot-def
+      if type(plot-def) == function or type(plot-def) == content {
+        // Nur Funktion oder Mathe-Content übergeben
+        term = to-func(plot-def)
       } else if type(plot-def) == array {
         // Tuple/Array: kann (term), (domain, term) oder (domain, term, color) sein
         // ODER (term, (label: ..., color: ...)) - Funktion + Dictionary mit Optionen
         if plot-def.len() == 1 {
-          term = plot-def.at(0)
+          term = to-func(plot-def.at(0))
         } else if plot-def.len() == 2 {
-          // Prüfe ob erstes Element eine Domain ist (Array) oder eine Funktion
+          // Prüfe ob erstes Element eine Domain ist (Array) oder eine Funktion/Content
           if type(plot-def.at(0)) == array {
             domain = plot-def.at(0)
-            term = plot-def.at(1)
-          } else if type(plot-def.at(0)) == function and type(plot-def.at(1)) == dictionary {
-            // (func, (label: ..., color: ...))
-            term = plot-def.at(0)
+            term = to-func(plot-def.at(1))
+          } else if (type(plot-def.at(0)) == function or type(plot-def.at(0)) == content) and type(plot-def.at(1)) == dictionary {
+            // (func/content, (label: ..., color: ...))
+            term = to-func(plot-def.at(0))
             let opts = plot-def.at(1)
             if "domain" in opts { domain = opts.domain }
             if "clr" in opts { clr = opts.clr }
             if "color" in opts { clr = opts.color }
             if "label" in opts { label = opts.label }
           } else {
-            term = plot-def.at(0)
+            term = to-func(plot-def.at(0))
             clr = plot-def.at(1)
           }
         } else if plot-def.len() == 3 {
@@ -296,25 +308,25 @@
           if type(plot-def.at(0)) == array and type(plot-def.at(2)) == dictionary {
             // (domain, func, (label: ..., color: ...))
             domain = plot-def.at(0)
-            term = plot-def.at(1)
+            term = to-func(plot-def.at(1))
             let opts = plot-def.at(2)
             if "clr" in opts { clr = opts.clr }
             if "color" in opts { clr = opts.color }
             if "label" in opts { label = opts.label }
           } else {
             domain = plot-def.at(0)
-            term = plot-def.at(1)
+            term = to-func(plot-def.at(1))
             clr = plot-def.at(2)
           }
         } else if plot-def.len() >= 4 {
           domain = plot-def.at(0)
-          term = plot-def.at(1)
+          term = to-func(plot-def.at(1))
           clr = plot-def.at(2)
         }
       } else if type(plot-def) == dictionary {
         // Dictionary mit optionalen keys: domain, term, clr, label
         if "domain" in plot-def { domain = plot-def.domain }
-        if "term" in plot-def { term = plot-def.term }
+        if "term" in plot-def { term = to-func(plot-def.term) }
         if "clr" in plot-def { clr = plot-def.clr }
         if "color" in plot-def { clr = plot-def.color }
         if "label" in plot-def { label = plot-def.label }
