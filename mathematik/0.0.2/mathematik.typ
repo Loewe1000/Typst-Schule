@@ -342,8 +342,18 @@
   let processed-fills = ()
 
   // Normalisiere fills: wenn es direkt eine Funktion oder Content ist, mache es zu einem Array
+  // Erkenne auch einzelne Fill-Definitionen: wenn erstes Element ein Array (Domain) ist
   let fills-array = if type(fills) == function or type(fills) == content {
     (fills,)
+  } else if type(fills) == array and fills.len() > 0 and type(fills.at(0)) == array {
+    // Erstes Element ist Array (Domain) → könnte einzelner Fill sein
+    // Prüfe ob es ein einzelner Fill ist: (domain, func1, func2) oder (domain, func1, func2, color)
+    if fills.len() >= 3 and (type(fills.at(1)) == function or type(fills.at(1)) == content) and (type(fills.at(2)) == function or type(fills.at(2)) == content) {
+      // Einzelner Fill: (domain, func1, func2, ...)
+      (fills,)
+    } else {
+      fills
+    }
   } else {
     fills
   }
