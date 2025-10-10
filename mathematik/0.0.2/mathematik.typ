@@ -220,6 +220,7 @@
 
 #let graphen(
   size: none,
+  scale: 1,
   x: (-5, 5),
   y: (-5, 5),
   step: 1,
@@ -605,7 +606,7 @@
     (effective-y-step, effective-y-step / 2)
   }
 
-  canvas({
+  canvas(length: scale * 1cm,{
     import draw: *
     set-style(
       axes: (
