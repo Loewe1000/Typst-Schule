@@ -419,15 +419,26 @@
 /// - columns (array): Definitions of columns.
 /// - align (???): Alignment inside the column.
 /// - ..args (any): Optional arguments.
-#let minipage(columns: (1fr, 1fr), align: horizon, spacing: 5mm, ..args, body) = {
+#let minipage(columns: auto, align: horizon, spacing: 5mm, ..args) = {
+  // Sammle alle Body-Argumente
+  let bodies = args.pos()
+  
+  // Bestimme die Anzahl der Spalten automatisch, wenn nicht angegeben
+  let effective-columns = if columns == auto {
+    // Erstelle Array mit 1fr für jede übergebene Body
+    (1fr,) * bodies.len()
+  } else {
+    columns
+  }
+  
   table(
     stroke: none,
-    columns: columns,
+    columns: effective-columns,
     align: align,
     inset: 0pt,
     column-gutter: spacing,
-    ..args,
-    body,
+    ..args.named(),
+    ..bodies,
   )
 }
 
