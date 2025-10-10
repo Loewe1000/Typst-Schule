@@ -11,11 +11,17 @@
   fill-color: white,
   ..args,
 ) = {
-  // Unterstütze positionales Argument für rows
+  // Unterstütze positionale Argumente für rows und width
   let effective-rows = if args.pos().len() > 0 {
     args.pos().at(0)
   } else {
     rows
+  }
+  
+  let effective-width = if args.pos().len() > 1 {
+    args.pos().at(1)
+  } else {
+    width
   }
   
   layout(size => {
