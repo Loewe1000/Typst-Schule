@@ -267,6 +267,77 @@
     }
   }
 
+  // Hilfsfunktion: Finde Schnittpunkt zweier Funktionen mit Bisection-Methode
+  // Gibt none zurück wenn kein Schnittpunkt gefunden wurde
+  let find-intersection(f, g, x-min, x-max, tolerance: 0.0001, max-iterations: 50) = {
+    let diff(x) = f(x) - g(x)
+    let a = x-min
+    let b = x-max
+    
+    let fa = diff(a)
+    let fb = diff(b)
+    
+    // Prüfe ob Vorzeichenwechsel existiert
+    if fa * fb > 0 {
+      return none // Kein Schnittpunkt in diesem Intervall
+    }
+    
+    // Spezialfall: Einer der Randpunkte ist bereits der Schnittpunkt
+    if calc.abs(fa) < tolerance {
+      return a
+    }
+    if calc.abs(fb) < tolerance {
+      return b
+    }
+    
+    // Bisection-Algorithmus
+    let iteration = 0
+    while calc.abs(b - a) > tolerance and iteration < max-iterations {
+      let mid = (a + b) / 2
+      let fmid = diff(mid)
+      
+      if calc.abs(fmid) < tolerance {
+        return mid
+      }
+      
+      if fmid * fa < 0 {
+        b = mid
+        fb = fmid
+      } else {
+        a = mid
+        fa = fmid
+      }
+      
+      iteration += 1
+    }
+    
+    return (a + b) / 2
+  }
+
+  // Hilfsfunktion: Finde alle Schnittpunkte durch Sampling
+  let find-all-intersections(f, g, x-min, x-max, samples: 100) = {
+    let intersections = ()
+    let step = (x-max - x-min) / samples
+    
+    for i in range(samples) {
+      let x1 = x-min + i * step
+      let x2 = x1 + step
+      
+      // Versuche Schnittpunkt in diesem Segment zu finden
+      let intersection = find-intersection(f, g, x1, x2, tolerance: 0.0001)
+      
+      if intersection != none {
+        // Verhindere Duplikate (z.B. an Segment-Grenzen)
+        let is-duplicate = intersections.any(x => calc.abs(x - intersection) < 0.001)
+        if not is-duplicate {
+          intersections.push(intersection)
+        }
+      }
+    }
+    
+    return intersections
+  }
+
   // Verarbeite die Plots in ein einheitliches Format
   let processed-plots = ()
 
@@ -344,6 +415,10 @@
   // Normalisiere fills: wenn es direkt eine Funktion oder Content ist, mache es zu einem Array
   // Erkenne auch einzelne Fill-Definitionen: wenn erstes Element ein Array (Domain) ist
   let fills-array = if type(fills) == function or type(fills) == content {
+    // Direkt eine Funktion/Content ohne Array-Klammern: $f$ → mache zu Array
+    ((fills,),)
+  } else if type(fills) == array and fills.len() == 1 and (type(fills.at(0)) == function or type(fills.at(0)) == content) {
+    // Ein einzelnes Element das eine Funktion ist: ($f$) → ist bereits richtig gewickelt
     (fills,)
   } else if type(fills) == array and fills.len() > 0 and type(fills.at(0)) == array {
     // Erstes Element ist Array (Domain) → könnte einzelner Fill sein
@@ -354,6 +429,12 @@
     } else {
       fills
     }
+  } else if type(fills) == array and fills.len() == 2 and (type(fills.at(0)) == function or type(fills.at(0)) == content) and (type(fills.at(1)) == function or type(fills.at(1)) == content) {
+    // Zwei Funktionen direkt: ($f$, $g$) → einzelner Fill mit auto-domain
+    (fills,)
+  } else if type(fills) == array and fills.len() == 3 and fills.at(0) == "auto" and (type(fills.at(1)) == function or type(fills.at(1)) == content) and (type(fills.at(2)) == function or type(fills.at(2)) == content) {
+    // ("auto", $f$, $g$) → einzelner Fill mit explizit auto-domain
+    (fills,)
   } else {
     fills
   }
@@ -364,26 +445,30 @@
       let lower = none
       let upper = none
       let clr = colors.at(calc.rem(index, colors.len())).saturate(100%).lighten(60%).transparentize(50%) // Rotiere Farben, heller und transparent
+      let auto-domain = false // Flag für automatische Domain-Berechnung
 
       if type(fill-def) == array {
         // Verschiedene Array-Formate:
         // (func) - eine Funktion, zweite ist x-Achse (x => 0)
-        // (func1, func2) - zwei Funktionen
+        // (func1, func2) - zwei Funktionen → auto-domain!
+        // ("auto", func1, func2) - explizit auto-domain
         // (domain, func1, func2) - mit Domain
         // (func1, func2, color) - mit Farbe
         // (domain, func1, func2, color) - vollständig
 
         if fill-def.len() == 1 {
-          // Eine Funktion/Content, zweite ist x-Achse
+          // Eine Funktion/Content, zweite ist x-Achse → auto-domain zwischen Nullstellen
           if type(fill-def.at(0)) == function or type(fill-def.at(0)) == content {
             lower = x => 0
             upper = to-func(fill-def.at(0))
+            auto-domain = true // Automatisch zwischen Nullstellen füllen
           }
         } else if fill-def.len() == 2 {
           // Zwei Funktionen oder (func, color)
           if (type(fill-def.at(0)) == function or type(fill-def.at(0)) == content) and (type(fill-def.at(1)) == function or type(fill-def.at(1)) == content) {
             lower = to-func(fill-def.at(0))
             upper = to-func(fill-def.at(1))
+            auto-domain = true // Automatische Domain-Erkennung
           } else if type(fill-def.at(0)) == function or type(fill-def.at(0)) == content {
             // (func, color)
             lower = x => 0
@@ -391,8 +476,13 @@
             clr = fill-def.at(1)
           }
         } else if fill-def.len() == 3 {
-          // Prüfe ob erstes Element Domain ist (Array) oder Funktion/Content
-          if type(fill-def.at(0)) == array {
+          // Prüfe ob erstes Element Domain ist (Array/String) oder Funktion/Content
+          if type(fill-def.at(0)) == str and fill-def.at(0) == "auto" {
+            // ("auto", func1, func2) - explizit auto
+            lower = to-func(fill-def.at(1))
+            upper = to-func(fill-def.at(2))
+            auto-domain = true
+          } else if type(fill-def.at(0)) == array {
             // (domain, func1, func2) oder (domain, func, color)
             domain = fill-def.at(0)
             if type(fill-def.at(2)) == function or type(fill-def.at(2)) == content {
@@ -410,21 +500,35 @@
             lower = to-func(fill-def.at(0))
             upper = to-func(fill-def.at(1))
             clr = fill-def.at(2)
+            auto-domain = true // Automatische Domain-Erkennung
           }
         } else if fill-def.len() >= 4 {
-          // (domain, func1, func2, color)
-          domain = fill-def.at(0)
-          lower = to-func(fill-def.at(1))
-          upper = to-func(fill-def.at(2))
-          clr = fill-def.at(3)
+          // (domain, func1, func2, color) oder ("auto", func1, func2, color)
+          if type(fill-def.at(0)) == str and fill-def.at(0) == "auto" {
+            lower = to-func(fill-def.at(1))
+            upper = to-func(fill-def.at(2))
+            clr = fill-def.at(3)
+            auto-domain = true
+          } else {
+            domain = fill-def.at(0)
+            lower = to-func(fill-def.at(1))
+            upper = to-func(fill-def.at(2))
+            clr = fill-def.at(3)
+          }
         }
       } else if type(fill-def) == function or type(fill-def) == content {
         // Direkt eine Funktion/Content übergeben
         lower = x => 0
         upper = to-func(fill-def)
       } else if type(fill-def) == dictionary {
-        // Dictionary mit optionalen keys: domain, lower, upper, clr
-        if "domain" in fill-def { domain = fill-def.domain }
+        // Dictionary mit optionalen keys: domain, lower, upper, clr, auto-domain
+        if "domain" in fill-def { 
+          if type(fill-def.domain) == str and fill-def.domain == "auto" {
+            auto-domain = true
+          } else {
+            domain = fill-def.domain 
+          }
+        }
         if "lower" in fill-def { lower = to-func(fill-def.lower) }
         if "upper" in fill-def { upper = to-func(fill-def.upper) }
         if "func1" in fill-def { lower = to-func(fill-def.func1) }
@@ -435,6 +539,28 @@
         }
         if "clr" in fill-def { clr = fill-def.clr }
         if "color" in fill-def { clr = fill-def.color }
+        if "auto-domain" in fill-def { auto-domain = fill-def.at("auto-domain") }
+      }
+
+      // Automatische Domain-Berechnung wenn gewünscht
+      if auto-domain and lower != none and upper != none {
+        let intersections = find-all-intersections(lower, upper, x.at(0), x.at(1), samples: samples)
+        
+        if intersections.len() >= 2 {
+          // Nutze die äußersten Schnittpunkte (kleinster und größter x-Wert)
+          let sorted = intersections.sorted()
+          domain = (sorted.first(), sorted.last())
+        } else if intersections.len() == 1 {
+          // Nur ein Schnittpunkt gefunden - nutze x-Range als Fallback
+          // Prüfe welche Seite zu füllen ist
+          let mid-x = (x.at(0) + x.at(1)) / 2
+          if mid-x < intersections.at(0) {
+            domain = (x.at(0), intersections.at(0))
+          } else {
+            domain = (intersections.at(0), x.at(1))
+          }
+        }
+        // Wenn keine Schnittpunkte: Behalte Standard-Domain
       }
 
       if lower != none and upper != none {
