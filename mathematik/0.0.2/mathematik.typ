@@ -217,3 +217,244 @@
   )
   #h(1pt)
 ]
+
+#let graphen(
+  size: 10, 
+  x: (-5, 5), 
+  y: (-5, 5), 
+  x-step: none, 
+  y-step: none, 
+  step: 1, 
+  x-label: [$x$],
+  y-label: [$y$],
+  x-grid: "both",
+  y-grid: "both",
+  line-width: 1.5pt,
+  samples: 200,
+  fills: (), 
+  ..plots, 
+  annotations: {}
+) = {
+  import "@preview/cetz:0.4.2": *
+  import "@preview/cetz-plot:0.1.2": *
+
+  // Eigene Farbpalette mit 10 gut unterscheidbaren Farben für Plots
+  let colors = (
+    rgb("#1F77B4"), // Blau
+    rgb("#D62728"), // Rot
+    rgb("#2CA02C"), // Grün
+    rgb("#FF7F0E"), // Orange
+    rgb("#9467BD"), // Violett
+    rgb("#8C564B"), // Braun
+    rgb("#E377C2"), // Pink
+    rgb("#7F7F7F"), // Grau
+    rgb("#BCBD22"), // Olivgrün/Gelb
+    rgb("#17BECF"), // Cyan
+  )
+
+  let plots = plots.pos()
+
+  // Verarbeite die Plots in ein einheitliches Format
+  let processed-plots = ()
+
+  if plots.len() > 0 {
+    // Array von Plot-Definitionen
+    for (index, plot-def) in plots.enumerate() {
+      let domain = (x.at(0), x.at(1)) // Standard-Domain
+      let term = none
+      let clr = colors.at(calc.rem(index, colors.len())) // Rotiere Farben
+
+      if type(plot-def) == function {
+        // Nur Funktion übergeben
+        term = plot-def
+      } else if type(plot-def) == array {
+        // Tuple/Array: kann (term), (domain, term) oder (domain, term, color) sein
+        if plot-def.len() == 1 {
+          term = plot-def.at(0)
+        } else if plot-def.len() == 2 {
+          // Prüfe ob erstes Element eine Domain ist (Array) oder eine Funktion
+          if type(plot-def.at(0)) == array {
+            domain = plot-def.at(0)
+            term = plot-def.at(1)
+          } else {
+            term = plot-def.at(0)
+            clr = plot-def.at(1)
+          }
+        } else if plot-def.len() >= 3 {
+          domain = plot-def.at(0)
+          term = plot-def.at(1)
+          clr = plot-def.at(2)
+        }
+      } else if type(plot-def) == dictionary {
+        // Dictionary mit optionalen keys: domain, term, clr
+        if "domain" in plot-def { domain = plot-def.domain }
+        if "term" in plot-def { term = plot-def.term }
+        if "clr" in plot-def { clr = plot-def.clr }
+        if "color" in plot-def { clr = plot-def.color }
+      }
+
+      if term != none {
+        processed-plots.push((domain: domain, term: term, clr: clr))
+      }
+    }
+  }
+
+  // Verarbeite die Fills in ein einheitliches Format
+  let processed-fills = ()
+
+  if fills.len() > 0 {
+    for (index, fill-def) in fills.enumerate() {
+      let domain = (x.at(0), x.at(1)) // Standard-Domain
+      let lower = none
+      let upper = none
+      let clr = colors.at(calc.rem(index, colors.len())).saturate(100%).lighten(60%).transparentize(50%) // Rotiere Farben, heller und transparent
+
+      if type(fill-def) == array {
+        // Verschiedene Array-Formate:
+        // (func1, func2) - zwei Funktionen
+        // (domain, func1, func2) - mit Domain
+        // (func1, func2, color) - mit Farbe
+        // (domain, func1, func2, color) - vollständig
+        
+        if fill-def.len() == 2 {
+          // Zwei Funktionen
+          if type(fill-def.at(0)) == function and type(fill-def.at(1)) == function {
+            lower = fill-def.at(0)
+            upper = fill-def.at(1)
+          }
+        } else if fill-def.len() == 3 {
+          // Prüfe ob erstes Element Domain ist (Array) oder Funktion
+          if type(fill-def.at(0)) == array {
+            // (domain, func1, func2)
+            domain = fill-def.at(0)
+            lower = fill-def.at(1)
+            upper = fill-def.at(2)
+          } else if type(fill-def.at(0)) == function and type(fill-def.at(1)) == function {
+            // (func1, func2, color)
+            lower = fill-def.at(0)
+            upper = fill-def.at(1)
+            clr = fill-def.at(2)
+          }
+        } else if fill-def.len() >= 4 {
+          // (domain, func1, func2, color)
+          domain = fill-def.at(0)
+          lower = fill-def.at(1)
+          upper = fill-def.at(2)
+          clr = fill-def.at(3)
+        }
+      } else if type(fill-def) == dictionary {
+        // Dictionary mit optionalen keys: domain, lower, upper, clr
+        if "domain" in fill-def { domain = fill-def.domain }
+        if "lower" in fill-def { lower = fill-def.lower }
+        if "upper" in fill-def { upper = fill-def.upper }
+        if "func1" in fill-def { lower = fill-def.func1 }
+        if "func2" in fill-def { upper = fill-def.func2 }
+        if "clr" in fill-def { clr = fill-def.clr }
+        if "color" in fill-def { clr = fill-def.color }
+      }
+
+      if lower != none and upper != none {
+        processed-fills.push((domain: domain, lower: lower, upper: upper, clr: clr))
+      }
+    }
+  }
+
+  // Bestimme die effektive size (int/float für beide Achsen oder Array)
+  let (size-x, size-y) = if type(size) == array {
+    (size.at(0), size.at(1))
+  } else {
+    (size, size)
+  }
+
+  // Bestimme den effektiven x-step (Fallback auf step, wenn x-step none ist)
+  let effective-x-step = if x-step == none { step } else { x-step }
+
+  // Bestimme den effektiven y-step (Fallback auf step, wenn y-step none ist)
+  let effective-y-step = if y-step == none { step } else { y-step }
+
+  // Bestimme x-major-step und x-minor-step
+  let (x-major-step, x-minor-step) = if type(effective-x-step) == array {
+    (effective-x-step.at(0), effective-x-step.at(1))
+  } else {
+    (effective-x-step, effective-x-step / 2)
+  }
+
+  // Bestimme y-major-step und y-minor-step
+  let (y-major-step, y-minor-step) = if type(effective-y-step) == array {
+    (effective-y-step.at(0), effective-y-step.at(1))
+  } else {
+    (effective-y-step, effective-y-step / 2)
+  }
+
+  canvas({
+    import draw: *
+    set-style(
+      axes: (
+        tick: (offset: -50%, minor-offset: -25%, minor-length: 100%),
+        grid: (
+          stroke: (paint: rgb("#AAAAAA").lighten(10%), dash: "solid", thickness: 0.5pt),
+          fill: none,
+        ),
+        minor-grid: (
+          stroke: (paint: rgb("#AAAAAA").lighten(10%), dash: "solid", thickness: 0.5pt),
+          fill: none,
+        ),
+        mark: (end: "straight"),
+        x: (label: (anchor: "south-east", offset: -0.2)),
+        y: (label: (anchor: "north-west", offset: -0.2)),
+        overshoot: 8pt,
+      ),
+    )
+    plot.plot(
+      size: (size-x, size-y),
+      name: "plot",
+      axis-style: "school-book",
+      x-grid: x-grid,
+      y-grid: y-grid,
+      x-tick-step: x-major-step,
+      y-tick-step: y-major-step,
+      x-minor-tick-step: x-minor-step,
+      y-minor-tick-step: y-minor-step,
+      x-label: x-label,
+      y-label: y-label,
+      x-min: x.at(0),
+      x-max: x.at(1),
+      y-min: y.at(0),
+      y-max: y.at(1),
+      {
+        plot.add(
+          style: (stroke: none),
+          domain: (0, 5),
+          x => x,
+        )
+        // Füge alle Fill-Betweens hinzu
+        if processed-fills.len() > 0 {
+          for f in processed-fills {
+            plot.add-fill-between(
+              domain: f.domain,
+              style: (fill: f.clr),
+              f.lower,
+              f.upper,
+            )
+          }
+        }
+        // Füge alle Plots hinzu
+        if processed-plots.len() > 0 {
+          for p in processed-plots {
+            plot.add(
+              style: (stroke: p.clr + line-width),
+              samples: samples,
+              domain: p.domain,
+              p.term,
+            )
+          }
+        }
+        if annotations != {} {
+          plot.annotate({
+            annotations
+          })
+        }
+      },
+    )
+  })
+}
