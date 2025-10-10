@@ -215,10 +215,10 @@
         // Ansonsten verwende die Standard-Margins basierend auf print/landscape/duplex
         if print {
           if landscape {
-            (top: 2.2cm + header-height, x: 1.75cm, bottom: 1cm)
+            (top: 1cm + header-height, x: 1.75cm, bottom: 1cm)
           } else {
             if duplex {
-              (top: 5cm, inside: 2.25cm, outside: 1.25cm, bottom: 1cm)
+              (top: 2.3cm + header-height, inside: 2.25cm, outside: 1.25cm, bottom: 1cm)
             } else {
               (top: 2.3cm + header-height, left: 2.25cm, right: 1.25cm, bottom: 1cm)
             }
