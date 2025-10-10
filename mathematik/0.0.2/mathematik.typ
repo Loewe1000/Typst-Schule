@@ -671,8 +671,12 @@
               let y-pos = (p.term)(x-pos)
               let label-content = p.label.at(1)
               
-              // Optionale Seite (above/below) - Standard ist "above"
-              let label-side = if p.label.len() >= 3 { p.label.at(2) } else { "above" }
+              // Optionale Position (tl/tr/bl/br) - Standard ist "tr" (top-right)
+              let label-pos = if p.label.len() >= 3 { p.label.at(2) } else { "tr" }
+              
+              // Extrahiere Richtung: t/b für above/below, l/r für anchor
+              let label-side = if label-pos.starts-with("t") { "above" } else { "below" }
+              let anchor-side = if label-pos.ends-with("l") { "east" } else { "west" }
               
               // Berechne Steigung numerisch für orthogonale Ausrichtung
               let h = 0.0001
@@ -688,7 +692,7 @@
               }
               
               plot.annotate({
-                content((rel: (radius: 0.4, angle: ortho-angle), to: (x-pos, y-pos)), text(p.clr, label-content), anchor: "west")
+                content((rel: (radius: 1.5mm, angle: ortho-angle), to: (x-pos, y-pos)), text(p.clr, label-content), anchor: anchor-side)
               })
             }
           }
