@@ -341,8 +341,8 @@
   // Verarbeite die Fills in ein einheitliches Format
   let processed-fills = ()
 
-  // Normalisiere fills: wenn es direkt eine Funktion ist, mache es zu einem Array
-  let fills-array = if type(fills) == function {
+  // Normalisiere fills: wenn es direkt eine Funktion oder Content ist, mache es zu einem Array
+  let fills-array = if type(fills) == function or type(fills) == content {
     (fills,)
   } else {
     fills
@@ -364,63 +364,63 @@
         // (domain, func1, func2, color) - vollständig
 
         if fill-def.len() == 1 {
-          // Eine Funktion, zweite ist x-Achse
-          if type(fill-def.at(0)) == function {
+          // Eine Funktion/Content, zweite ist x-Achse
+          if type(fill-def.at(0)) == function or type(fill-def.at(0)) == content {
             lower = x => 0
-            upper = fill-def.at(0)
+            upper = to-func(fill-def.at(0))
           }
         } else if fill-def.len() == 2 {
           // Zwei Funktionen oder (func, color)
-          if type(fill-def.at(0)) == function and type(fill-def.at(1)) == function {
-            lower = fill-def.at(0)
-            upper = fill-def.at(1)
-          } else if type(fill-def.at(0)) == function {
+          if (type(fill-def.at(0)) == function or type(fill-def.at(0)) == content) and (type(fill-def.at(1)) == function or type(fill-def.at(1)) == content) {
+            lower = to-func(fill-def.at(0))
+            upper = to-func(fill-def.at(1))
+          } else if type(fill-def.at(0)) == function or type(fill-def.at(0)) == content {
             // (func, color)
             lower = x => 0
-            upper = fill-def.at(0)
+            upper = to-func(fill-def.at(0))
             clr = fill-def.at(1)
           }
         } else if fill-def.len() == 3 {
-          // Prüfe ob erstes Element Domain ist (Array) oder Funktion
+          // Prüfe ob erstes Element Domain ist (Array) oder Funktion/Content
           if type(fill-def.at(0)) == array {
             // (domain, func1, func2) oder (domain, func, color)
             domain = fill-def.at(0)
-            if type(fill-def.at(2)) == function {
+            if type(fill-def.at(2)) == function or type(fill-def.at(2)) == content {
               // (domain, func1, func2)
-              lower = fill-def.at(1)
-              upper = fill-def.at(2)
+              lower = to-func(fill-def.at(1))
+              upper = to-func(fill-def.at(2))
             } else {
               // (domain, func, color)
               lower = x => 0
-              upper = fill-def.at(1)
+              upper = to-func(fill-def.at(1))
               clr = fill-def.at(2)
             }
-          } else if type(fill-def.at(0)) == function and type(fill-def.at(1)) == function {
+          } else if (type(fill-def.at(0)) == function or type(fill-def.at(0)) == content) and (type(fill-def.at(1)) == function or type(fill-def.at(1)) == content) {
             // (func1, func2, color)
-            lower = fill-def.at(0)
-            upper = fill-def.at(1)
+            lower = to-func(fill-def.at(0))
+            upper = to-func(fill-def.at(1))
             clr = fill-def.at(2)
           }
         } else if fill-def.len() >= 4 {
           // (domain, func1, func2, color)
           domain = fill-def.at(0)
-          lower = fill-def.at(1)
-          upper = fill-def.at(2)
+          lower = to-func(fill-def.at(1))
+          upper = to-func(fill-def.at(2))
           clr = fill-def.at(3)
         }
-      } else if type(fill-def) == function {
-        // Direkt eine Funktion übergeben
+      } else if type(fill-def) == function or type(fill-def) == content {
+        // Direkt eine Funktion/Content übergeben
         lower = x => 0
-        upper = fill-def
+        upper = to-func(fill-def)
       } else if type(fill-def) == dictionary {
         // Dictionary mit optionalen keys: domain, lower, upper, clr
         if "domain" in fill-def { domain = fill-def.domain }
-        if "lower" in fill-def { lower = fill-def.lower }
-        if "upper" in fill-def { upper = fill-def.upper }
-        if "func1" in fill-def { lower = fill-def.func1 }
-        if "func2" in fill-def { upper = fill-def.func2 }
+        if "lower" in fill-def { lower = to-func(fill-def.lower) }
+        if "upper" in fill-def { upper = to-func(fill-def.upper) }
+        if "func1" in fill-def { lower = to-func(fill-def.func1) }
+        if "func2" in fill-def { upper = to-func(fill-def.func2) }
         if "func" in fill-def {
-          upper = fill-def.func
+          upper = to-func(fill-def.func)
           if lower == none { lower = x => 0 }
         }
         if "clr" in fill-def { clr = fill-def.clr }
