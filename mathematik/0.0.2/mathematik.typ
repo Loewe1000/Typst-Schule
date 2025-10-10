@@ -219,21 +219,22 @@
 ]
 
 #let graphen(
-  size: 10, 
-  x: (-5, 5), 
-  y: (-5, 5), 
-  x-step: none, 
-  y-step: none, 
-  step: 1, 
+  size: none,
+  x: (-5, 5),
+  y: (-5, 5),
+  step: 1,
+  x-step: none,
+  y-step: none,
   x-label: [$x$],
   y-label: [$y$],
-  x-grid: "both",
-  y-grid: "both",
+  grid: "both",
+  x-grid: none,
+  y-grid: none,
   line-width: 1.5pt,
   samples: 200,
-  fills: (), 
-  ..plots, 
-  annotations: {}
+  fills: (),
+  ..plots,
+  annotations: {},
 ) = {
   import "@preview/cetz:0.4.2": *
   import "@preview/cetz-plot:0.1.2": *
@@ -263,12 +264,14 @@
       let domain = (x.at(0), x.at(1)) // Standard-Domain
       let term = none
       let clr = colors.at(calc.rem(index, colors.len())) // Rotiere Farben
+      let label = none // Label-Definition (position, content)
 
       if type(plot-def) == function {
         // Nur Funktion übergeben
         term = plot-def
       } else if type(plot-def) == array {
         // Tuple/Array: kann (term), (domain, term) oder (domain, term, color) sein
+        // ODER (term, (label: ..., color: ...)) - Funktion + Dictionary mit Optionen
         if plot-def.len() == 1 {
           term = plot-def.at(0)
         } else if plot-def.len() == 2 {
@@ -276,25 +279,49 @@
           if type(plot-def.at(0)) == array {
             domain = plot-def.at(0)
             term = plot-def.at(1)
+          } else if type(plot-def.at(0)) == function and type(plot-def.at(1)) == dictionary {
+            // (func, (label: ..., color: ...))
+            term = plot-def.at(0)
+            let opts = plot-def.at(1)
+            if "domain" in opts { domain = opts.domain }
+            if "clr" in opts { clr = opts.clr }
+            if "color" in opts { clr = opts.color }
+            if "label" in opts { label = opts.label }
           } else {
             term = plot-def.at(0)
             clr = plot-def.at(1)
           }
-        } else if plot-def.len() >= 3 {
+        } else if plot-def.len() == 3 {
+          // (domain, func, (options)) oder (domain, term, color)
+          if type(plot-def.at(0)) == array and type(plot-def.at(2)) == dictionary {
+            // (domain, func, (label: ..., color: ...))
+            domain = plot-def.at(0)
+            term = plot-def.at(1)
+            let opts = plot-def.at(2)
+            if "clr" in opts { clr = opts.clr }
+            if "color" in opts { clr = opts.color }
+            if "label" in opts { label = opts.label }
+          } else {
+            domain = plot-def.at(0)
+            term = plot-def.at(1)
+            clr = plot-def.at(2)
+          }
+        } else if plot-def.len() >= 4 {
           domain = plot-def.at(0)
           term = plot-def.at(1)
           clr = plot-def.at(2)
         }
       } else if type(plot-def) == dictionary {
-        // Dictionary mit optionalen keys: domain, term, clr
+        // Dictionary mit optionalen keys: domain, term, clr, label
         if "domain" in plot-def { domain = plot-def.domain }
         if "term" in plot-def { term = plot-def.term }
         if "clr" in plot-def { clr = plot-def.clr }
         if "color" in plot-def { clr = plot-def.color }
+        if "label" in plot-def { label = plot-def.label }
       }
 
       if term != none {
-        processed-plots.push((domain: domain, term: term, clr: clr))
+        processed-plots.push((domain: domain, term: term, clr: clr, label: label))
       }
     }
   }
@@ -302,8 +329,15 @@
   // Verarbeite die Fills in ein einheitliches Format
   let processed-fills = ()
 
-  if fills.len() > 0 {
-    for (index, fill-def) in fills.enumerate() {
+  // Normalisiere fills: wenn es direkt eine Funktion ist, mache es zu einem Array
+  let fills-array = if type(fills) == function {
+    (fills,)
+  } else {
+    fills
+  }
+
+  if fills-array.len() > 0 {
+    for (index, fill-def) in fills-array.enumerate() {
       let domain = (x.at(0), x.at(1)) // Standard-Domain
       let lower = none
       let upper = none
@@ -311,24 +345,44 @@
 
       if type(fill-def) == array {
         // Verschiedene Array-Formate:
+        // (func) - eine Funktion, zweite ist x-Achse (x => 0)
         // (func1, func2) - zwei Funktionen
         // (domain, func1, func2) - mit Domain
         // (func1, func2, color) - mit Farbe
         // (domain, func1, func2, color) - vollständig
-        
-        if fill-def.len() == 2 {
-          // Zwei Funktionen
+
+        if fill-def.len() == 1 {
+          // Eine Funktion, zweite ist x-Achse
+          if type(fill-def.at(0)) == function {
+            lower = x => 0
+            upper = fill-def.at(0)
+          }
+        } else if fill-def.len() == 2 {
+          // Zwei Funktionen oder (func, color)
           if type(fill-def.at(0)) == function and type(fill-def.at(1)) == function {
             lower = fill-def.at(0)
             upper = fill-def.at(1)
+          } else if type(fill-def.at(0)) == function {
+            // (func, color)
+            lower = x => 0
+            upper = fill-def.at(0)
+            clr = fill-def.at(1)
           }
         } else if fill-def.len() == 3 {
           // Prüfe ob erstes Element Domain ist (Array) oder Funktion
           if type(fill-def.at(0)) == array {
-            // (domain, func1, func2)
+            // (domain, func1, func2) oder (domain, func, color)
             domain = fill-def.at(0)
-            lower = fill-def.at(1)
-            upper = fill-def.at(2)
+            if type(fill-def.at(2)) == function {
+              // (domain, func1, func2)
+              lower = fill-def.at(1)
+              upper = fill-def.at(2)
+            } else {
+              // (domain, func, color)
+              lower = x => 0
+              upper = fill-def.at(1)
+              clr = fill-def.at(2)
+            }
           } else if type(fill-def.at(0)) == function and type(fill-def.at(1)) == function {
             // (func1, func2, color)
             lower = fill-def.at(0)
@@ -342,6 +396,10 @@
           upper = fill-def.at(2)
           clr = fill-def.at(3)
         }
+      } else if type(fill-def) == function {
+        // Direkt eine Funktion übergeben
+        lower = x => 0
+        upper = fill-def
       } else if type(fill-def) == dictionary {
         // Dictionary mit optionalen keys: domain, lower, upper, clr
         if "domain" in fill-def { domain = fill-def.domain }
@@ -349,6 +407,10 @@
         if "upper" in fill-def { upper = fill-def.upper }
         if "func1" in fill-def { lower = fill-def.func1 }
         if "func2" in fill-def { upper = fill-def.func2 }
+        if "func" in fill-def {
+          upper = fill-def.func
+          if lower == none { lower = x => 0 }
+        }
         if "clr" in fill-def { clr = fill-def.clr }
         if "color" in fill-def { clr = fill-def.color }
       }
@@ -360,7 +422,10 @@
   }
 
   // Bestimme die effektive size (int/float für beide Achsen oder Array)
-  let (size-x, size-y) = if type(size) == array {
+  let (size-x, size-y) = if size == none {
+    // Verwende x- und y-Range wenn size nicht angegeben ist
+    (calc.abs(x.at(1) - x.at(0)), calc.abs(y.at(1) - y.at(0)))
+  } else if type(size) == array {
     (size.at(0), size.at(1))
   } else {
     (size, size)
@@ -371,6 +436,12 @@
 
   // Bestimme den effektiven y-step (Fallback auf step, wenn y-step none ist)
   let effective-y-step = if y-step == none { step } else { y-step }
+
+  // Bestimme das effektive x-grid (Fallback auf grid, wenn x-grid none ist)
+  let effective-x-grid = if x-grid == none { grid } else { x-grid }
+
+  // Bestimme das effektive y-grid (Fallback auf grid, wenn y-grid none ist)
+  let effective-y-grid = if y-grid == none { grid } else { y-grid }
 
   // Bestimme x-major-step und x-minor-step
   let (x-major-step, x-minor-step) = if type(effective-x-step) == array {
@@ -409,8 +480,8 @@
       size: (size-x, size-y),
       name: "plot",
       axis-style: "school-book",
-      x-grid: x-grid,
-      y-grid: y-grid,
+      x-grid: effective-x-grid,
+      y-grid: effective-y-grid,
       x-tick-step: x-major-step,
       y-tick-step: y-major-step,
       x-minor-tick-step: x-minor-step,
@@ -432,7 +503,7 @@
           for f in processed-fills {
             plot.add-fill-between(
               domain: f.domain,
-              style: (fill: f.clr),
+              style: (fill: f.clr, stroke: none),
               f.lower,
               f.upper,
             )
@@ -447,6 +518,31 @@
               domain: p.domain,
               p.term,
             )
+            if p.label != none and type(p.label) == array and p.label.len() >= 2 {
+              let x-pos = p.label.at(0)
+              let y-pos = (p.term)(x-pos)
+              let label-content = p.label.at(1)
+              
+              // Optionale Seite (above/below) - Standard ist "above"
+              let label-side = if p.label.len() >= 3 { p.label.at(2) } else { "above" }
+              
+              // Berechne Steigung numerisch für orthogonale Ausrichtung
+              let h = 0.0001
+              let slope = ((p.term)(x-pos + h) - (p.term)(x-pos - h)) / (2 * h)
+              let angle = calc.atan(slope)
+              
+              // Orthogonaler Winkel (senkrecht zur Tangente)
+              // Bei "below" drehe um 180°
+              let ortho-angle = if label-side == "below" {
+                angle - 90deg
+              } else {
+                angle + 90deg
+              }
+              
+              plot.annotate({
+                content((rel: (radius: 0.4, angle: ortho-angle), to: (x-pos, y-pos)), text(p.clr, label-content), anchor: "west")
+              })
+            }
           }
         }
         if annotations != {} {
