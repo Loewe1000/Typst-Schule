@@ -25,26 +25,26 @@
       let short-line-height = 0.25
       let line-spacing = 0.1
       let flipped-multiplier = if flipped { -1 } else { 1 }
-      
+
       // Langer Strich (positiv)
       zap.draw.line(
         (flipped-multiplier * line-spacing, -long-line-height),
         (flipped-multiplier * line-spacing, long-line-height),
-        stroke: (thickness: .8pt, paint: black)
+        stroke: (thickness: .8pt, paint: black),
       )
-      
+
       // Kurzer Strich (negativ)
       zap.draw.line(
         (flipped-multiplier * -line-spacing, -short-line-height),
         (flipped-multiplier * -line-spacing, short-line-height),
-        stroke: (thickness: .8pt, paint: black)
+        stroke: (thickness: .8pt, paint: black),
       )
     } else {
       zap.interface((-style.width * 0.4, -style.height / 2), (style.width * 0.4, style.height / 2), io: position.len() < 2)
       // Kreise für symbol-style und AC
-      zap.draw.circle((-style.width * 0.4, 0), radius: style.radius, fill: white, ..style)
-      zap.draw.circle((style.width * 0.4, 0), radius: style.radius, fill: white, ..style)
-      
+      zap.draw.circle((-style.width * 0.4, 0), radius: style.radius, ..style)
+      zap.draw.circle((style.width * 0.4, 0), radius: style.radius, ..style)
+
       if current == "dc" {
         // Standard DC: + und - Symbole
         let flipped-multiplier = if flipped { -1 } else { 1 }
@@ -72,7 +72,7 @@
   let draw(ctx, position, style) = {
     zap.interface((-style.radius, -style.radius), (style.radius, style.radius), io: position.len() < 2)
 
-    zap.draw.circle((0, 0), radius: style.radius, fill: white, stroke: black + .8pt)
+    zap.draw.circle((0, 0), radius: style.radius, stroke: black + .8pt)
     zap.draw.content((0, 0), schaltkreis({ zap.draw.line((45deg, -0.7 * style.radius), (45deg + 180deg, -0.8 * style.radius), mark: (end: (scale: 0.7, symbol: ">", fill: black, stroke: .8pt))) }))
   }
 
@@ -92,8 +92,8 @@
     zap.interface((-style.radius, -style.radius), (style.radius, style.radius), io: position.len() < 2)
 
     // Kreis für die Glühlampe
-    zap.draw.circle((0, 0), radius: style.radius, fill: white, stroke: black + .8pt)
-    
+    zap.draw.circle((0, 0), radius: style.radius, stroke: black + .8pt)
+
     // X in der Mitte (zwei diagonale Linien)
     zap.draw.line((radius: style.radius, angle: 45deg), (radius: -style.radius, angle: 45deg), stroke: black + .8pt)
     zap.draw.line((radius: style.radius, angle: 135deg), (radius: -style.radius, angle: 135deg), stroke: black + .8pt)
@@ -115,8 +115,8 @@
     zap.interface((-style.radius, -style.radius), (style.radius, style.radius), io: position.len() < 2)
 
     // Kreis für das Amperemeter
-    zap.draw.circle((0, 0), radius: style.radius, fill: white, stroke: black + .8pt)
-    
+    zap.draw.circle((0, 0), radius: style.radius, stroke: black + .8pt)
+
     // "A" in der Mitte
     zap.draw.content((0, 0), text(12pt, [A]))
   }
@@ -137,8 +137,8 @@
     zap.interface((-style.radius, -style.radius), (style.radius, style.radius), io: position.len() < 2)
 
     // Kreis für das Voltmeter
-    zap.draw.circle((0, 0), radius: style.radius, fill: white, stroke: black + .8pt)
-    
+    zap.draw.circle((0, 0), radius: style.radius, stroke: black + .8pt)
+
     // "V" in der Mitte
     zap.draw.content((0, 0), text(12pt, [V]))
   }
@@ -159,8 +159,8 @@
     zap.interface((-style.radius, -style.radius), (style.radius, style.radius), io: position.len() < 2)
 
     // Kreis für den Motor
-    zap.draw.circle((0, 0), radius: style.radius, fill: white, stroke: black + .8pt)
-    
+    zap.draw.circle((0, 0), radius: style.radius, stroke: black + .8pt)
+
     // "M" in der Mitte
     zap.draw.content((0, 0), text(12pt, [M]))
   }
@@ -181,8 +181,8 @@
     zap.interface((-style.radius, -style.radius), (style.radius, style.radius), io: position.len() < 2)
 
     // Kreis für den Generator
-    zap.draw.circle((0, 0), radius: style.radius, fill: white, stroke: black + .8pt)
-    
+    zap.draw.circle((0, 0), radius: style.radius, stroke: black + .8pt)
+
     // "G" in der Mitte
     zap.draw.content((0, 0), text(12pt, [G]))
   }
@@ -228,11 +228,11 @@
   if calc.abs(wert) == 0 {
     return (1, einheit)
   }
-  
+
   // Erst prüfen, ob die Einheit bereits einen Prefix hat
   let basis_einheit = einheit
   let aktueller_prefix_wert = 1
-  
+
   // Erkenne aktuellen Prefix in der Einheit - aber nicht bei einzelnen Buchstaben!
   if einheit.len() > 1 {
     for (prefix_key, prefix_value) in multiplikatoren {
@@ -243,23 +243,23 @@
       }
     }
   }
-  
+
   // Wert in Basiseinheit umrechnen
   let wert_in_basis = wert * aktueller_prefix_wert
-  
+
   // Suche den besten Prefix für die Darstellung (von groß zu klein)
   let prefix_liste = (
     ("G", 1e9),
-    ("M", 1e6), 
+    ("M", 1e6),
     ("k", 1e3),
     ("", 1),
     ("c", 1e-2),
     ("m", 1e-3),
     ("u", 1e-6),
     ("n", 1e-9),
-    ("p", 1e-12)
+    ("p", 1e-12),
   )
-  
+
   for (prefix_key, prefix_value) in prefix_liste {
     let neuer_wert = calc.abs(wert_in_basis) / prefix_value
     if neuer_wert >= 1 and neuer_wert < 1000 {
@@ -267,7 +267,7 @@
       return (prefix_value / aktueller_prefix_wert, neue_einheit)
     }
   }
-  
+
   // Fallback: verwende den kleinsten Prefix (pico)
   let neue_einheit = "p" + basis_einheit
   return (1e-12 / aktueller_prefix_wert, neue_einheit)
@@ -324,16 +324,16 @@
 #let berechnung(name, einheit, datensaetze, formel, prefix: "1", auto-einheit: true, fehler: 0) = {
   // Unterstützung für einzelnen Datensatz (Rückwärtskompatibilität)
   let datensatz_liste = if type(datensaetze) == array { datensaetze } else { (datensaetze,) }
-  
+
   // Schritt 1: Alle Eingabewerte in Basiseinheiten umrechnen (VOR der Berechnung)
   let alle_umgerechneten_werte = ()
-  
+
   for datensatz in datensatz_liste {
     let umgerechnete_werte = datensatz.werte.map(wert => {
       if type(wert) == content or wert == none {
         return wert
       }
-      
+
       // Multiplikator für die Einheit des Datensatzes finden
       let datensatz_multiplikator = 1
       if datensatz.prefix != "1" {
@@ -361,15 +361,15 @@
 
   // Schritt 2: Formel anwenden (arbeitet mit Basiseinheiten)
   let neue_werte = ()
-  
+
   // Bestimme die Anzahl der Werte (sollte für alle Datensätze gleich sein)
   let anzahl_werte = alle_umgerechneten_werte.at(0).len()
-  
+
   for i in range(anzahl_werte) {
     // Extrahiere die i-ten Werte aus allen Datensätzen
     let parameter_werte = ()
     let hat_leeren_wert = false
-    
+
     for j in range(alle_umgerechneten_werte.len()) {
       let wert = alle_umgerechneten_werte.at(j).at(i)
       if type(wert) == content or wert == none {
@@ -378,7 +378,7 @@
       }
       parameter_werte.push(wert)
     }
-    
+
     // Wenn einer der Parameter leer ist, überspringe diese Berechnung
     if hat_leeren_wert {
       neue_werte.push(none)
@@ -400,7 +400,7 @@
       }
     }
   }
-  
+
   // Schritt 3: Ergebnis in Zieleinheit umrechnen (NACH der Berechnung)
   // Multiplikator für die Zieleinheit finden
   let ziel_multiplikator = 1
@@ -413,7 +413,7 @@
       ziel_multiplikator = float("1" + prefix)
     }
   }
-  
+
   // Zusätzlich prüfen, ob die Zieleinheit selbst einen Prefix enthält
   if einheit != none and einheit.len() > 1 {
     for (prefix_key, prefix_value) in multiplikatoren {
@@ -423,17 +423,17 @@
       }
     }
   }
-  
+
   // Ergebnis in Zieleinheit umrechnen
   neue_werte = neue_werte.map(w => { w / ziel_multiplikator })
-  
+
   // Schritt 4: Fehler hinzufügen falls gewünscht
   if fehler != 0 {
     for (key, wert) in neue_werte.enumerate() {
       neue_werte.at(key) = wert * (1 + ((0.5 - rand(key)) * fehler / 100))
     }
   }
-  
+
   // Schritt 5: Automatische Einheitenumrechnung (optional)
   if auto-einheit {
     let min-wert = none
@@ -447,7 +447,7 @@
         }
       }
     }
-    
+
     if min-wert != none {
       let (faktor, neue_einheit) = umrechnungseinheit(min-wert, einheit)
       // Debug: Prüfe ob neue_einheit gültig ist
