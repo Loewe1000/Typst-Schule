@@ -12,6 +12,7 @@
 #let pk = (
   // Häufig verwendete Konstanten (direkt zugänglich)
   h: konstante("Planck-Konstante", "6.62607015e-34", [J s], symbol: $h$),
+  h_eV: konstante("Planck-Konstante in eV", "4.135667696e-15", [eV s], symbol: $h$),
   e: konstante("Elementarladung", "1.602176634e-19", [C], symbol: $e$),
   c: konstante("Lichtgeschwindigkeit", "2.99792458e8", [m/s], symbol: $c$),
   g: konstante("Erdbeschleunigung", "9.81", [m/s²], symbol: $g$),
