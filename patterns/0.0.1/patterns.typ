@@ -43,9 +43,9 @@
 
         set-style(stroke: line-stroke)
 
-        if width != auto {
-          rect((0, 0), (width, autoheight), ..if fill-color != none { (fill: fill-color) })
-          grid((0, 0), (width, autoheight))
+        if effective-width != auto {
+          rect((0, 0), (effective-width, autoheight), ..if fill-color != none { (fill: fill-color) })
+          grid((0, 0), (effective-width, autoheight))
         } else {
           rect(
             (0, 0),
@@ -82,6 +82,12 @@
   } else {
     rows
   }
+
+  let effective-width = if args.pos().len() > 1 and type(args.pos().at(1)) == length {
+    args.pos().at(1)
+  } else {
+    width
+  }
   
   move(dy: lineheight * 0.5)[
     #layout(size => {
@@ -91,9 +97,9 @@
         {
           import draw: *
           set-style(stroke: line-stroke)
-          if width != auto {
+          if effective-width != auto {
             for row in range(effective-rows) {
-              line((0, row), (width, row))
+              line((0, row), (effective-width, row))
             }
           } else {
             for row in range(effective-rows) {
