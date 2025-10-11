@@ -8,7 +8,7 @@
 #import "@preview/zero:0.5.0": *
 #import "@schule/physik:0.0.2": (
   // Tabellen und Daten
-  berechnung, datensatz, messdaten, messwerttabelle,
+  berechnung, datensatz, messdaten, messwerttabelle, pk,
   // Regression
   lineare_regression, regressionen,
   // Schaltkreis-Basis
