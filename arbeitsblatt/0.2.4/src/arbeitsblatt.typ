@@ -6,7 +6,16 @@
 #import "@schule/patterns:0.0.1": *
 #import "@preview/eqalc:0.1.3": *
 #import "@preview/zero:0.5.0": *
-#import "@schule/physik:0.0.1": berechnung, datensatz, lineare_regression, messdaten, messwerttabelle
+#import "@schule/physik:0.0.2": (
+  // Tabellen und Daten
+  berechnung, datensatz, messdaten, messwerttabelle,
+  // Regression
+  lineare_regression, regressionen,
+  // Schaltkreis-Basis
+  schaltkreis, zap,
+  // Komponenten
+  source, multimeter, lamp, amperemeter, voltmeter, motor, generator,
+)
 #import "@schule/operatoren:0.0.1": operator, operatoren-liste
 #import "@preview/fontawesome:0.6.0": *
 #import "@preview/rustycure:0.1.0": qr-code
