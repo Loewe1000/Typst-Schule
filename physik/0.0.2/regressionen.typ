@@ -118,8 +118,10 @@
   let koeffizienten = algorithmus(gueltige_paare)
   let math_output = format-function(koeffizienten, x_name: x_data.name, y_name: y_data.name, 
     x_einheit: x_data.einheit, y_einheit: y_data.einheit, notation: notation, precision: precision)
-  
-  let result = (math: math_output)
+  let math_digit_output(digits) = format-function(koeffizienten, x_name: x_data.name, y_name: y_data.name, 
+    x_einheit: x_data.einheit, y_einheit: y_data.einheit, notation: notation, precision: precision, digits: digits)
+
+  let result = (math: math_output, math-digits: math_digit_output)
   for (i, name) in koeffizienten-namen.enumerate() {
     result.insert(name, koeffizienten.at(i))
   }
@@ -143,7 +145,7 @@
     (m, my - m * mx)
   }
   
-  let format-func(koeff, x_name: none, y_name: none, x_einheit: none, y_einheit: none, notation: "dec", precision: 1e-10) = {
+  let format-func(koeff, x_name: none, y_name: none, x_einheit: none, y_einheit: none, notation: "dec", precision: 1e-10, digits: 2) = {
     if x_einheit != none and y_einheit != none {
       let terms = (
         format-equation-term(koeff.at(0), combine-units(y_einheit, x_einheit), x_name, 1, true, notation, 1e-20),
@@ -181,7 +183,7 @@
     (det_Ax / det_A, det_Ay / det_A, det_Az / det_A)
   }
   
-  let format-func(koeff, x_name: none, y_name: none, x_einheit: none, y_einheit: none, notation: "dec", precision: 1e-10) = {
+  let format-func(koeff, x_name: none, y_name: none, x_einheit: none, y_einheit: none, notation: "dec", precision: 1e-10, digits: 2) = {
     if x_einheit != none and y_einheit != none {
       let terms = (
         format-equation-term(koeff.at(0), combine-units(y_einheit, x_einheit, x_potenz: 2), x_name, 2, true, notation, 1e-20),
@@ -214,10 +216,10 @@
     ((n * szy - sz * sy) / den, (sy * sz2 - sz * szy) / den)
   }
   
-  let format-func(koeff, x_name: none, y_name: none, x_einheit: none, y_einheit: none, notation: "dec", precision: 1e-10) = {
+  let format-func(koeff, x_name: none, y_name: none, x_einheit: none, y_einheit: none, notation: "dec", precision: 1e-10, digits: 2) = {
     let (a, b) = (koeff.at(0), koeff.at(1))
-    let a_str = format-number(a, notation: notation)
-    let b_str = format-number(calc.abs(b), notation: notation)
+    let a_str = format-number(a, notation: notation, digits: digits)
+    let b_str = format-number(calc.abs(b), notation: notation, digits: digits)
     
     if x_einheit != none and y_einheit != none {
       let a_einheit = if type(y_einheit) == content and type(x_einheit) == content {
@@ -267,10 +269,10 @@
     (a, calc.exp(B))
   }
   
-  let format-func(koeff, x_name: none, y_name: none, x_einheit: none, y_einheit: none, notation: "dec", precision: 1e-10) = {
+  let format-func(koeff, x_name: none, y_name: none, x_einheit: none, y_einheit: none, notation: "dec", precision: 1e-10, digits: 2) = {
     let (a, b) = (koeff.at(0), koeff.at(1))
-    let a_str = format-number(a, notation: notation)
-    let b_str = format-number(b, notation: notation)
+    let a_str = format-number(a, notation: notation, digits: digits)
+    let b_str = format-number(b, notation: notation, digits: digits)
     
     if x_einheit != none and y_einheit != none {
       let a_einheit = if type(x_einheit) == content {
@@ -310,10 +312,10 @@
     (calc.exp(B), m)
   }
   
-  let format-func(koeff, x_name: none, y_name: none, x_einheit: none, y_einheit: none, notation: "dec", precision: 1e-10) = {
+  let format-func(koeff, x_name: none, y_name: none, x_einheit: none, y_einheit: none, notation: "dec", precision: 1e-10, digits: 2) = {
     let (a, m) = (koeff.at(0), koeff.at(1))
-    let a_str = format-number(a, notation: notation)
-    let m_str = format-number(m, notation: notation)
+    let a_str = format-number(a, notation: notation, digits: digits)
+    let m_str = format-number(m, notation: notation, digits: digits)
     
     if x_einheit != none and y_einheit != none {
       let a_einheit = if type(y_einheit) == content and type(x_einheit) == content {
@@ -384,7 +386,7 @@
     matrix.map(row => row.last())
   }
   
-  let format-func(koeff, x_name: none, y_name: none, x_einheit: none, y_einheit: none, notation: "dec", precision: 1e-10) = {
+  let format-func(koeff, x_name: none, y_name: none, x_einheit: none, y_einheit: none, notation: "dec", precision: 1e-10, digits: 2) = {
     if x_einheit != none and y_einheit != none {
       let terms = ()
       for i in range(koeff.len() - 1, -1, step: -1) {
@@ -396,7 +398,7 @@
       let terms = ()
       for i in range(koeff.len() - 1, -1, step: -1) {
         if calc.abs(koeff.at(i)) >= precision {
-          let c_str = format-number(calc.abs(koeff.at(i)), notation: notation)
+          let c_str = format-number(calc.abs(koeff.at(i)), notation: notation, digits: digits)
           let term = if i == 0 { $#c_str$ } else if i == 1 { $#c_str x$ } else { $#c_str x^#i$ }
           terms.push((term: term, is-negative: koeff.at(i) < 0, skip: false))
         }
