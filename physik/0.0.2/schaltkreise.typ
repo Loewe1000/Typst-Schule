@@ -37,7 +37,7 @@
         stroke: (thickness: .8pt, paint: black),
       )
     } else {
-      zap.interface((-style.width * 0.4, -style.height / 2), (style.width * 0.4, style.height / 2), io: position.len() < 2)
+      zap.interface((-style.width * 0.4 - style.radius, -style.height / 2), (style.width * 0.4 + style.radius, style.height / 2), io: position.len() < 2)
       // Kreise für symbol-style und AC
       zap.draw.circle((-style.width * 0.4, 0), radius: style.radius, ..style)
       zap.draw.circle((style.width * 0.4, 0), radius: style.radius, ..style)
