@@ -2,19 +2,36 @@
 #import "@schule/random:0.0.1": *
 #import "@schule/insert-a-word:0.0.3": *
 #import "@schule/energy-sketch:0.0.2": *
-#import "@schule/mathematik:0.0.2": tasks, graphen
 #import "@schule/patterns:0.0.1": *
 #import "@preview/eqalc:0.1.3": *
 #import "@preview/zero:0.5.0": *
+#import "@schule/mathematik:0.0.2": graphen, tasks
+#import "@schule/informatik:0.0.1": *
 #import "@schule/physik:0.0.2": (
   // Tabellen und Daten
-  berechnung, datensatz, messdaten, messwerttabelle, pk,
+  berechnung,
+  datensatz,
+  messdaten,
+  messwerttabelle,
+  pk,
   // Regression
-  lineare_regression, quadratische_regression, wurzel_regression, exponentielle_regression, polynom_regression, potenz_regression,
+  lineare_regression,
+  quadratische_regression,
+  wurzel_regression,
+  exponentielle_regression,
+  polynom_regression,
+  potenz_regression,
   // Schaltkreis-Basis
-  schaltkreis, zap,
+  schaltkreis,
+  zap,
   // Komponenten
-  source, multimeter, lamp, amperemeter, voltmeter, motor, generator,
+  source,
+  multimeter,
+  lamp,
+  amperemeter,
+  voltmeter,
+  motor,
+  generator,
 )
 #import "@schule/operatoren:0.0.1": operator, operatoren-liste
 #import "@preview/fontawesome:0.6.0": *
@@ -28,6 +45,10 @@
 #let qty_old = qty
 
 #let qty(..args) = {
+  add-macros(
+    u: sym.mu,
+    ohm: sym.Omega,
+  )
   let positional = args.pos()
   if positional.len() == 2 and type(positional.at(0)) in (str, int, float) and type(positional.at(1)) == str {
     let named = args.named()
@@ -43,6 +64,10 @@
 #let num_old = num
 
 #let num(..args) = {
+  add-macros(
+    u: sym.mu,
+    ohm: sym.Omega,
+  )
   let positional = args.pos()
   if positional.len() == 1 and type(positional.at(0)) in (str, int, float) {
     let named = args.named()
@@ -58,6 +83,10 @@
 #let unit_old = unit
 
 #let unit(..args) = {
+  add-macros(
+    u: sym.mu,
+    ohm: sym.Omega,
+  )
   let positional = args.pos()
   if positional.len() == 1 and type(positional.at(0)) in (str, int, float) {
     let named = args.named()
@@ -345,6 +374,10 @@
     show enum.item: it => if aufgaben-shortcodes in ("alle", "teilaufgaben") { teilaufgabe(it.body) } else { it }
 
     fancy-units-configure(per-mode: "fraction", decimal-separator: ",")
+    add-macros(
+      u: sym.mu,
+      ohm: sym.Omega,
+    )
 
     body
 
@@ -433,7 +466,7 @@
 #let minipage(columns: auto, align: horizon, spacing: 5mm, ..args) = {
   // Sammle alle Body-Argumente
   let bodies = args.pos()
-  
+
   // Bestimme die Anzahl der Spalten automatisch, wenn nicht angegeben
   let effective-columns = if columns == auto {
     // Erstelle Array mit 1fr für jede übergebene Body
@@ -441,7 +474,7 @@
   } else {
     columns
   }
-  
+
   table(
     stroke: none,
     columns: effective-columns,
