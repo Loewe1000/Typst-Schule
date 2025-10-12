@@ -10,7 +10,7 @@
   // Tabellen und Daten
   berechnung, datensatz, messdaten, messwerttabelle, pk,
   // Regression
-  lineare_regression, regressionen,
+  lineare_regression, quadratische_regression, wurzel_regression, exponentielle_regression, polynom_regression,
   // Schaltkreis-Basis
   schaltkreis, zap,
   // Komponenten
