@@ -76,6 +76,16 @@
     rgb("#17BECF"), // Cyan
   )
 
+  // Hilfsfunktion: Konvertiere Farbangabe (kann int oder color sein)
+  let resolve-color(clr) = {
+    if type(clr) == int {
+      // Index in colors-Array (1-basiert für Benutzer, aber 0-basiert intern)
+      colors.at(calc.rem(clr - 1, colors.len()))
+    } else {
+      clr
+    }
+  }
+
   let plots = plots.pos()
 
   // Hilfsfunktion: Konvertiere content (Mathe) oder function zu function
@@ -189,8 +199,8 @@
             term = to-func(plot-def.at(0))
             let opts = plot-def.at(1)
             if "domain" in opts { domain = opts.domain }
-            if "clr" in opts { clr = opts.clr }
-            if "color" in opts { clr = opts.color }
+            if "clr" in opts { clr = resolve-color(opts.clr) }
+            if "color" in opts { clr = resolve-color(opts.color) }
             if "label" in opts { label = opts.label }
           } else {
             term = to-func(plot-def.at(0))
@@ -203,25 +213,25 @@
             domain = plot-def.at(0)
             term = to-func(plot-def.at(1))
             let opts = plot-def.at(2)
-            if "clr" in opts { clr = opts.clr }
-            if "color" in opts { clr = opts.color }
+            if "clr" in opts { clr = resolve-color(opts.clr) }
+            if "color" in opts { clr = resolve-color(opts.color) }
             if "label" in opts { label = opts.label }
           } else {
             domain = plot-def.at(0)
             term = to-func(plot-def.at(1))
-            clr = plot-def.at(2)
+            clr = resolve-color(plot-def.at(2))
           }
         } else if plot-def.len() >= 4 {
           domain = plot-def.at(0)
           term = to-func(plot-def.at(1))
-          clr = plot-def.at(2)
+          clr = resolve-color(plot-def.at(2))
         }
       } else if type(plot-def) == dictionary {
         // Dictionary mit optionalen keys: domain, term, clr, label
         if "domain" in plot-def { domain = plot-def.domain }
         if "term" in plot-def { term = to-func(plot-def.term) }
-        if "clr" in plot-def { clr = plot-def.clr }
-        if "color" in plot-def { clr = plot-def.color }
+        if "clr" in plot-def { clr = resolve-color(plot-def.clr) }
+        if "color" in plot-def { clr = resolve-color(plot-def.color) }
         if "label" in plot-def { label = plot-def.label }
       }
 
@@ -301,7 +311,7 @@
             // (func, color)
             lower = x => 0
             upper = to-func(fill-def.at(0))
-            clr = fill-def.at(1)
+            clr = resolve-color(fill-def.at(1))
           }
         } else if fill-def.len() == 3 {
           // Prüfe ob erstes Element Domain ist (Array/String) oder Funktion/Content
@@ -321,13 +331,13 @@
               // (domain, func, color)
               lower = x => 0
               upper = to-func(fill-def.at(1))
-              clr = fill-def.at(2)
+              clr = resolve-color(fill-def.at(2))
             }
           } else if (type(fill-def.at(0)) == function or type(fill-def.at(0)) == content) and (type(fill-def.at(1)) == function or type(fill-def.at(1)) == content) {
             // (func1, func2, color)
             lower = to-func(fill-def.at(0))
             upper = to-func(fill-def.at(1))
-            clr = fill-def.at(2)
+            clr = resolve-color(fill-def.at(2))
             auto-domain = true // Automatische Domain-Erkennung
           }
         } else if fill-def.len() >= 4 {
@@ -335,13 +345,13 @@
           if type(fill-def.at(0)) == str and fill-def.at(0) == "auto" {
             lower = to-func(fill-def.at(1))
             upper = to-func(fill-def.at(2))
-            clr = fill-def.at(3)
+            clr = resolve-color(fill-def.at(3))
             auto-domain = true
           } else {
             domain = fill-def.at(0)
             lower = to-func(fill-def.at(1))
             upper = to-func(fill-def.at(2))
-            clr = fill-def.at(3)
+            clr = resolve-color(fill-def.at(3))
           }
         }
       } else if type(fill-def) == function or type(fill-def) == content {
@@ -365,8 +375,8 @@
           upper = to-func(fill-def.func)
           if lower == none { lower = x => 0 }
         }
-        if "clr" in fill-def { clr = fill-def.clr }
-        if "color" in fill-def { clr = fill-def.color }
+        if "clr" in fill-def { clr = resolve-color(fill-def.clr) }
+        if "color" in fill-def { clr = resolve-color(fill-def.color) }
         if "auto-domain" in fill-def { auto-domain = fill-def.at("auto-domain") }
       }
 
@@ -406,25 +416,54 @@
 
   if datensätze != () {
     // Normalisiere Eingabe: kann Tupel (x, y) oder Array von Tupeln ((x1, y1), (x2, y2)) sein
+    // Neue Syntax: ((x, y), (marker: "o", color: red))
+    // Unterstützt auch einfache Arrays: (x_array, y_array) wo x und y einfache Zahlen-Arrays sind
     let ds-pairs = ()
 
     if type(datensätze) == array and datensätze.len() > 0 {
+      // NEUER FALL: Einfache Arrays (x, y) ohne Datensatz-Struktur
+      if datensätze.len() == 2 and type(datensätze.at(0)) == array and type(datensätze.at(1)) == array {
+        // Prüfe ob es einfache Zahlen-Arrays sind (nicht Datensätze)
+        let first_x = datensätze.at(0).at(0)
+        let first_y = datensätze.at(1).at(0)
+        if type(first_x) != dictionary and type(first_x) != array and type(first_y) != dictionary and type(first_y) != array {
+          // Konvertiere einfache Arrays zu Dummy-Datensätzen
+          let x_array = datensätze.at(0)
+          let y_array = datensätze.at(1)
+          
+          let x_ds = (name: $x$, einheit: none, werte: x_array, prefix: "1")
+          let y_ds = (name: $y$, einheit: none, werte: y_array, prefix: "1")
+          
+          ds-pairs = (((x_ds, y_ds), none),)
+        }
+      }
+      
       // Prüfe ob es ein einzelnes Paar (x, y) ist oder mehrere Paare
-      if type(datensätze.at(0)) == dictionary and "werte" in datensätze.at(0) {
+      if ds-pairs.len() == 0 and type(datensätze.at(0)) == dictionary and "werte" in datensätze.at(0) {
         // Erstes Element ist ein Datensatz
         if datensätze.len() == 2 and type(datensätze.at(1)) == dictionary and "werte" in datensätze.at(1) {
           // Einzelnes Paar: (x, y)
-          ds-pairs = ((datensätze.at(0), datensätze.at(1)),)
+          ds-pairs = (((datensätze.at(0), datensätze.at(1)), none),)
         } else if datensätze.len() > 2 {
           // Mehrere y-Datensätze mit gleichem x: (x, y1, y2, ...)
           let x-ds = datensätze.at(0)
           for i in range(1, datensätze.len()) {
-            ds-pairs.push((x-ds, datensätze.at(i)))
+            ds-pairs.push(((x-ds, datensätze.at(i)), none))
           }
         }
-      } else if type(datensätze.at(0)) == array and datensätze.at(0).len() == 2 {
-        // Array von Paaren: ((x1, y1), (x2, y2))
-        ds-pairs = datensätze
+      } else if ds-pairs.len() == 0 and type(datensätze.at(0)) == array {
+        // Array von Paaren: ((x1, y1), (x2, y2)) oder (((x1, y1), (options)), ((x2, y2), (options)))
+        for item in datensätze {
+          if item.len() == 2 and type(item.at(0)) == dictionary and "werte" in item.at(0) {
+            // Einfaches Paar: (x, y)
+            ds-pairs.push(((item.at(0), item.at(1)), none))
+          } else if item.len() == 2 and type(item.at(0)) == array and item.at(0).len() == 2 {
+            // Paar mit Optionen: ((x, y), (marker: "o", color: red))
+            let datasets = item.at(0)
+            let options = item.at(1)
+            ds-pairs.push(((datasets.at(0), datasets.at(1)), options))
+          }
+        }
       }
     }
 
@@ -433,7 +472,10 @@
       let x-einheiten = ()
       let y-einheiten = ()
 
-      for (x-ds, y-ds) in ds-pairs {
+      for item in ds-pairs {
+        let pair = item.at(0)
+        let x-ds = pair.at(0)
+        let y-ds = pair.at(1)
         x-einheiten.push(x-ds.einheit)
         y-einheiten.push(y-ds.einheit)
       }
@@ -455,22 +497,48 @@
       }
 
       // Setze automatische Achsenbeschriftungen
-      let first-x-ds = ds-pairs.at(0).at(0)
-      let first-y-ds = ds-pairs.at(0).at(1)
+      let first-pair = ds-pairs.at(0).at(0)
+      let first-x-ds = first-pair.at(0)
+      let first-y-ds = first-pair.at(1)
 
       import "@preview/fancy-units:0.1.1": unit
-      auto-x-label = [#first-x-ds.name in #unit[#first-x-einheit]]
-      auto-y-label = [#first-y-ds.name in #unit[#first-y-einheit]]
+      
+      // Erstelle Labels nur wenn Einheiten vorhanden sind
+      if first-x-einheit != none {
+        auto-x-label = [#first-x-ds.name in #unit(per-mode: "fraction")[#first-x-einheit]]
+      } else {
+        auto-x-label = first-x-ds.name
+      }
+      
+      if first-y-einheit != none {
+        auto-y-label = [#first-y-ds.name in #unit(per-mode: "fraction")[#first-y-einheit]]
+      } else {
+        auto-y-label = first-y-ds.name
+      }
 
       // Berechne automatische Achsenbereiche
       let all-x-vals = ()
       let all-y-vals = ()
 
       // Konvertiere Datensätze zu Punkten
-      for (i, pair) in ds-pairs.enumerate() {
+      for (i, item) in ds-pairs.enumerate() {
+        let pair = item.at(0)
+        let opts = item.at(1)
         let x-ds = pair.at(0)
         let y-ds = pair.at(1)
         let points = ()
+
+        // Optionen extrahieren
+        let clr = colors.at(calc.rem(i, colors.len())) // Standard-Farbe
+        let marker = "x" // Standard-Marker
+
+        if opts != none {
+          if type(opts) == dictionary {
+            if "color" in opts { clr = resolve-color(opts.color) }
+            if "clr" in opts { clr = resolve-color(opts.clr) }
+            if "marker" in opts { marker = opts.marker }
+          }
+        }
 
         // Ermittele Multiplikator aus der Einheit (z.B. mA → 1e-3)
         // umrechnungseinheit gibt (faktor, neue_einheit) zurück
@@ -502,8 +570,7 @@
           }
         }
 
-        let clr = colors.at(calc.rem(i, colors.len())) // Rotiere Farben
-        processed-data.push((points: points, clr: clr))
+        processed-data.push((points: points, clr: clr, marker: marker))
       }
 
       // Berechne Achsenbereiche mit etwas Padding (10%)
@@ -526,12 +593,12 @@
   }
 
   // Überschreibe automatische Werte nur wenn nicht explizit gesetzt
-  if auto-x-range != none and x == (-5, 5) {
-    // (-5, 5) ist der Default
+  if auto-x-range != none and (x == (-5, 5) or x == auto) {
+    // (-5, 5) ist der Default, oder explizit auto
     x = auto-x-range
   }
-  if auto-y-range != none and y == (-5, 5) {
-    // (-5, 5) ist der Default
+  if auto-y-range != none and (y == (-5, 5) or y == auto) {
+    // (-5, 5) ist der Default, oder explizit auto
     y = auto-y-range
   }
   if auto-x-label != none and x-label == [$x$] {
@@ -560,7 +627,10 @@
   // Bestimme die effektive size (int/float für beide Achsen oder Array)
   let (size-x, size-y) = if size == none {
     // Verwende x- und y-Range wenn size nicht angegeben ist
-    (calc.abs(x.at(1) - x.at(0)), calc.abs(y.at(1) - y.at(0)))
+    // Wenn x oder y auto sind, verwende einen Default-Wert
+    let x-size = if x == auto { 10 } else { calc.abs(x.at(1) - x.at(0)) }
+    let y-size = if y == auto { 10 } else { calc.abs(y.at(1) - y.at(0)) }
+    (x-size, y-size)
   } else if type(size) == array {
     (size.at(0), size.at(1))
   } else {
@@ -640,10 +710,10 @@
       y-minor-tick-step: y-minor-step,
       x-label: x-label,
       y-label: y-label,
-      x-min: x.at(0),
-      x-max: x.at(1),
-      y-min: y.at(0),
-      y-max: y.at(1),
+      x-min: if x == auto { auto } else { x.at(0) },
+      x-max: if x == auto { auto } else { x.at(1) },
+      y-min: if y == auto { auto } else { y.at(0) },
+      y-max: if y == auto { auto } else { y.at(1) },
       {
         plot.add(
           style: (stroke: none),
@@ -670,18 +740,24 @@
               domain: p.domain,
               p.term,
             )
-            if p.label != none and type(p.label) == array and p.label.len() >= 2 {
-              let x-pos = p.label.at(0)
-              let y-pos = (p.term)(x-pos)
-              let label-content = p.label.at(1)
+            if p.label != none and type(p.label) == dictionary {
+              // Label-Dictionary mit Keys: x, content, fill, position, size, color
+              assert("x" in p.label, message: "Label benötigt 'x' Key")
+              assert("content" in p.label, message: "Label benötigt 'content' Key")
 
-              // Optionale Position (tl/tr/bl/br) - Standard ist "tr" (top-right)
-              let label-pos = if p.label.len() >= 3 { p.label.at(2) } else { "tr" }
+              let x-pos = p.label.x
+              let y-pos = (p.term)(x-pos)
+              let label-content = p.label.content
+              let label-pos = if "position" in p.label { p.label.position } else { "tr" }
+              let label-fill = if "fill" in p.label { p.label.fill } else { white }
+              let label-size = if "size" in p.label { p.label.size } else { none }
+              let label-color = if "color" in p.label { p.label.color } else { p.clr }
+              let label-padding = if "padding" in p.label { p.label.padding } else { 1mm }
 
               // Extrahiere Richtung: t/b für above/below, l/r für anchor
               let label-side = if label-pos.starts-with("t") { "above" } else { "below" }
               let anchor-side = if label-pos.ends-with("l") { "east" } else { "west" }
-              
+
               // Bestimme Alignment basierend auf Position
               // tl: right + bottom, tr: left + bottom, bl: right + top, br: left + top
               let align-side = if label-pos == "tl" {
@@ -690,58 +766,38 @@
                 left + bottom
               } else if label-pos == "bl" {
                 right + top
-              } else { // br
+              } else {
+                // br
                 left + top
               }
 
-              // Berechne zwei Punkte auf der Kurve für die Tangentenrichtung
-              let h = 0.1
-              let pt1-x = x-pos - h
-              let pt1-y = (p.term)(pt1-x)
-              let pt2-x = x-pos + h
-              let pt2-y = (p.term)(pt2-x)
-              
-              // Berechne die visuelle Steigung im Canvas-Raum
-              // Transformiere Daten-Differenzen in Canvas-Differenzen
-              let x-range = x.at(1) - x.at(0)
-              let y-range = y.at(1) - y.at(0)
-              
-              // Delta im Daten-Raum
-              let dx-data = pt2-x - pt1-x
-              let dy-data = pt2-y - pt1-y
-              
-              // Delta im Canvas-Raum (berücksichtigt size und range)
-              let dx-canvas = dx-data / x-range * size-x
-              let dy-canvas = dy-data / y-range * size-y
-              
-              // Orthogonaler Vektor im Canvas-Raum: drehe um 90°
-              // Wenn (dx, dy) die Tangente ist, dann ist (-dy, dx) orthogonal
-              let ortho-dx-canvas = -dy-canvas
-              let ortho-dy-canvas = dx-canvas
-              
-              // Transformiere zurück in Daten-Raum
-              let ortho-dx-data = ortho-dx-canvas / size-x * x-range
-              let ortho-dy-data = ortho-dy-canvas / size-y * y-range
-              
-              // Normalisiere auf eine sinnvolle Länge im Daten-Raum
-              let ortho-length = calc.sqrt(ortho-dx-data * ortho-dx-data + ortho-dy-data * ortho-dy-data)
-              let desired-length = x-range * 0.1 // 10% der x-range
-              ortho-dx-data = ortho-dx-data / ortho-length * desired-length
-              ortho-dy-data = ortho-dy-data / ortho-length * desired-length
-              
-              // Bei "below" kehre Richtung um
-              if label-side == "below" {
-                ortho-dx-data = -ortho-dx-data
-                ortho-dy-data = -ortho-dy-data
-              }
-              
+              let dx = if label-pos.ends-with("l") { -1 * label-padding } else { 1 * label-padding }
+              let dy = if label-pos.starts-with("t") { -1 * label-padding } else { 1 * label-padding }
+
               // Zweiter Punkt der orthogonalen Linie im Daten-Raum
-              let ortho-point = (rel: (ortho-dx-data * 100cm, ortho-dy-data * 100cm), to: (x-pos, y-pos))
+              let ortho-point = (x-pos, y-pos)
 
               plot.annotate({
                 content(
                   ortho-point,
-                  box(width: 0mm, height: 0mm, align(align-side, context box(fill: white, width: measure(text(p.clr, label-content)).width, height: measure(text(p.clr, label-content)).height, text(p.clr, label-content)))),
+                  box(
+                    width: 0mm,
+                    height: 0mm,
+                    align(align-side, context {
+                      let text-content = if label-size != none {
+                        text(size: label-size, label-color, label-content)
+                      } else {
+                        text(label-color, label-content)
+                      }
+                      move(dx: dx, dy: dy, box(
+                        fill: label-fill,
+                        inset: 1mm,
+                        width: measure(text-content).width + 2mm,
+                        height: measure(text-content).height + 2mm,
+                        text-content,
+                      ))
+                    }),
+                  ),
                   padding: 0mm,
                 )
               })
@@ -754,7 +810,7 @@
             plot.add(
               d.points,
               style: (stroke: none),
-              mark: "x",
+              mark: d.marker,
               mark-style: (fill: d.clr, stroke: d.clr + 1.25pt),
             )
           }
