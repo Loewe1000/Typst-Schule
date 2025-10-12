@@ -148,129 +148,6 @@
   }
 }
 
-// Funktion für lineare Regression
-#let lineare_regression(x_param, y_param) = {
-  let x_werte = ()
-  let y_werte = ()
-  let x_einheit = none
-  let y_einheit = none
-  let x_name = none
-  let y_name = none
-  
-  // Prüfe ob Datensätze oder Arrays übergeben wurden
-  if type(x_param) == dictionary and "werte" in x_param {
-    // x_param ist ein Datensatz
-    x_einheit = x_param.einheit
-    x_name = x_param.name
-    x_werte = x_param.werte
-  } else {
-    // x_param ist ein Array
-    x_werte = x_param
-  }
-  
-  if type(y_param) == dictionary and "werte" in y_param {
-    // y_param ist ein Datensatz
-    y_einheit = y_param.einheit
-    y_name = y_param.name
-    y_werte = y_param.werte
-  } else {
-    // y_param ist ein Array
-    y_werte = y_param
-  }
-  
-  // Filtere none/content Werte heraus
-  let gueltige_paare = ()
-  let min_len = calc.min(x_werte.len(), y_werte.len())
-  for i in range(min_len) {
-    let x_val = x_werte.at(i)
-    let y_val = y_werte.at(i)
-    if x_val != none and y_val != none and type(x_val) != content and type(y_val) != content {
-      gueltige_paare.push((x_val, y_val))
-    }
-  }
-  
-  // Prüfen, ob genug Datenpunkte vorhanden sind
-  assert(gueltige_paare.len() >= 2, message: "Mindestens 2 gültige Datenpunkte erforderlich")
-
-  let n = gueltige_paare.len()
-
-  // Mittelwerte berechnen
-  let x_summe = 0
-  let y_summe = 0
-  for paar in gueltige_paare {
-    x_summe += paar.at(0)
-    y_summe += paar.at(1)
-  }
-  let x_mittel = x_summe / n
-  let y_mittel = y_summe / n
-
-  // Steigung (a) berechnen: a = Σ((x_i - x̄)(y_i - ȳ)) / Σ((x_i - x̄)²)
-  let zaehler = 0
-  let nenner = 0
-
-  for paar in gueltige_paare {
-    let x_diff = paar.at(0) - x_mittel
-    let y_diff = paar.at(1) - y_mittel
-    zaehler += x_diff * y_diff
-    nenner += x_diff * x_diff
-  }
-
-  let m = zaehler / nenner
-  let b = y_mittel - m * x_mittel
-
-  // Erstelle die mathematische Darstellung
-  let math_output = if x_einheit != none and y_einheit != none {
-    // Mit Einheiten und Namen
-    let m_str = znum(m, decimal-separator:",", digits: 2)
-    let b_str = znum(calc.abs(b), decimal-separator:",", digits: 2)
-    
-    // Erstelle Steigungseinheit (y_einheit / x_einheit)
-    let m_einheit_formatted = if type(y_einheit) == content and type(x_einheit) == content {
-      // Beide sind content (Math-Mode)
-      $#y_einheit \/ #x_einheit$
-    } else if type(y_einheit) == content {
-      // y ist content, x ist String
-      $#y_einheit \/ upright(#x_einheit)$
-    } else if type(x_einheit) == content {
-      // x ist content, y ist String
-      $upright(#y_einheit) \/ #x_einheit$
-    } else {
-      // Beide sind Strings - verwende unit[]
-      unit(per-mode: "fraction")[#(y_einheit + "/" + x_einheit)]
-    }
-    
-    // Erstelle b-Einheit
-    let b_einheit_formatted = if type(y_einheit) == content {
-      y_einheit
-    } else {
-      unit(per-mode: "fraction")[#y_einheit]
-    }
-    
-    if b >= 0 {
-      $#y_name = #m_str #m_einheit_formatted dot #x_name + #b_str #b_einheit_formatted$
-    } else {
-      $#y_name = #m_str #m_einheit_formatted dot #x_name - #b_str #b_einheit_formatted$
-    }
-  } else {
-    // Ohne Einheiten (klassische Form)
-    let m_str = znum(m, decimal-separator:",", digits: 2)
-    let b_str = znum(calc.abs(b), decimal-separator:",", digits: 2)
-    
-    if b >= 0 {
-      $y = #m_str x + #b_str$
-    } else {
-      $y = #m_str x - #b_str$
-    }
-  }
-
-  // Gleichung als Content zurückgeben
-  (m: m, b: b, function: (x) => { m * x + b }, math: math_output)
-}
-
-#let regressionen = (
-  lineare_regression: lineare_regression,
-)
-
 // Funktion zur Berechnung von Werten basierend auf einem oder mehreren Datensätzen
 #let berechnung(name, einheit, datensaetze, formel, prefix: "1", auto-einheit: true, fehler: 0) = {
   // Wenn ein expliziter prefix gesetzt ist, deaktiviere auto-einheit
@@ -491,11 +368,11 @@
             // Bei content (z.B. $Omega$) direkt ausgeben ohne qty
             datensatz.einheit
           } else if datensatz.prefix == "1" { 
-            unit[#datensatz.einheit] 
+            unit(per-mode: "fraction")[#datensatz.einheit] 
           } else { 
             // Bei prefix != "1": Verwende unit[] mit manuell kombiniertem Prefix
             // statt qty[], um fancy-units Fehler zu vermeiden
-            unit[#(datensatz.prefix + datensatz.einheit)]
+            unit(per-mode: "fraction")[#(datensatz.prefix + datensatz.einheit)]
           } 
         }),
         ..datensatz.werte.map(x => if x != "" { $#znum(x, decimal-separator: ",", round: (mode: "places", precision: max-digits, pad: has_decimals, direction: "nearest"))$ }),
