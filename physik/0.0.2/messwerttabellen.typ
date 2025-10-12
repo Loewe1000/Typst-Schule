@@ -1,14 +1,30 @@
-#import "@preview/fancy-units:0.1.1": qty, unit
+#import "@preview/fancy-units:0.1.1": qty, unit, add-macros
 #import "@preview/zero:0.5.0": num as znum
 #import "@schule/random:0.0.1": *
 
-// Definition der Datensatz-Struktur
-#let datensatz(name, einheit, werte, prefix: "1", max-digits: none) = (
-  name: name,
-  einheit: einheit,
-  prefix: prefix,
-  werte: werte,
+#add-macros(
+  u: sym.mu,
+  ohm: sym.Omega,
 )
+
+// Definition der Datensatz-Struktur (ohne auto-einheit, kommt später)
+#let datensatz(name, einheit, werte, prefix: "1", max-digits: none, auto-einheit: false) = {
+  // Wenn ein expliziter prefix gesetzt ist, deaktiviere auto-einheit
+  if prefix != "1" {
+    auto-einheit = false
+  }
+  
+  // Werte speichern (auto-einheit wird später in apply_auto_einheit angewendet)
+  let result = (
+    name: name,
+    einheit: einheit,
+    prefix: prefix,
+    werte: werte,
+    auto-einheit: auto-einheit,  // Temporär speichern
+  )
+  
+  result
+}
 
 // Definition der Datensatz-Struktur
 #let messdaten(name, einheit, anzahl-messwerte, prefix: "1") = (
@@ -82,6 +98,41 @@
   // Fallback: verwende den kleinsten Prefix (pico)
   let neue_einheit = "p" + basis_einheit
   return (1e-12 / aktueller_prefix_wert, neue_einheit)
+}
+
+// Hilfsfunktion: Automatische Einheitenumrechnung für ein Array von Werten
+#let auto_einheit_anwenden(werte, einheit) = {
+  // Nur bei String-Einheiten anwenden
+  if type(einheit) != str {
+    return (werte, einheit)
+  }
+  
+  // Finde den kleinsten nicht-null Wert
+  let min-wert = none
+  for wert in werte {
+    if type(wert) != content and wert != none and calc.abs(wert) != 0 {
+      if min-wert == none or calc.abs(wert) < min-wert {
+        min-wert = calc.abs(wert)
+      }
+    }
+  }
+
+  // Wenn ein minimaler Wert gefunden wurde, rechne um
+  if min-wert != none {
+    let (faktor, neue_einheit) = umrechnungseinheit(min-wert, einheit)
+    if neue_einheit != none and neue_einheit != "" and faktor != 1 {
+      let neue_werte = werte.map(wert => {
+        if type(wert) == content or wert == none {
+          return wert
+        }
+        return wert / faktor
+      })
+      return (neue_werte, neue_einheit)
+    }
+  }
+  
+  // Keine Änderung
+  return (werte, einheit)
 }
 
 // Funktion zur Berechnung der Anzahl der Nachkommastellen
@@ -386,6 +437,19 @@
   }
   // Wenn mehrere Argumente übergeben wurden, verwende sie direkt als Array
   // (bereits in datensatze durch args.pos())
+  
+  // Auto-Einheit auf alle Datensätze anwenden, falls aktiviert
+  datensatze = datensatze.map(ds => {
+    if "auto-einheit" in ds and ds.auto-einheit {
+      let (neue_werte, neue_einheit) = auto_einheit_anwenden(ds.werte, ds.einheit)
+      let result = ds
+      result.werte = neue_werte
+      result.einheit = neue_einheit
+      result
+    } else {
+      ds
+    }
+  })
   
   // Prüfen, ob die Daten aufgeteilt werden müssen
   let teile = ()
