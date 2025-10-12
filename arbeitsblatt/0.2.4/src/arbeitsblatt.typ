@@ -10,7 +10,7 @@
   // Tabellen und Daten
   berechnung, datensatz, messdaten, messwerttabelle, pk,
   // Regression
-  lineare_regression, quadratische_regression, wurzel_regression, exponentielle_regression, polynom_regression,
+  lineare_regression, quadratische_regression, wurzel_regression, exponentielle_regression, polynom_regression, potenz_regression,
   // Schaltkreis-Basis
   schaltkreis, zap,
   // Komponenten
@@ -343,6 +343,8 @@
 
     show heading.where(level: 1): it => if aufgaben-shortcodes in ("alle", "aufgaben") { aufgabe(title: it.body, large: true)[] } else { it }
     show enum.item: it => if aufgaben-shortcodes in ("alle", "teilaufgaben") { teilaufgabe(it.body) } else { it }
+
+    fancy-units-configure(per-mode: "fraction", decimal-separator: ",")
 
     body
 
