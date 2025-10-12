@@ -45,7 +45,7 @@
   let aktueller_prefix_wert = 1
 
   // Erkenne aktuellen Prefix in der Einheit - aber nicht bei einzelnen Buchstaben!
-  if einheit.len() > 1 {
+  if type(einheit) == str and einheit.len() > 1 {
     for (prefix_key, prefix_value) in multiplikatoren {
       if prefix_key != "" and einheit.starts-with(prefix_key) {
         aktueller_prefix_wert = prefix_value
@@ -133,6 +133,11 @@
 
 // Funktion zur Berechnung von Werten basierend auf einem oder mehreren Datensätzen
 #let berechnung(name, einheit, datensaetze, formel, prefix: "1", auto-einheit: true, fehler: 0) = {
+  // Wenn ein expliziter prefix gesetzt ist, deaktiviere auto-einheit
+  if prefix != "1" {
+    auto-einheit = false
+  }
+  
   // Unterstützung für einzelnen Datensatz (Rückwärtskompatibilität)
   let datensatz_liste = if type(datensaetze) == array { datensaetze } else { (datensaetze,) }
 
@@ -156,7 +161,7 @@
       }
 
       // Zusätzlich prüfen, ob die Einheit selbst einen Prefix enthält
-      if datensatz.einheit != none {
+      if datensatz.einheit != none and type(datensatz.einheit) == str {
         for (prefix_key, prefix_value) in multiplikatoren {
           if prefix_key != "" and datensatz.einheit.starts-with(prefix_key) {
             datensatz_multiplikator = datensatz_multiplikator * prefix_value
@@ -226,7 +231,7 @@
   }
 
   // Zusätzlich prüfen, ob die Zieleinheit selbst einen Prefix enthält
-  if einheit != none and einheit.len() > 1 {
+  if einheit != none and type(einheit) == str and einheit.len() > 1 {
     for (prefix_key, prefix_value) in multiplikatoren {
       if prefix_key != "" and einheit.starts-with(prefix_key) {
         ziel_multiplikator = ziel_multiplikator * prefix_value
@@ -241,7 +246,7 @@
   // Schritt 4: Fehler hinzufügen falls gewünscht
   if fehler != 0 {
     for (key, wert) in neue_werte.enumerate() {
-      neue_werte.at(key) = wert * (1 + ((0.5 - rand(key)) * fehler / 100))
+      neue_werte.at(key) = wert * (1 + ((0.5 - rand(key)) * (fehler/1%) / 100))
     }
   }
 
@@ -341,22 +346,46 @@
       }
 
       (
-        (datensatz.name + if datensatz.einheit != none { " in " + if datensatz.prefix == "1" { unit[#datensatz.einheit] } else { qty[#datensatz.prefix][#datensatz.einheit] } }),
+        (datensatz.name + if datensatz.einheit != none { 
+          " in " + if type(datensatz.einheit) == content {
+            // Bei content (z.B. $Omega$) direkt ausgeben ohne qty
+            datensatz.einheit
+          } else if datensatz.prefix == "1" { 
+            unit[#datensatz.einheit] 
+          } else { 
+            // Bei prefix != "1": Verwende unit[] mit manuell kombiniertem Prefix
+            // statt qty[], um fancy-units Fehler zu vermeiden
+            unit[#(datensatz.prefix + datensatz.einheit)]
+          } 
+        }),
         ..datensatz.werte.map(x => if x != "" { $#znum(x, decimal-separator: ",", round: (mode: "places", precision: max-digits, pad: has_decimals, direction: "nearest"))$ }),
       )
     },
   )]
 
 // Funktion zur Erstellung der Tabellen
-#let messwerttabelle(datensatze, amount: auto, row-height: auto, header: none, width: 100%, max-digits: 2) = {
-  // Prüfe ob einzelner Datensatz oder Array übergeben wurde
-  // Ein Datensatz hat die Keys: name, einheit, werte, prefix
-  let is_single_dataset = type(datensatze) == dictionary and "werte" in datensatze
+#let messwerttabelle(..args, amount: auto, row-height: auto, header: none, width: 100%, max-digits: 2) = {
+  // Extrahiere positionale Argumente
+  let datensatze = args.pos()
   
-  // Wenn einzelner Datensatz, mache daraus ein Array
-  if is_single_dataset {
-    datensatze = (datensatze,)
+  // Prüfe verschiedene Eingabe-Formate:
+  // 1. Einzelner Datensatz: messwerttabelle(dataset)
+  // 2. Array von Datensätzen: messwerttabelle((d1, d2, d3))
+  // 3. Mehrere Datensätze: messwerttabelle(d1, d2, d3)
+  
+  if datensatze.len() == 1 {
+    let first = datensatze.at(0)
+    // Wenn ein einzelnes Argument ein Array ist, verwende es
+    if type(first) == array {
+      datensatze = first
+    }
+    // Wenn ein einzelnes Argument ein Dictionary mit "werte" ist, mache Array daraus
+    else if type(first) == dictionary and "werte" in first {
+      datensatze = (first,)
+    }
   }
+  // Wenn mehrere Argumente übergeben wurden, verwende sie direkt als Array
+  // (bereits in datensatze durch args.pos())
   
   // Prüfen, ob die Daten aufgeteilt werden müssen
   let teile = ()
