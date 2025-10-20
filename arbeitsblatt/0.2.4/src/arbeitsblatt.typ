@@ -284,7 +284,7 @@
       },
     )
 
-    set_options((
+    set-options((
       "loesungen": loesungen,
       "materialien": materialien,
       "workspaces": workspaces,
