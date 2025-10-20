@@ -1,7 +1,7 @@
 #import "@schule/random:0.0.1": *
 #import "@schule/physik:0.0.2": umrechnungseinheit
 
-#let tasks(
+#let teilaufgaben(
   tasks: (),
   columns: auto,
   numbering: "a)",
