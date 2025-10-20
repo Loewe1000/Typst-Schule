@@ -113,13 +113,17 @@
 }
 
 // Caesar-Chiffre - erstellt ein Objekt mit Methoden
-// Verwendung:
-//   let c1 = caesar(3)
-//   let c2 = caesar(keyword: "SCHLUESSEL")
-//   (c1.encode)("KLARTEXT")
-//   (c2.decode)("GEHEIMTEXT")
-//   c1.table()
-#let caesar(key: none, keyword: none) = {
+// Verwendung (advanced: false):
+//   let c = caesar(key: 3)
+//   c("Klartext")           => Kodiert
+//   c("Geheimtext", true)   => Dekodiert
+//   c()                     => Gibt die Tabelle aus
+// Verwendung (advanced: true):
+//   let c = caesar(key: 3, advanced: true)
+//   (c.encode)("KLARTEXT")
+//   (c.decode)("GEHEIMTEXT")
+//   c.table
+#let caesar(key: none, keyword: none, advanced: false) = {
   let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
   let geheimtext-alphabet = ""
 
@@ -225,26 +229,55 @@
     )
   }
 
-  // Rückgabe des Objekts mit Methoden
+  // Im einfachen Modus: Gib aufrufbare Funktion zurück
+  if not advanced {
+    // Wrapper-Funktion für einfache Nutzung
+    let simple-function(..args) = {
+      let pos-args = args.pos()
+      let named-args = args.named()
+      
+      if pos-args.len() == 0 {
+        // Ohne Argumente: Tabelle anzeigen
+        table-content
+      } else if pos-args.len() == 2 and pos-args.at(1) == true {
+        // Mit zwei Argumenten und zweites ist true: Dekodieren
+        do-decode(pos-args.at(0))
+      } else if pos-args.len() >= 1 {
+        // Mit einem Argument: Enkodieren
+        do-encode(pos-args.at(0))
+      } else {
+        table-content
+      }
+    }
+    return simple-function
+  }
+
+  // Im advanced Modus: Rückgabe des Objekts mit Methoden
   (
     encode: do-encode,
     decode: do-decode,
     table: table-content, // Direkt Content, keine Funktion!
+    key: key,
+    keyword: keyword,
     alphabet: alphabet,
     geheimtext-alphabet: geheimtext-alphabet,
   )
 }
 
-// Legacy-Funktionen für Kompatibilität (deprecated)
-#let caesar-table(schlüssel) = caesar(key: schlüssel).table
-
-#let caesar-schluessel-table(schlüssel) = caesar(keyword: schlüssel).table
-
 #set par(leading: 1.1em)
 #let mono(body) = text(font: "SF Mono", body)
 
 // Vigenère-Chiffre
-#let vigenere(keyword) = {
+// Verwendung (advanced: false):
+//   let v = vigenere("SCHLUESSEL")
+//   v("Klartext")           => Kodiert
+//   v("Geheimtext", true)   => Dekodiert
+// Verwendung (advanced: true):
+//   let v = vigenere("SCHLUESSEL", advanced: true)
+//   (v.encode)("KLARTEXT")
+//   (v.decode)("GEHEIMTEXT")
+//   v.keyword
+#let vigenere(keyword, advanced: false) = {
   let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
   let clean-keyword = upper(keyword).codepoints().filter(c => c.match(regex("[A-Z]")) != none).join("")
 
@@ -296,6 +329,25 @@
     result
   }
 
+  // Im einfachen Modus: Gib aufrufbare Funktion zurück
+  if not advanced {
+    let simple-function(..args) = {
+      let pos-args = args.pos()
+      
+      if pos-args.len() == 0 {
+        panic("Mindestens ein Text-Argument erforderlich!")
+      } else if pos-args.len() == 2 and pos-args.at(1) == true {
+        // Mit zwei Argumenten und zweites ist true: Dekodieren
+        do-decode(pos-args.at(0))
+      } else if pos-args.len() >= 1 {
+        // Mit einem Argument: Enkodieren
+        do-encode(pos-args.at(0))
+      }
+    }
+    return simple-function
+  }
+
+  // Im advanced Modus: Rückgabe des Objekts mit Methoden
   (
     encode: do-encode,
     decode: do-decode,
@@ -328,7 +380,14 @@
 }
 
 // Atbash-Chiffre (A↔Z, B↔Y, etc.)
-#let atbash = {
+// Verwendung (advanced: false):
+//   let a = atbash()
+//   a("Klartext")           => Kodiert/Dekodiert (identisch)
+// Verwendung (advanced: true):
+//   let a = atbash(advanced: true)
+//   (a.encode)("KLARTEXT")
+//   (a.decode)("GEHEIMTEXT")
+#let atbash(advanced: false) = {
   let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
   let reversed = alphabet.codepoints().rev().join("")
 
@@ -347,6 +406,22 @@
     result
   }
 
+  // Im einfachen Modus: Gib aufrufbare Funktion zurück
+  if not advanced {
+    let simple-function(..args) = {
+      let pos-args = args.pos()
+      
+      if pos-args.len() == 0 {
+        panic("Mindestens ein Text-Argument erforderlich!")
+      } else {
+        // Atbash ist symmetrisch, encode = decode
+        do-transform(pos-args.at(0))
+      }
+    }
+    return simple-function
+  }
+
+  // Im advanced Modus: Rückgabe des Objekts mit Methoden
   (
     encode: do-transform,
     decode: do-transform, // Bei Atbash ist encode = decode
@@ -383,59 +458,6 @@
   }
 
   result
-}
-
-// Wahrheitstabelle generieren
-#let truth-table(..vars-and-exprs) = {
-  let args = vars-and-exprs.pos()
-  if args.len() < 2 {
-    panic("Mindestens eine Variable und ein Ausdruck erforderlich")
-  }
-
-  let var-count = args.len() - 1
-  let expressions = args.last()
-  let var-names = args.slice(0, var-count)
-
-  // Erstelle Header
-  let headers = var-names.map(v => [*#v*])
-  if type(expressions) == array {
-    headers += expressions.map(e => [*#e*])
-  } else {
-    headers.push([*#expressions*])
-  }
-
-  // Generiere alle Kombinationen
-  let rows = ()
-  let num-rows = calc.pow(2, var-count)
-
-  for i in range(0, num-rows) {
-    let row = ()
-    for j in range(0, var-count) {
-      let bit = if calc.rem(calc.quo(i, calc.pow(2, var-count - j - 1)), 2) == 1 { [1] } else { [0] }
-      row.push(bit)
-    }
-    rows.push(row)
-  }
-
-  // Erstelle Tabelle
-  let all-cells = headers
-  for row in rows {
-    all-cells += row
-    // Platzhalter für Ausdrücke (müssten separat berechnet werden)
-    if type(expressions) == array {
-      all-cells += expressions.map(_ => [-])
-    } else {
-      all-cells.push([-])
-    }
-  }
-
-  table(
-    columns: headers.len(),
-    align: center,
-    inset: 8pt,
-    stroke: 0.5pt,
-    ..all-cells
-  )
 }
 
 // ASCII-Tabelle generieren
@@ -545,7 +567,6 @@
       }
     }
   }
-  set text(11pt)
   table(
     columns: width * cols-per-char,
     align: center,
