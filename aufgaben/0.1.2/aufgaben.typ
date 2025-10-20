@@ -295,7 +295,7 @@
         box(
           width: 100%,
           {
-            body
+            align(left, body)
             let opts = _state_options.get()
             if opts.punkte in ("teilaufgaben", "alle") {
               context {
