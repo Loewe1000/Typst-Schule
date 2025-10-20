@@ -5,7 +5,7 @@
 #import "@schule/patterns:0.0.1": *
 #import "@preview/eqalc:0.1.3": *
 #import "@preview/zero:0.5.0": *
-#import "@schule/mathematik:0.0.2": graphen, tasks
+#import "@schule/mathematik:0.0.2": graphen, teilaufgaben
 #import "@schule/informatik:0.0.1": *
 #import "@schule/physik:0.0.2": (
   // Tabellen und Daten
@@ -244,10 +244,12 @@
       // Margin-Logik: Prüfe zuerst page-settings.margin, dann Standard-Margins
       margin: if "margin" in page-settings.keys() {
         // Wenn explizit ein Margin in page-settings gesetzt wurde, verwende dieses
-        let top = page-settings.margin.at("top", default: 0cm)
+        let top = if type(page-settings.margin) == dictionary { page-settings.margin.at("top", default: 0cm) } else { page-settings.margin }
         let values = page-settings.margin
-        let _ = values.remove("top")
-        let _ = values.insert("top", top + header-height)
+        let _ = if type(values) == dictionary {
+          values.remove("top")
+          values.insert("top", top + header-height)
+        }
         values
       } else {
         // Ansonsten verwende die Standard-Margins basierend auf print/landscape/duplex
