@@ -199,8 +199,7 @@
     }
 
     if rows.len() > 0 {
-      heading[Erwartungshorizont]
-      v(1em)
+      block(text(size: 1.25em, weight: "bold")[Erwartungshorizont])
 
       table(
         columns: (auto, 1fr, auto),

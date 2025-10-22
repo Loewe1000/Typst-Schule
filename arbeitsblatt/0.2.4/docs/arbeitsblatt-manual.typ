@@ -168,6 +168,29 @@ Das `arbeitsblatt` Paket integriert das `@schule/aufgaben` Paket für strukturie
   ]
 ]
 
+#command("erwartung")[
+  Definiert ein Bewertungskriterium mit Punkteverteilung für die aktuelle Aufgabe oder Teilaufgabe.
+
+  Diese Funktion wird für Bewertungsbögen und Erwartungshorizonte verwendet.
+
+  #argument("punkte", types: "integer", default: 0)[
+    Anzahl der Punkte für dieses Bewertungskriterium.
+  ]
+
+  #argument("text", types: "content", default: [])[
+    Beschreibung des Bewertungskriteriums.
+  ]
+
+  #example[```
+  #teilaufgabe[
+    Beschreiben Sie den Photoeffekt.
+    
+    #erwartung(2, [Lichtteilchen-Charakter erklärt])
+    #erwartung(1, [Energieerhaltung erwähnt])
+  ]
+  ```]
+]
+
 #command("material")[
   Fügt Material (Abbildunge, Diagramme, Messwerttabellen, ...) zur aktuellen Aufgabe hinzu, das je nach `materialien`-Einstellung angezeigt wird.
 
@@ -374,6 +397,10 @@ Der Header kann vollständig angepasst oder ersetzt werden:
     Ein benutzerdefinierter Header, der den Standard-Header ersetzt.
   ]
 
+  #argument("header-ascent", types: "percentage", default: "20%")[
+    Steuert die vertikale Position des Headers. Positive Werte heben den Header an, negative senken ihn ab.
+  ]
+
   #argument("teilaufgabe-numbering", types: "string", default: "a)")[
     Das Nummerierungsschema für Teilaufgaben. Unterstützte Werte: "a)", "1.".
   ]
@@ -542,11 +569,27 @@ Das `arbeitsblatt` Paket stellt verschiedene Hilfsfunktionen zur Verfügung, die
 ]
 
 #command("print-pagebreak")[
-  Fügt einen Seitenumbruch hinzu, aber nur im Druckmodus.
+  Fügt einen Seitenumbruch hinzu, aber nur im Druckmodus (`print: true`).
+
+  Diese Funktion ist nützlich, wenn bestimmte Inhalte nur in gedruckten Versionen auf einer neuen Seite beginnen sollen, während sie in digitalen Versionen ohne Seitenumbruch angezeigt werden.
+
+  #sourcecode[```typ
+  // Dieser Abschnitt beginnt nur beim Drucken auf einer neuen Seite
+  #print-pagebreak()
+  = Nächster Abschnitt
+  ```]
 ]
 
 #command("non-print-pagebreak")[
-  Fügt einen Seitenumbruch hinzu, aber nur im Nicht-Druckmodus.
+  Fügt einen Seitenumbruch hinzu, aber nur im Nicht-Druckmodus (`print: false`).
+
+  Diese Funktion ist nützlich, wenn bestimmte Inhalte nur in digitalen Versionen auf einer neuen Seite beginnen sollen, während sie in gedruckten Versionen ohne Seitenumbruch angezeigt werden.
+
+  #sourcecode[```typ
+  // Dieser Abschnitt beginnt nur in digitaler Ansicht auf einer neuen Seite
+  #non-print-pagebreak()
+  = Nächster Abschnitt
+  ```]
 ]
 
 #command("icon-link")[
@@ -669,12 +712,15 @@ Das `arbeitsblatt` Paket integriert verschiedene spezialisierte Pakete, um eine 
     ],
     [
       *Community-Pakete:*
-      - `@preview/fontawesome`: Icons
-      - `@preview/rustycure`: QR-Codes
-      - `@preview/cetz`: Diagramme
-      - `@preview/codly`: Code-Highlighting
-      - `@preview/colorful-boxes`: Farbige Boxen
-      - `@preview/fancy-units`: Einheiten-Formatierung
+      - `@preview/fontawesome` 0.6.0: Icons
+      - `@preview/rustycure` 0.1.0: QR-Codes
+      - `@preview/cetz` 0.4.2: Diagramme
+      - `@preview/cetz-plot` 0.1.2: Plot-Funktionen
+      - `@preview/codly` 1.3.0: Code-Highlighting
+      - `@preview/colorful-boxes` 1.4.3: Farbige Boxen
+      - `@preview/fancy-units` 0.1.1: Einheiten-Formatierung
+      - `@preview/eqalc` 0.1.3: Gleichungsberechnungen
+      - `@preview/zero` 0.5.0: Zero-Paket
     ],
   )
 ]

@@ -307,6 +307,34 @@ Materialien werden mit der `material()` Funktion definiert:
   ```]
 ]
 
+#command("show-loesung")[
+  Zeigt die Lösung(en) einer spezifischen Aufgabe an.
+
+  Dies ist eine interne Hilfsfunktion, die normalerweise nicht direkt aufgerufen werden muss, da die Anzeige automatisch über die `loesungen`-Einstellung gesteuert wird.
+
+  #argument("aufg", types: "dictionary", default: none)[
+    Das Aufgaben-Dictionary mit allen Informationen zur Aufgabe.
+  ]
+
+  #argument("teil", types: "integer, boolean", default: false)[
+    Wenn eine Zahl übergeben wird, werden nur Lösungen für diese Teilaufgabe angezeigt. Wenn `false`, werden alle Lösungen der Aufgabe angezeigt.
+  ]
+]
+
+#command("show-loesungen")[
+  Zeigt Lösungen für alle oder die aktuelle Aufgabe an.
+
+  Diese Funktion wird automatisch am Dokumentende aufgerufen, wenn `loesungen: "seite"` oder `loesungen: "seiten"` gesetzt ist.
+
+  #argument("curr", types: "boolean", default: false)[
+    Wenn `true`, wird nur die Lösung der aktuellen (letzten) Aufgabe angezeigt.
+  ]
+
+  #argument("teil", types: "integer, boolean", default: false)[
+    Optional: Filtert Lösungen nach Teilaufgabe.
+  ]
+]
+
 #command("material")[
   Fügt Material zur aktuellen Aufgabe hinzu.
 
@@ -344,15 +372,35 @@ Materialien werden mit der `material()` Funktion definiert:
   ```]
 ]
 
+#command("show-material")[
+  Zeigt das Material einer spezifischen Aufgabe an.
+
+  Dies ist eine interne Hilfsfunktion, die normalerweise nicht direkt aufgerufen werden muss, da die Anzeige automatisch über die `materialien`-Einstellung gesteuert wird.
+
+  #argument("aufg", types: "dictionary", default: none)[
+    Das Aufgaben-Dictionary mit allen Materialien.
+  ]
+]
+
+#command("show-materialien")[
+  Zeigt Materialien für alle oder die aktuelle Aufgabe an.
+
+  Diese Funktion wird automatisch am Dokumentende aufgerufen, wenn `materialien: "seite"` oder `materialien: "seiten"` gesetzt ist.
+
+  #argument("curr", types: "boolean", default: false)[
+    Wenn `true`, wird nur das Material der aktuellen (letzten) Aufgabe angezeigt.
+  ]
+]
+
 #command("erwartung")[
   Definiert Bewertungskriterien mit Punkteverteilung für die aktuelle Aufgabe oder Teilaufgabe.
 
-  #argument("text", types: "content", default: [])[
-    Beschreibung des Bewertungskriteriums.
-  ]
-
   #argument("punkte", types: "integer", default: 0)[
     Anzahl der Punkte für dieses Kriterium.
+  ]
+
+  #argument("text", types: "content", default: [])[
+    Beschreibung des Bewertungskriteriums.
   ]
 
   Die Erwartungen werden zur Berechnung der Gesamtpunktzahl verwendet und in Bewertungsbögen angezeigt.
@@ -361,15 +409,86 @@ Materialien werden mit der `material()` Funktion definiert:
   #teilaufgabe[
     Beschreiben Sie den Vorgang der Photosynthese.
     
-    #erwartung([Lichtreaktion korrekt erklärt], 2)
-    #erwartung([Dunkelreaktion korrekt erklärt], 3)
-    #erwartung([Gesamtgleichung angegeben], 1)
+    #erwartung(2, [Lichtreaktion korrekt erklärt])
+    #erwartung(3, [Dunkelreaktion korrekt erklärt])
+    #erwartung(1, [Gesamtgleichung angegeben])
     
     #loesung[
       Photosynthese umfasst Licht- und Dunkelreaktion...
     ]
   ]
   ```]
+]
+
+#command("get-points")[
+  Berechnet die Gesamtpunktzahl für eine Aufgabe oder Teilaufgabe.
+
+  Dies ist eine Hilfsfunktion, die die Punkte aus den definierten Erwartungen summiert.
+
+  #argument("aufg", types: "integer", default: none)[
+    Die Nummer der Aufgabe (1-basiert).
+  ]
+
+  #argument("teil", types: "integer", default: none)[
+    Optional: Die Nummer der Teilaufgabe. Wenn nicht angegeben, werden alle Punkte der Aufgabe summiert.
+  ]
+
+  Die Funktion gibt `0` zurück, wenn:
+  - Die Aufgabennummer ungültig ist
+  - Keine Erwartungen für die Aufgabe definiert sind
+  - Die angegebene Teilaufgabe keine Erwartungen hat
+]
+
+#command("show-erwartungen")[
+  Erstellt einen Erwartungshorizont mit allen definierten Bewertungskriterien.
+
+  Diese Funktion erzeugt automatisch eine Tabelle mit allen Erwartungen aus allen Aufgaben im Dokument.
+
+  #argument("grouped", types: "boolean", default: false)[
+    Steuert die Darstellungsweise:
+    - `false`: Jede einzelne Erwartung wird als eigene Zeile dargestellt
+    - `true`: Erwartungen derselben Teilaufgabe werden in einer Zeile zusammengefasst
+  ]
+
+  #sourcecode[```typ
+  // Am Ende des Dokuments
+  #show-erwartungen(grouped: true)
+  ```]
+
+  Die Tabelle enthält folgende Spalten:
+  - *Nr.*: Aufgaben-/Teilaufgabennummer
+  - *Inhalt*: Beschreibung der Erwartung(en)
+  - *BE*: Bewertungseinheiten (Punkte)
+]
+
+#command("show-bewertung")[
+  Erstellt einen Bewertungsbogen zur Punktevergabe.
+
+  Diese Funktion erzeugt automatisch eine Tabelle mit Spalten für jede (Teil-)Aufgabe, in der die erreichten Punkte eingetragen werden können.
+
+  #argument("punkte", types: "boolean, none", default: true)[
+    Steuert die Anzeige der maximal erreichbaren Punkte:
+    - `true`: Zeigt eine Zeile mit den möglichen Punkten und eine Zeile für erreichte Punkte
+    - `false`: Zeigt nur eine leere Zeile für erreichte Punkte (mögliche Punkte sind leer)
+    - `none`: Zeigt nur eine Zeile für erreichte Punkte (ohne Zeile für mögliche Punkte)
+  ]
+
+  #sourcecode[```typ
+  // Bewertungsbogen mit Punkten
+  #show-bewertung()
+  
+  // Bewertungsbogen ohne Punkte (nur leere Felder)
+  #show-bewertung(false)
+  
+  // Bewertungsbogen nur mit erreichten Punkten
+  #show-bewertung(none)
+  ```]
+
+  Die Tabelle enthält:
+  - Eine Spalte pro (Teil-)Aufgabe
+  - Optional: Zeile mit möglichen Punkten
+  - Zeile für erreichte Punkte (zum Ausfüllen)
+  - Summen-Spalte für Gesamtpunktzahl
 ]
 
 = Erweiterte Funktionen <sec:advanced>
@@ -426,15 +545,15 @@ Das integrierte Punktesystem ermöglicht:
 
   #teilaufgabe[
     Den Flächeninhalt A.
-    #erwartung([Formel korrekt angewendet], 1)
-    #erwartung([Ergebnis mit Einheit], 1)
+    #erwartung(1, [Formel korrekt angewendet])
+    #erwartung(1, [Ergebnis mit Einheit])
     #loesung[$A = a times b = 5 "cm" times 8 "cm" = 40 "cm"^2$]
   ]
 
   #teilaufgabe[
     Den Umfang U.
-    #erwartung([Formel korrekt angewendet], 1)
-    #erwartung([Ergebnis mit Einheit], 1)
+    #erwartung(1, [Formel korrekt angewendet])
+    #erwartung(1, [Ergebnis mit Einheit])
     #loesung[$U = 2(a + b) = 2(5 + 8) "cm" = 26 "cm"$]
   ]
 ]
@@ -462,9 +581,9 @@ Das integrierte Punktesystem ermöglicht:
 
   #teilaufgabe[
     Erstellen Sie ein Diagramm der Temperatur über die Zeit.
-    #erwartung([Achsenbeschriftung korrekt], 1)
-    #erwartung([Skalierung angemessen], 1)
-    #erwartung([Datenpunkte korrekt eingetragen], 2)
+    #erwartung(1, [Achsenbeschriftung korrekt])
+    #erwartung(1, [Skalierung angemessen])
+    #erwartung(2, [Datenpunkte korrekt eingetragen])
   ]
 
   #teilaufgabe[
@@ -504,10 +623,10 @@ Das integrierte Punktesystem ermöglicht:
     Das Auto legt in 2 Stunden eine Strecke von 120 km zurück.
     Berechnen Sie die Geschwindigkeit.
     
-    #erwartung([Gegebene Werte identifiziert], 1)
-    #erwartung([Formel korrekt angewendet], 2)
-    #erwartung([Einheitenumrechnung], 1)
-    #erwartung([Endergebnis korrekt], 1)
+    #erwartung(1, [Gegebene Werte identifiziert])
+    #erwartung(2, [Formel korrekt angewendet])
+    #erwartung(1, [Einheitenumrechnung])
+    #erwartung(1, [Endergebnis korrekt])
     
     #loesung[
       Gegeben: $s = 120 "km"$, $t = 2 "h"$\
@@ -519,8 +638,8 @@ Das integrierte Punktesystem ermöglicht:
   #teilaufgabe[
     Wie weit fährt das Auto in 45 Minuten?
     
-    #erwartung([Zeitumrechnung korrekt], 1)
-    #erwartung([Berechnung korrekt], 2)
+    #erwartung(1, [Zeitumrechnung korrekt])
+    #erwartung(2, [Berechnung korrekt])
     
     #loesung[
       $t = 45 "min" = 0.75 "h"$\
@@ -564,9 +683,9 @@ Das Paket eignet sich auch für Klassenarbeiten mit Bewertungsbögen:
 
 // Erwartungen werden für Bewertungsbogen verwendet
 #aufgabe[
-  #erwartung([Ansatz korrekt], 2)
-  #erwartung([Rechnung fehlerfrei], 3)
-  #erwartung([Antwort vollständig], 1)
+  #erwartung(2, [Ansatz korrekt])
+  #erwartung(3, [Rechnung fehlerfrei])
+  #erwartung(1, [Antwort vollständig])
 ]
 ```
 

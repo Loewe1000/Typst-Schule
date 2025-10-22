@@ -1,7 +1,22 @@
 [package]
 name = "klassenarbeit"
 version = "0.1.1"
-entrypoint = "klassenarbeit.typ"
-
-description = "Package for klassenarbeit"
+entrypoint = "src/klassenarbeit.typ"
+authors = ["Lukas Köhl", "Alexander Schulz"]
+description = "Ein Typst-Paket zur Erstellung von Klassenarbeiten und Tests für den Schulunterricht. Bietet vorgefertigte Funktionen für Aufgaben, Erwartungshorizonte, Bewertungsbögen und automatische Klausurbögen-Generierung."
 license = "MIT"
+repository = "https://github.com/Loewe1000/Typst-Schule"
+exclude = ["docs"]
+keywords = [
+    "klassenarbeit",
+    "test",
+    "exam",
+    "schule",
+    "lehrer",
+]
+categories = ["office", "layout", "components"]
+disciplines = ["education", "mathematics", "physics", "computer-science"]
+
+[template]
+path = "template"
+entrypoint = "ka.typ"
