@@ -1,5 +1,4 @@
 #import "@schule/arbeitsblatt:0.2.4": *
-#import "./bewertung.typ": *
 
 #let __s_punkte = state("punkte", "keine")
 
