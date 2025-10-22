@@ -38,6 +38,8 @@
   )
 }
 
+#let tasks = teilaufgaben
+
 #let graphen(
   size: none,
   scale: 1,
