@@ -1,3 +1,5 @@
+#import "scratch.typ": *
+
 // Konvertiert eine Binärzahl (als String oder Zahl) zu Dezimal
 #let bin2dec(zahl) = {
   let binary = str(zahl)
