@@ -20,3 +20,4 @@ disciplines = ["education", "mathematics", "physics", "computer-science"]
 [template]
 path = "template"
 entrypoint = "ka.typ"
+thumbnail = "thumbnail.png"
