@@ -297,6 +297,18 @@
       print
     })
 
+    // font-size for aufgaben, large and small
+    show heading.where(level: 1): it => block[
+      #set text(1.25em, weight: 700)
+      #it.body
+      #v(4pt)
+    ]
+
+    show heading.where(level: 2): it => block[
+      #set text(1em, weight: 700)
+      #it.body
+    ]
+
     // Setting captions and numberings for figures
     set figure(numbering: "1", supplement: none)
 

@@ -48,7 +48,7 @@
   materialien: none,
   info-table: true,
   erwartungen: false,
-  teilaufgabe-numbering: "1.", // "a)" "1."
+  teilaufgabe-numbering: "a)", // "a)" "1."
   punkte: "keine",
   bewertung: false,
   page-numbering: true,
