@@ -372,7 +372,10 @@
     codly(display-name: false)
     set raw(syntaxes: "processing.sublime-syntax")
 
-    show heading.where(level: 1): it => if aufgaben-shortcodes in ("alle", "aufgaben") { aufgabe(title: it.body, large: true)[] } else { it }
+    show heading.where(level: 1): it => if aufgaben-shortcodes in ("alle", "aufgaben") {
+      set text(font-size, weight: 700)
+      aufgabe(title: it.body, large: true)[]
+    } else { it }
     show enum.item: it => if aufgaben-shortcodes in ("alle", "teilaufgaben") { teilaufgabe(it.body) } else { it }
 
     fancy-units-configure(per-mode: "fraction", decimal-separator: ",")
