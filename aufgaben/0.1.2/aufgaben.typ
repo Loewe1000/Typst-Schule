@@ -472,7 +472,8 @@
     context {
       let auf-head = block(
         width: 100%,
-        below: 1em,
+        below: 0.75em,
+        above: 1.8em,
         figure(
           kind: "aufgabe",
           supplement: none,

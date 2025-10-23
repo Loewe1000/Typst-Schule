@@ -34,7 +34,7 @@
 ) = {
   let table = if type(info-table) != bool and type(info-table) == array {
     info-table
-  }
+  } else { () }
   let page-settings = args.named().at("page-settings", default: (:))
   let title = args.named().at("title", default: "")
   let class = args.named().at("class", default: "")
@@ -154,7 +154,7 @@
     text(14pt, weight: "semibold")[Name:#h(0.25em) #schueler]
     line(length: 100%, stroke: 0.5pt + luma(200))
   }
-
+  
   body
 
   [#metadata("ende-des-dokuments") <ende-arbeitsblatt>]

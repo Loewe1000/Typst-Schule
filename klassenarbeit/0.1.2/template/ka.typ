@@ -1,4 +1,4 @@
-#import "@schule/klassenarbeit:0.1.1": *
+#import "@schule/klassenarbeit:0.1.2": *
 
 #show: klassenarbeit.with(
   title: [Klassenarbeit],
