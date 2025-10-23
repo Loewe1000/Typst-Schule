@@ -388,11 +388,11 @@
 
     // To show materials on a separate page
     context if materialien == "seite" and _state_aufgaben.final().len() > 0 {
-      show_materialien()
+      show-materialien()
     }
     // To show solutions on a seperate page
     context if loesungen in ("seite", "seiten") and _state_aufgaben.final().len() > 0 {
-      show_loesungen()
+      show-loesungen()
     }
   }
 }
