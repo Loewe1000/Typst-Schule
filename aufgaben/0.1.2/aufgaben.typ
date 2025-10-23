@@ -199,17 +199,17 @@
     }
 
     if rows.len() > 0 {
-      page(
-        block(text(size: 1.25em, weight: "bold")[Erwartungshorizont]),
-        table(
+      page[
+        #block(text(size: 1.25em, weight: "bold")[Erwartungshorizont])
+        #table(
           columns: (auto, 1fr, auto),
           align: (center + horizon, left + horizon, center + horizon),
           inset: 8pt,
           stroke: 0.5pt,
           table.header(strong[Nr.], strong[Inhalt], strong[BE]),
           ..rows,
-        ),
-      )
+        )
+      ]
     }
   }
 }
