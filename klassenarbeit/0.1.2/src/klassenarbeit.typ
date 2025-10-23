@@ -160,7 +160,7 @@
   [#metadata("ende-des-dokuments") <ende-arbeitsblatt>]
 
   if erwartungen == true {
-    page(show-erwartungen())
+    show-erwartungen()
   }
 
   [

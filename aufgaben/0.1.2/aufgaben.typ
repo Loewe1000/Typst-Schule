@@ -199,15 +199,16 @@
     }
 
     if rows.len() > 0 {
-      block(text(size: 1.25em, weight: "bold")[Erwartungshorizont])
-
-      table(
-        columns: (auto, 1fr, auto),
-        align: (center + horizon, left + horizon, center + horizon),
-        inset: 8pt,
-        stroke: 0.5pt,
-        table.header(strong[Nr.], strong[Inhalt], strong[BE]),
-        ..rows,
+      page(
+        block(text(size: 1.25em, weight: "bold")[Erwartungshorizont]),
+        table(
+          columns: (auto, 1fr, auto),
+          align: (center + horizon, left + horizon, center + horizon),
+          inset: 8pt,
+          stroke: 0.5pt,
+          table.header(strong[Nr.], strong[Inhalt], strong[BE]),
+          ..rows,
+        ),
       )
     }
   }
@@ -260,14 +261,14 @@
       // Wenn keine Teilaufgaben vorhanden: Erstelle trotzdem eine Spalte für die Hauptaufgabe
       if not hat-teilaufgaben {
         header-row1.push(table.cell(rowspan: 2, strong[A#aufg.nummer]))
-        
+
         // Hole Punkte für die Hauptaufgabe (teil == 0)
         let teil-punkte = if "0" in grouped-erw.keys() {
           grouped-erw.at("0").fold(0, (sum, e) => sum + e.punkte)
         } else {
           0
         }
-        
+
         // punkte: true => zeige Punkte, false => zeige leer, none => überspringe Zeile
         if punkte == true and teil-punkte > 0 {
           moegliche-punkte-row.push(table.cell([#teil-punkte]))
@@ -292,7 +293,7 @@
         } else {
           numbering("1.1", aufg.nummer, teil-nr)
         }
-        
+
         // Hole Punkte für diese Teilaufgabe (falls Erwartungen vorhanden)
         let teil-punkte = if teil-key in grouped-erw.keys() {
           grouped-erw.at(teil-key).fold(0, (sum, e) => sum + e.punkte)
