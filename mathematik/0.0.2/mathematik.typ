@@ -64,6 +64,11 @@
   import "@preview/cetz-plot:0.1.3": *
   import "@preview/eqalc:0.1.3": math-to-func
 
+  show math.equation: it => {
+    show regex("\d+\.\d+"): num => num.text.replace(".", ",")
+    it
+  }
+
   // Eigene Farbpalette mit 10 gut unterscheidbaren Farben für Plots
   let colors = (
     rgb("#1F77B4"), // Blau
@@ -256,8 +261,11 @@
     (fills,)
   } else if type(fills) == array and fills.len() > 0 and type(fills.at(0)) == array {
     // Erstes Element ist Array (Domain) → könnte einzelner Fill sein
-    // Prüfe ob es ein einzelner Fill ist: (domain, func1, func2) oder (domain, func1, func2, color)
-    if fills.len() >= 3 and (type(fills.at(1)) == function or type(fills.at(1)) == content) and (type(fills.at(2)) == function or type(fills.at(2)) == content) {
+    // Prüfe ob es ein einzelner Fill ist: (domain, func), (domain, func1, func2) oder (domain, func1, func2, color)
+    if fills.len() == 2 and (type(fills.at(1)) == function or type(fills.at(1)) == content) {
+      // Einzelner Fill: (domain, func)
+      (fills,)
+    } else if fills.len() >= 3 and (type(fills.at(1)) == function or type(fills.at(1)) == content) and (type(fills.at(2)) == function or type(fills.at(2)) == content) {
       // Einzelner Fill: (domain, func1, func2, ...)
       (fills,)
     } else {
@@ -304,8 +312,14 @@
             auto-domain = true // Automatisch zwischen Nullstellen füllen
           }
         } else if fill-def.len() == 2 {
-          // Zwei Funktionen oder (func, color)
-          if (type(fill-def.at(0)) == function or type(fill-def.at(0)) == content) and (type(fill-def.at(1)) == function or type(fill-def.at(1)) == content) {
+          // Kann sein: (domain, func), (func1, func2), oder (func, color)
+          if type(fill-def.at(0)) == array {
+            // (domain, func) - Fläche unter einer Funktion in bestimmtem Bereich
+            domain = fill-def.at(0)
+            lower = x => 0
+            upper = to-func(fill-def.at(1))
+          } else if (type(fill-def.at(0)) == function or type(fill-def.at(0)) == content) and (type(fill-def.at(1)) == function or type(fill-def.at(1)) == content) {
+            // (func1, func2) - zwei Funktionen mit auto-domain
             lower = to-func(fill-def.at(0))
             upper = to-func(fill-def.at(1))
             auto-domain = true // Automatische Domain-Erkennung
@@ -432,14 +446,14 @@
           // Konvertiere einfache Arrays zu Dummy-Datensätzen
           let x_array = datensätze.at(0)
           let y_array = datensätze.at(1)
-          
+
           let x_ds = (name: $x$, einheit: none, werte: x_array, prefix: "1")
           let y_ds = (name: $y$, einheit: none, werte: y_array, prefix: "1")
-          
+
           ds-pairs = (((x_ds, y_ds), none),)
         }
       }
-      
+
       // Prüfe ob es ein einzelnes Paar (x, y) ist oder mehrere Paare
       if ds-pairs.len() == 0 and type(datensätze.at(0)) == dictionary and "werte" in datensätze.at(0) {
         // Erstes Element ist ein Datensatz
@@ -504,93 +518,95 @@
       let first-y-ds = first-pair.at(1)
 
       import "@preview/fancy-units:0.1.1": unit
-      
+
       // Erstelle Labels nur wenn Einheiten vorhanden sind
-      if first-x-einheit != none {
+      if first-x-einheit != none and first-x-einheit != "" {
         auto-x-label = [#first-x-ds.name in #unit(per-mode: "fraction")[#first-x-einheit]]
       } else {
         auto-x-label = first-x-ds.name
       }
-      
-      if first-y-einheit != none {
+
+      if first-y-einheit != none and first-y-einheit != "" {
         auto-y-label = [#first-y-ds.name in #unit(per-mode: "fraction")[#first-y-einheit]]
       } else {
         auto-y-label = first-y-ds.name
       }
+    } else {
+      auto-y-label = first-y-ds.name
+    }
 
-      // Berechne automatische Achsenbereiche
-      let all-x-vals = ()
-      let all-y-vals = ()
+    // Berechne automatische Achsenbereiche
+    let all-x-vals = ()
+    let all-y-vals = ()
 
-      // Konvertiere Datensätze zu Punkten
-      for (i, item) in ds-pairs.enumerate() {
-        let pair = item.at(0)
-        let opts = item.at(1)
-        let x-ds = pair.at(0)
-        let y-ds = pair.at(1)
-        let points = ()
+    // Konvertiere Datensätze zu Punkten
+    for (i, item) in ds-pairs.enumerate() {
+      let pair = item.at(0)
+      let opts = item.at(1)
+      let x-ds = pair.at(0)
+      let y-ds = pair.at(1)
+      let points = ()
 
-        // Optionen extrahieren
-        let clr = colors.at(calc.rem(i, colors.len())) // Standard-Farbe
-        let marker = "x" // Standard-Marker
+      // Optionen extrahieren
+      let clr = colors.at(calc.rem(i, colors.len())) // Standard-Farbe
+      let marker = "x" // Standard-Marker
 
-        if opts != none {
-          if type(opts) == dictionary {
-            if "color" in opts { clr = resolve-color(opts.color) }
-            if "clr" in opts { clr = resolve-color(opts.clr) }
-            if "marker" in opts { marker = opts.marker }
-          }
+      if opts != none {
+        if type(opts) == dictionary {
+          if "color" in opts { clr = resolve-color(opts.color) }
+          if "clr" in opts { clr = resolve-color(opts.clr) }
+          if "marker" in opts { marker = opts.marker }
         }
-
-        // Ermittele Multiplikator aus der Einheit (z.B. mA → 1e-3)
-        // umrechnungseinheit gibt (faktor, neue_einheit) zurück
-        let (x-mult, _) = umrechnungseinheit(1, x-ds.einheit)
-        let (y-mult, _) = umrechnungseinheit(1, y-ds.einheit)
-
-        // Berücksichtige auch den prefix-Parameter falls vorhanden
-        if "prefix" in x-ds and x-ds.prefix != "1" {
-          let (prefix-mult, _) = umrechnungseinheit(1, x-ds.prefix)
-          x-mult = x-mult / prefix-mult
-        }
-        if "prefix" in y-ds and y-ds.prefix != "1" {
-          let (prefix-mult, _) = umrechnungseinheit(1, y-ds.prefix)
-          y-mult = y-mult / prefix-mult
-        }
-
-        // Erstelle Punkte aus x- und y-Werten
-        // Werte werden mit dem Multiplikator multipliziert um in Basiseinheiten zu kommen
-        let min-len = calc.min(x-ds.werte.len(), y-ds.werte.len())
-        for j in range(min-len) {
-          let x-val = x-ds.werte.at(j)
-          let y-val = y-ds.werte.at(j)
-
-          // Überspringe none/content Werte
-          if type(x-val) != content and x-val != none and type(y-val) != content and y-val != none {
-            points.push((x-val * x-mult, y-val * y-mult))
-            all-x-vals.push(x-val * x-mult)
-            all-y-vals.push(y-val * y-mult)
-          }
-        }
-
-        processed-data.push((points: points, clr: clr, marker: marker))
       }
 
-      // Berechne Achsenbereiche mit etwas Padding (10%)
-      if all-x-vals.len() > 0 {
-        let x-min = calc.min(..all-x-vals)
-        let x-max = calc.max(..all-x-vals)
-        let x-range = x-max - x-min
-        let x-padding = x-range * 0.1
-        auto-x-range = (x-min - x-padding, x-max + x-padding)
+      // Ermittele Multiplikator aus der Einheit (z.B. mA → 1e-3)
+      // umrechnungseinheit gibt (faktor, neue_einheit) zurück
+      let (x-mult, _) = umrechnungseinheit(1, x-ds.einheit)
+      let (y-mult, _) = umrechnungseinheit(1, y-ds.einheit)
+
+      // Berücksichtige auch den prefix-Parameter falls vorhanden
+      if "prefix" in x-ds and x-ds.prefix != "1" {
+        let (prefix-mult, _) = umrechnungseinheit(1, x-ds.prefix)
+        x-mult = x-mult / prefix-mult
+      }
+      if "prefix" in y-ds and y-ds.prefix != "1" {
+        let (prefix-mult, _) = umrechnungseinheit(1, y-ds.prefix)
+        y-mult = y-mult / prefix-mult
       }
 
-      if all-y-vals.len() > 0 {
-        let y-min = calc.min(..all-y-vals)
-        let y-max = calc.max(..all-y-vals)
-        let y-range = y-max - y-min
-        let y-padding = y-range * 0.1
-        auto-y-range = (y-min - y-padding, y-max + y-padding)
+      // Erstelle Punkte aus x- und y-Werten
+      // Werte werden mit dem Multiplikator multipliziert um in Basiseinheiten zu kommen
+      let min-len = calc.min(x-ds.werte.len(), y-ds.werte.len())
+      for j in range(min-len) {
+        let x-val = x-ds.werte.at(j)
+        let y-val = y-ds.werte.at(j)
+
+        // Überspringe none/content Werte
+        if type(x-val) != content and x-val != none and type(y-val) != content and y-val != none {
+          points.push((x-val * x-mult, y-val * y-mult))
+          all-x-vals.push(x-val * x-mult)
+          all-y-vals.push(y-val * y-mult)
+        }
       }
+
+      processed-data.push((points: points, clr: clr, marker: marker))
+    }
+
+    // Berechne Achsenbereiche mit etwas Padding (10%)
+    if all-x-vals.len() > 0 {
+      let x-min = calc.min(..all-x-vals)
+      let x-max = calc.max(..all-x-vals)
+      let x-range = x-max - x-min
+      let x-padding = x-range * 0.1
+      auto-x-range = (x-min - x-padding, x-max + x-padding)
+    }
+
+    if all-y-vals.len() > 0 {
+      let y-min = calc.min(..all-y-vals)
+      let y-max = calc.max(..all-y-vals)
+      let y-range = y-max - y-min
+      let y-padding = y-range * 0.1
+      auto-y-range = (y-min - y-padding, y-max + y-padding)
     }
   }
 
