@@ -17,38 +17,40 @@
 /// - klausurboegen (boolean): Whether to generate exam sheets.
 /// - ergebnisse (array): Student results for exam sheets.
 /// - page-settings (dictionary): Additional page settings.
-/// - klausurboegen-settings (dictionary): Settings for exam sheet generation.
+/// - klausurboegen (dictionary): Settings for exam sheet generation.
 /// - ..args (any): Additional arguments passed to arbeitsblatt (e.g. font, math-font, font-size, figure-font-size, teilaufgabe-numbering, punkte, loesungen, materialien, etc.).
 #let klassenarbeit(
-  title: "",
   subtitle: "",
-  class: "",
   date: "",
   logo: "angela",
   teacher: "",
   schueler: "",
-  table: (),
-  stufe: false,
-  info-table: true,
-  erwartungen: false,
+  info-table: false,
   page-numbering: true,
   klausurboegen: false,
-  ergebnisse: none,
-  page-settings: (:),
-  klausurboegen-settings: (sub: false, numbering: "a)", rand: 6cm, weißer-rand: true),
+  erwartungen: true,
   ..args,
   body,
 ) = {
+  let table = if type(info-table) != bool and type(info-table) == array {
+    info-table
+  }
+  let page-settings = args.named().at("page-settings", default: (:))
+  let title = args.named().at("title", default: "")
+  let class = args.named().at("class", default: "")
   // Extract font from args for internal use
   let font = args.named().at("font", default: "Myriad Pro")
-  
+
   set page(
     footer: if page-numbering {
-      [
-        #set align(right)
-        #set text(8pt, font: font)
-        Seite
-        #context counter(page).display("1 von 1", both: true)
+      context [
+        #let current-page = counter(page).at(here()).at(0)
+        #let last-page = counter(page).at(<ende-arbeitsblatt>).at(0)
+        #if current-page <= last-page [
+          #set text(8pt, font: font)
+          #set align(right)
+          Seite #current-page von #last-page
+        ]
       ]
     },
   )
@@ -118,7 +120,23 @@
     ..args,
   )
 
-  if info-table {
+  if info-table != false and table != () {
+    let table-cells = if type(table) == array and type(table.at(0)) == array {
+      table
+    } else {
+      table.chunks(2)
+    }.map(row => {
+      (
+        std.table.cell(
+          inset: (left: 0pt, top: 6pt, bottom: 6pt, right: 6pt),
+          [*#row.at(0):*],
+        ),
+        [#{
+          row.at(1)
+        }],
+      )
+    })
+
     text(14pt, weight: "semibold")[Name:#h(0.25em) #schueler]
 
     std.table(
@@ -126,33 +144,27 @@
       align: left,
       inset: 6pt,
       stroke: none,
-      std.table.hline(stroke: 0.5pt),
-      ..if table.len() > 0 {
-        range(0, table.len())
-          .map(key => (
-            (
-              std.table.cell(
-                inset: (left: 0pt, top: 6pt, bottom: 6pt, right: 6pt),
-                [*#{ table.at(key).at(0) }:*],
-              ),
-              [#{
-                table.at(key).at(1)
-              }],
-            )
-          ))
-          .flatten()
+      std.table.hline(stroke: 0.5pt + luma(200)),
+      ..if table-cells.len() > 0 {
+        table-cells.flatten()
       },
-      std.table.hline(stroke: 0.5pt),
+      std.table.hline(stroke: 0.5pt + luma(200)),
     )
+  } else {
+    text(14pt, weight: "semibold")[Name:#h(0.25em) #schueler]
+    line(length: 100%, stroke: 0.5pt + luma(200))
   }
 
   body
-  [
-    #if erwartungen == true {
-      show-erwartungen()
-    }
 
-    #if klausurboegen {
+  [#metadata("ende-des-dokuments") <ende-arbeitsblatt>]
+
+  if erwartungen == true {
+    page(show-erwartungen())
+  }
+
+  [
+    #if klausurboegen != false and type(klausurboegen) == dictionary {
       import "@schule/klausurboegen:0.0.3": *
 
       klausurbögen(
@@ -161,20 +173,22 @@
         teacher: teacher,
         class: class,
         date: date,
-        sek1: if stufe == "II" {
+        sek1: if "stufe" in klausurboegen.keys() and klausurboegen.at("stufe") == "II" {
           false
-        } else if stufe == "I" {
+        } else if "stufe" in klausurboegen.keys() and klausurboegen.at("stufe") == "I" {
+          true
+        } else {
           true
         },
-        result: if ergebnisse != none {
+        result: if "ergebnisse" in klausurboegen.keys() and klausurboegen.at("ergebnisse") != none {
           true
         } else {
           false
         },
-        ..if ergebnisse != none {
+        ..if "ergebnisse" in klausurboegen.keys() and klausurboegen.at("ergebnisse") != none {
           (students: ergebnisse)
         },
-        ..klausurboegen-settings,
+        ..klausurboegen,
       )
     }
   ]

@@ -6,7 +6,7 @@
 
 #show: mantys(
   name: "klassenarbeit",
-  version: "0.1.1",
+  version: "0.1.2",
   authors: (
     "Lukas Köhl",
     "Alexander Schulz",
@@ -50,7 +50,7 @@ In diesem Manual werden folgende Begriffe verwendet:
 Für den schnellen Einstieg importieren Sie das Paket und erstellen Ihre erste Klassenarbeit:
 
 ```typ
-#import "@schule/klassenarbeit:0.1.1": *
+#import "@schule/klassenarbeit:0.1.2": *
 
 #show: klassenarbeit.with(
   title: [Klassenarbeit Nr. 1],
@@ -137,96 +137,38 @@ Das `klassenarbeit` Paket verwendet die Aufgaben-Funktionen aus dem `@schule/auf
     Vorausgefüllter Schülername (optional).
   ]
 
-  #argument("logo", types: "content", default: [])[
-    Logo für den Header (optional).
+  #argument("logo", types: "content", default: "angela")[
+    Logo für den Header (optional). Entweder ein bekannter Logo-Name oder eigener Inhalt.
   ]
 
-  #argument("font", types: "string", default: "Myriad Pro")[
-    Die Standard-Schriftart des Dokuments.
-  ]
-
-  #argument("math-font", types: "string", default: "Fira Math")[
-    Die Schriftart für mathematische Formeln.
-  ]
-
-  #argument("font-size", types: "length", default: "12pt")[
-    Die Standard-Schriftgröße des Dokuments.
-  ]
-
-  #argument("figure-font-size", types: "length", default: "12pt")[
-    Die Schriftgröße für Abbildungsunterschriften.
-  ]
-
-  #argument("table", types: "array", default: ())[
-    Zusätzliche Zeilen für die Info-Tabelle am Anfang.\
-    Format: `(("Label", "Wert"), ...)`
-  ]
-
-  #argument("stufe", types: "string, boolean", default: false)[
-    Schulstufe für Klausurbögen:\
-    - `"I"`: Sekundarstufe I\
-    - `"II"`: Sekundarstufe II\
-    - `false`: Keine Angabe
-  ]
-
-  #argument("loesungen", types: "string", default: none)[
-    Lösungsmodus (siehe `arbeitsblatt` Paket).
-  ]
-
-  #argument("materialien", types: "string", default: none)[
-    Materialienmodus (siehe `arbeitsblatt` Paket).
-  ]
-
-  #argument("info-table", types: "boolean", default: true)[
-    Ob die Info-Tabelle mit Name und Zusatzinformationen angezeigt werden soll.
-  ]
-
-  #argument("erwartungen", types: "boolean", default: false)[
-    Ob ein Erwartungshorizont am Ende generiert werden soll.
-  ]
-
-  #argument("teilaufgabe-numbering", types: "string", default: "1.")[
-    Das Nummerierungsschema für Teilaufgaben.\
-    Unterstützte Werte: `"a)"`, `"1."`
-  ]
-
-  #argument("punkte", types: "string", default: "keine")[
-    Modus für die Anzeige von Bewertungspunkten.\
-    - `"keine"`: Keine Punkte anzeigen\
-    - `"aufgaben"`: Nur Gesamtpunkte pro Aufgabe\
-    - `"teilaufgaben"`: Nur Punkte pro Teilaufgabe\
-    - `"alle"`: Punkte für Aufgaben und Teilaufgaben
-  ]
-
-  #argument("bewertung", types: "boolean", default: false)[
-    Ob ein Bewertungsbogen generiert werden soll (veraltet).
+  #argument("info-table", types: "boolean | array", default: false)[
+    Steuert die Infozeile(n) über dem Dokument.\
+    - `false`: Nur Namenszeile mit Linie\
+    - `array`: Zusätzliche Zeilen in der Form `(("Label", "Wert"), ...)`
   ]
 
   #argument("page-numbering", types: "boolean", default: true)[
-    Ob Seitenzahlen angezeigt werden sollen.
+    Ob Seitenzahlen angezeigt werden sollen (Format: "Seite X von Y").
   ]
 
-  #argument("klausurboegen", types: "boolean", default: false)[
-    Ob Klausurbögen am Ende generiert werden sollen.
+  #argument("erwartungen", types: "boolean", default: true)[
+    Ob ein Erwartungshorizont am Ende generiert werden soll.
   ]
 
-  #argument("ergebnisse", types: "array", default: none)[
-    Array mit Schülerergebnissen für Klausurbögen.\
-    Format: siehe `@schule/klausurboegen` Paket.
-  ]
-
-  #argument("page-settings", types: "dictionary", default: ())[
-    Zusätzliche Seiteneinstellungen.\
-    Standard-Margins: `(top: 1cm, bottom: 1cm, left: 1.5cm, right: 1.5cm)`
-  ]
-
-  #argument("klausurboegen-settings", types: "dictionary", default: ())[
-    Einstellungen für die Klausurbögen-Generierung.\
-    Siehe `@schule/klausurboegen` Paket für Details.
+  #argument("klausurboegen", types: "boolean | dictionary", default: false)[
+    Klausurbögen-Generierung.\
+    - `false`: Deaktiviert\
+    - `dictionary`: Einstellungen, z.B. `stufe: "I"|"II"`, `ergebnisse: array`, u. a. (siehe `@schule/klausurboegen`).
   ]
 
   #argument("body", types: "content", default: [])[
     Der Hauptinhalt der Klassenarbeit.
+  ]
+
+  #frame[
+    #set text(.88em)
+    Hinweis: Alle Parameter des `arbeitsblatt`-Pakets können direkt an `klassenarbeit()` übergeben werden (Pass-Through).\
+    Beispiele: `font`, `math-font`, `font-size`, `figure-font-size`, `teilaufgabe-numbering`, `punkte`, `loesungen`, `materialien`, `page-settings`, `header-ascent`, `custom-header` u. v. m.
   ]
 ]
 
@@ -271,11 +213,12 @@ Klausurbögen können automatisch generiert werden, wenn das `@schule/klausurboe
 ```typ
 #show: klassenarbeit.with(
   title: [Klassenarbeit],
-  klausurboegen: true,
-  stufe: "I",  // Sekundarstufe I
-  ergebnisse: (
-    (name: "Max Mustermann", points: 42),
-    (name: "Anna Beispiel", points: 38),
+  klausurboegen: (
+    stufe: "I", // Sekundarstufe I
+    ergebnisse: (
+      (name: "Max Mustermann", points: 42),
+      (name: "Anna Beispiel", points: 38),
+    ),
   ),
 )
 ```
@@ -289,7 +232,7 @@ Die Klausurbögen werden am Ende des Dokuments eingefügt und enthalten.
 == Vollständige Klassenarbeit
 
 ```typ
-#import "@schule/klassenarbeit:0.1.1": *
+#import "@schule/klassenarbeit:0.1.2": *
 
 #show: klassenarbeit.with(
   title: [Klassenarbeit Nr. 2],
@@ -300,7 +243,7 @@ Die Klausurbögen werden am Ende des Dokuments eingefügt und enthalten.
   punkte: "alle",
   erwartungen: true,
   teilaufgabe-numbering: "a)",
-  table: (
+  info-table: (
     ("Hilfsmittel", "Taschenrechner, Formelsammlung"),
     ("Bearbeitungszeit", "45 Minuten"),
   ),
@@ -380,6 +323,13 @@ Dokumentationsbögen verwendet werden.
 #pagebreak()
 
 = Changelog
+== Version 0.1.2 (Oktober 2025)
+- Parameter-Passthrough: Alle `arbeitsblatt`-Parameter können direkt an `klassenarbeit()` übergeben werden.
+- API bereinigt: Duplizierte Parameter (z. B. `font`, `punkte`, `loesungen` usw.) aus der `klassenarbeit`-Signatur entfernt.
+- `klausurboegen`: Als Dictionary nutzbar (z. B. `stufe`, `ergebnisse`).
+- `info-table`: Entweder `false` oder ein Array von Zeilenpaaren für Zusatzinfos.
+- Seitenzählung: Standardmäßig aktiviert mit Format "Seite X von Y".
+
 
 == Version 0.1.1 (Januar 2025)
 - *Ordnerstruktur*: Migration zu `src/` Struktur analog zu `arbeitsblatt`
