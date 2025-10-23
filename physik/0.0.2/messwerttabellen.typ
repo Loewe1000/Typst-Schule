@@ -21,6 +21,7 @@
     prefix: prefix,
     werte: werte,
     auto-einheit: auto-einheit,  // Temporär speichern
+    max-digits: max-digits,
   )
   
   result
@@ -35,15 +36,28 @@
 )
 
 #let multiplikatoren = (
-  "G": 1e9,
-  "M": 1e6,
-  "k": 1e3,
+  "Q": 1e30,   // Quetta
+  "R": 1e27,   // Ronna
+  "Y": 1e24,   // Yotta
+  "Z": 1e21,   // Zetta
+  "E": 1e18,   // Exa
+  "P": 1e15,   // Peta
+  "T": 1e12,   // Tera
+  "G": 1e9,    // Giga
+  "M": 1e6,    // Mega
+  "k": 1e3,    // Kilo
   "": 1,
-  "c": 1e-2,
-  "m": 1e-3,
-  "u": 1e-6,
-  "n": 1e-9,
-  "p": 1e-12,
+  "c": 1e-2,   // Zenti
+  "m": 1e-3,   // Milli
+  "u": 1e-6,   // Mikro (μ)
+  "n": 1e-9,   // Nano
+  "p": 1e-12,  // Piko
+  "f": 1e-15,  // Femto
+  "a": 1e-18,  // Atto
+  "z": 1e-21,  // Zepto
+  "y": 1e-24,  // Yokto
+  "r": 1e-27,  // Ronto
+  "q": 1e-30,  // Quekto
 )
 
 // Funktion zur Umrechnung der Einheit
@@ -76,15 +90,28 @@
 
   // Suche den besten Prefix für die Darstellung (von groß zu klein)
   let prefix_liste = (
-    ("G", 1e9),
-    ("M", 1e6),
-    ("k", 1e3),
+    ("Q", 1e30),  // Quetta
+    ("R", 1e27),  // Ronna
+    ("Y", 1e24),  // Yotta
+    ("Z", 1e21),  // Zetta
+    ("E", 1e18),  // Exa
+    ("P", 1e15),  // Peta
+    ("T", 1e12),  // Tera
+    ("G", 1e9),   // Giga
+    ("M", 1e6),   // Mega
+    ("k", 1e3),   // Kilo
     ("", 1),
-    ("c", 1e-2),
-    ("m", 1e-3),
-    ("u", 1e-6),
-    ("n", 1e-9),
-    ("p", 1e-12),
+    ("c", 1e-2),  // Zenti
+    ("m", 1e-3),  // Milli
+    ("u", 1e-6),  // Mikro
+    ("n", 1e-9),  // Nano
+    ("p", 1e-12), // Piko
+    ("f", 1e-15), // Femto
+    ("a", 1e-18), // Atto
+    ("z", 1e-21), // Zepto
+    ("y", 1e-24), // Yokto
+    ("r", 1e-27), // Ronto
+    ("q", 1e-30), // Quekto
   )
 
   for (prefix_key, prefix_value) in prefix_liste {
@@ -95,9 +122,9 @@
     }
   }
 
-  // Fallback: verwende den kleinsten Prefix (pico)
-  let neue_einheit = "p" + basis_einheit
-  return (1e-12 / aktueller_prefix_wert, neue_einheit)
+  // Fallback: Wenn keine passende Einheit gefunden wurde, nutze Basiseinheit ohne Präfix
+  // (Dies tritt bei sehr großen oder sehr kleinen Zahlen auf)
+  return (1 / aktueller_prefix_wert, basis_einheit)
 }
 
 // Hilfsfunktion: Automatische Einheitenumrechnung für ein Array von Werten
@@ -149,7 +176,7 @@
 }
 
 // Funktion zur Berechnung von Werten basierend auf einem oder mehreren Datensätzen
-#let berechnung(name, einheit, datensaetze, formel, prefix: "1", auto-einheit: true, fehler: 0) = {
+#let berechnung(name, einheit, datensaetze, formel, prefix: "1", auto-einheit: true, fehler: 0, max-digits: none) = {
   // Wenn ein expliziter prefix gesetzt ist, deaktiviere auto-einheit
   if prefix != "1" {
     auto-einheit = false
@@ -300,7 +327,7 @@
     einheit: einheit,
     werte: neue_werte,
     prefix: prefix,
-    max-digits: none,
+    max-digits: max-digits,
   )
 }
 
@@ -362,8 +389,15 @@
         }
       }
 
+      // Verwende max-digits aus dem Datensatz, falls vorhanden, sonst den globalen Wert
+      let datensatz_max_digits = if "max-digits" in datensatz and datensatz.max-digits != none {
+        datensatz.max-digits
+      } else {
+        max-digits
+      }
+
       (
-        (datensatz.name + if datensatz.einheit != none { 
+        (datensatz.name + if datensatz.einheit != none and datensatz.einheit != "" { 
           " in " + if type(datensatz.einheit) == content {
             // Bei content (z.B. $Omega$) direkt ausgeben ohne qty
             datensatz.einheit
@@ -375,7 +409,7 @@
             unit(per-mode: "fraction")[#(datensatz.prefix + datensatz.einheit)]
           } 
         }),
-        ..datensatz.werte.map(x => if x != "" { $#znum(x, decimal-separator: ",", round: (mode: "places", precision: max-digits, pad: has_decimals, direction: "nearest"))$ }),
+        ..datensatz.werte.map(x => if x != "" { $#znum(x, decimal-separator: ",", round: (mode: "places", precision: datensatz_max_digits, pad: has_decimals, direction: "nearest"))$ }),
       )
     },
   )]
