@@ -372,14 +372,14 @@
   context {
     let all = _state_aufgaben.get()
     if curr { all = (all.last(),) }
-    if _state_options.get().final().materialien == "seite" {
+    if _state_options.final().materialien == "seite" {
       pagebreak(weak: true)
     }
     for aufg in all {
       if aufg.materialien.len() > 0 {
-        if _state_options.get().final().materialien == "seite" {
+        if _state_options.final().materialien == "seite" {
           show-material(aufg)
-        } else if _state_options.get().final().materialien in ("sofort", "folgend") {
+        } else if _state_options.final().materialien in ("sofort", "folgend") {
           show-material(aufg)
         } else {
           page(show-material(aufg))
