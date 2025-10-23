@@ -5,7 +5,14 @@
   if notation == "sci" {
     let exp = if value == 0 { 0 } else { calc.floor(calc.log(calc.abs(value), base: 10)) }
     let mantissa = value / calc.pow(10, exp)
-    let mantissa_formatted = znum(str(mantissa), decimal-separator:",", digits: digits)
+    
+    // Prüfe ob mantissa ganzzahlig ist
+    let clean-mantissa = if calc.round(mantissa, digits: 10) == calc.round(mantissa) {
+      int(calc.round(mantissa))
+    } else {
+      mantissa
+    }
+    let mantissa_formatted = znum(str(clean-mantissa), decimal-separator:",", digits: digits)
     
     if exp == 0 {
       mantissa_formatted
@@ -15,12 +22,25 @@
       $#mantissa_formatted dot 10^#exp$
     }
   } else {
-    znum(value, decimal-separator:",", digits: digits)
+    // Prüfe ob Wert ganzzahlig ist
+    if calc.round(value, digits: 10) == calc.round(value) {
+      // Ganzzahlig -> keine Nachkommastellen
+      str(int(calc.round(value)))
+    } else {
+      // Hat Nachkommastellen -> mit znum formatieren
+      znum(value, decimal-separator:",", digits: digits)
+    }
   }
 }
 
 #let format-unit(einheit) = {
-  if type(einheit) == content { einheit } else { unit(per-mode: "fraction")[#einheit] }
+  if einheit == none {
+    none
+  } else if type(einheit) == content {
+    einheit
+  } else {
+    unit(per-mode: "fraction")[#einheit]
+  }
 }
 
 #let combine-units(y_einheit, x_einheit, x_potenz: 1) = {
@@ -55,6 +75,7 @@
   let term = if x-potenz == 0 {
     $#koeff-str #koeff-einheit$
   } else if x-potenz == 1 {
+    // x^1 wird einfach als x geschrieben
     $#koeff-str #koeff-einheit dot #x-name$
   } else {
     $#koeff-str #koeff-einheit dot #x-name^#x-potenz$
@@ -80,12 +101,28 @@
 
 #let format-simple-equation(y-name, koeffs, x-name, notation, precision) = {
   let strs = koeffs.map(k => format-number(calc.abs(k), notation: notation))
-  let eq = $y = #strs.at(0) #x-name^#(koeffs.len() - 1)$
+  
+  // Erste Term: berücksichtige x^1 -> x
+  let first-pow = koeffs.len() - 1
+  let eq = if first-pow == 0 {
+    $y = #strs.at(0)$
+  } else if first-pow == 1 {
+    $y = #strs.at(0) #x-name$
+  } else {
+    $y = #strs.at(0) #x-name^#first-pow$
+  }
   
   for (i, k) in koeffs.slice(1).enumerate() {
     let pow = koeffs.len() - 2 - i
     if calc.abs(k) >= precision {
-      let term = if pow == 0 { strs.at(i + 1) } else if pow == 1 { $#strs.at(i + 1) x$ } else { $#strs.at(i + 1) x^#pow$ }
+      // x^1 wird als x geschrieben, x^0 nur als Koeffizient
+      let term = if pow == 0 { 
+        strs.at(i + 1) 
+      } else if pow == 1 { 
+        $#strs.at(i + 1) #x-name$ 
+      } else { 
+        $#strs.at(i + 1) #x-name^#pow$ 
+      }
       eq = if k >= 0 { $#eq + #term$ } else { $#eq - #term$ }
     }
   }
@@ -146,7 +183,7 @@
   }
   
   let format-func(koeff, x_name: none, y_name: none, x_einheit: none, y_einheit: none, notation: "dec", precision: 1e-10, digits: 2) = {
-    if x_einheit != none and y_einheit != none {
+    if x_einheit != none and x_einheit != "" and y_einheit != none and y_einheit != "" {
       let terms = (
         format-equation-term(koeff.at(0), combine-units(y_einheit, x_einheit), x_name, 1, true, notation, 1e-20),
         format-equation-term(koeff.at(1), format-unit(y_einheit), x_name, 0, false, notation, precision),
@@ -184,7 +221,7 @@
   }
   
   let format-func(koeff, x_name: none, y_name: none, x_einheit: none, y_einheit: none, notation: "dec", precision: 1e-10, digits: 2) = {
-    if x_einheit != none and y_einheit != none {
+    if x_einheit != none and x_einheit != "" and y_einheit != none and y_einheit != "" {
       let terms = (
         format-equation-term(koeff.at(0), combine-units(y_einheit, x_einheit, x_potenz: 2), x_name, 2, true, notation, 1e-20),
         format-equation-term(koeff.at(1), combine-units(y_einheit, x_einheit), x_name, 1, false, notation, precision),
@@ -221,7 +258,7 @@
     let a_str = format-number(a, notation: notation, digits: digits)
     let b_str = format-number(calc.abs(b), notation: notation, digits: digits)
     
-    if x_einheit != none and y_einheit != none {
+    if x_einheit != none and x_einheit != "" and y_einheit != none and y_einheit != "" {
       let a_einheit = if type(y_einheit) == content and type(x_einheit) == content {
         $#y_einheit \/ sqrt(#x_einheit)$
       } else if type(y_einheit) == content {
@@ -274,7 +311,7 @@
     let a_str = format-number(a, notation: notation, digits: digits)
     let b_str = format-number(b, notation: notation, digits: digits)
     
-    if x_einheit != none and y_einheit != none {
+    if x_einheit != none and x_einheit != "" and y_einheit != none and y_einheit != "" {
       let a_einheit = if type(x_einheit) == content {
         $1 \/ #x_einheit$
       } else {
@@ -317,7 +354,7 @@
     let a_str = format-number(a, notation: notation, digits: digits)
     let m_str = format-number(m, notation: notation, digits: digits)
     
-    if x_einheit != none and y_einheit != none {
+    if x_einheit != none and x_einheit != "" and y_einheit != none and y_einheit != "" {
       let a_einheit = if type(y_einheit) == content and type(x_einheit) == content {
         $frac(#y_einheit, #x_einheit^#m_str)$
       } else if type(y_einheit) == content {
@@ -387,7 +424,7 @@
   }
   
   let format-func(koeff, x_name: none, y_name: none, x_einheit: none, y_einheit: none, notation: "dec", precision: 1e-10, digits: 2) = {
-    if x_einheit != none and y_einheit != none {
+    if x_einheit != none and x_einheit != "" and y_einheit != none and y_einheit != "" {
       let terms = ()
       for i in range(koeff.len() - 1, -1, step: -1) {
         let einheit = if i == 0 { format-unit(y_einheit) } else { combine-units(y_einheit, x_einheit, x_potenz: i) }
