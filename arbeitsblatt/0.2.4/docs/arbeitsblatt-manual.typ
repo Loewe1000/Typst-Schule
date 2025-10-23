@@ -725,6 +725,26 @@ Das `arbeitsblatt` Paket integriert verschiedene spezialisierte Pakete, um eine 
   )
 ]
 
+==== Nutzung mit "klassenarbeit" (ab 0.1.2)
+
+Das Paket `@schule/klassenarbeit` baut auf `arbeitsblatt` auf und reicht alle `arbeitsblatt`-Optionen transparent durch.\
+Sie können daher alle hier dokumentierten Parameter auch in `#show: klassenarbeit(...)` verwenden, z. B. `punkte`, `loesungen`, `font`, `page-settings`, `teilaufgabe-numbering` u. v. m.
+
+Beispiel:
+
+```typ
+#import "@schule/klassenarbeit:0.1.2": *
+
+#show: klassenarbeit(
+  title: "Klassenarbeit",
+  class: "10a",
+  punkte: "alle",
+  loesungen: "seiten",
+)[
+  // Inhalt wie in arbeitsblatt
+]
+```
+
 #pagebreak()
 
 = Changelog
