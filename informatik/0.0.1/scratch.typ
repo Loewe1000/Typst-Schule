@@ -92,41 +92,44 @@
   height: auto,
   dropdown: false,
   body,
-) = box(
-  fill: fill,
-  stroke: stroke,
-  radius: radius,
-  height: auto,
-  inset: inset,
-  align(horizon, if dropdown {
-    context {
-      let height = measure(body).height
-      let height = if height < pill-height {
-        pill-height
-      } else {
-        height
+) = {
+  set text(font: "Helvetica Neue", if high-contrast { black } else { white }, weight: 500)
+  box(
+    fill: fill,
+    stroke: stroke,
+    radius: radius,
+    height: auto,
+    inset: inset,
+    align(horizon, if dropdown {
+      context {
+        let height = measure(body).height
+        let height = if height < pill-height {
+          pill-height
+        } else {
+          height
+        }
+        let width = pill-inset-x
+        stack(dir: ltr, spacing: pill-spacing, box(height: height, text(text-color, body)), curve(
+          fill: white,
+          stroke: (paint: stroke.paint, thickness: stroke-thickness, cap: "round", join: "round"),
+          curve.line((width, 0mm), relative: true),
+          curve.line((-0.5 * width, 0.5 * width), relative: true),
+          curve.close(),
+        ))
       }
-      let width = pill-inset-x
-      stack(dir: ltr, spacing: pill-spacing, box(height: height, text(text-color, body)), curve(
-        fill: white,
-        stroke: (paint: stroke.paint, thickness: stroke-thickness, cap: "round", join: "round"),
-        curve.line((width, 0mm), relative: true),
-        curve.line((-0.5 * width, 0.5 * width), relative: true),
-        curve.close(),
-      ))
-    }
-  } else {
-    context [
-      #let height = measure(body).height
-      #let height = if height < pill-height {
-        pill-height
-      } else {
-        height
-      }
-      #box(height: height, text(text-color, body))
-    ]
-  }),
-)
+    } else {
+      context [
+        #let height = measure(body).height
+        #let height = if height < pill-height {
+          pill-height
+        } else {
+          height
+        }
+        #box(height: height, text(text-color, body))
+      ]
+    }),
+  )
+}
 
 // Weiße Input-Pills (feste Höhe 8.4mm, keine Insets)
 #let pill-round(body, stroke: (paint: black, thickness: stroke-thickness), inset: (x: 1.3 * pill-inset-x, y: 1mm), fill: white, text-color: rgb("#575E75")) = _pill-base(
@@ -831,39 +834,42 @@
 )
 
 // Bedingung (Diamant-Form für boolesche Werte)
-#let bedingung(colorschema: colors.bewegung, type: "bedingung", body, nested: false) = box([
-  // nested kann bool (beide Seiten gleich) oder (left, right) array sein
-  #let nested-type = std.type(nested)
-  #let (nested-left, nested-right) = if nested-type == array {
-    (nested.at(0), nested.at(1))
-  } else {
-    (nested, nested)
-  }
-  #let x-inset-left = if nested-left { -0.3 } else { 1.0 }
-  #let x-inset-right = if nested-right { -0.3 } else { 1.0 }
-  #let content-box = box(inset: (left: pill-inset-x * x-inset-left, right: pill-inset-x * x-inset-right, y: pill-inset-y), align(horizon, [
-    #grid(
-      columns: (body.len() * 2 + 1) * (auto,),
-      column-gutter: 1fr,
-      align: center + horizon,
-      h(pill-spacing),
-      ..body.map(x => { (x, h(0.25em)) }).flatten(),
-      h(pill-spacing),
-    )
-  ]))
-
-  #context [
-    #let (width, height) = measure(content-box, height: auto)
-    #place(bottom + left)[
-      #curve(
-        fill: colorschema.fill,
-        stroke: (paint: colorschema.stroke, thickness: stroke-thickness),
-        ..block-path(height, width, type),
+#let bedingung(colorschema: colors.bewegung, type: "bedingung", body, nested: false) = {
+  set text(font: "Helvetica Neue", if high-contrast { black } else { white }, weight: 500)
+  box([
+    // nested kann bool (beide Seiten gleich) oder (left, right) array sein
+    #let nested-type = std.type(nested)
+    #let (nested-left, nested-right) = if nested-type == array {
+      (nested.at(0), nested.at(1))
+    } else {
+      (nested, nested)
+    }
+    #let x-inset-left = if nested-left { -0.3 } else { 1.0 }
+    #let x-inset-right = if nested-right { -0.3 } else { 1.0 }
+    #let content-box = box(inset: (left: pill-inset-x * x-inset-left, right: pill-inset-x * x-inset-right, y: pill-inset-y), align(horizon, [
+      #grid(
+        columns: (body.len() * 2 + 1) * (auto,),
+        column-gutter: 1fr,
+        align: center + horizon,
+        h(pill-spacing),
+        ..body.map(x => { (x, h(0.25em)) }).flatten(),
+        h(pill-spacing),
       )
+    ]))
+
+    #context [
+      #let (width, height) = measure(content-box, height: auto)
+      #place(bottom + left)[
+        #curve(
+          fill: colorschema.fill,
+          stroke: (paint: colorschema.stroke, thickness: stroke-thickness),
+          ..block-path(height, width, type),
+        )
+      ]
+      #box(width: width + 0.5 * height)[#content-box]
     ]
-    #box(width: width + 0.5 * height)[#content-box]
-  ]
-])
+  ])
+}
 
 // Spezifische Aussehen-Reporter
 //#let kostüm(eigenschaft: "Nummer") = aussehen-reporter("Kostüm", dropdown-content: eigenschaft)
