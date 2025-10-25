@@ -119,7 +119,7 @@
   return erw.fold(0, (sum, e) => sum + e.punkte)
 }
 
-#let show-erwartungen(grouped: false) = {
+#let show-erwartungen(grouped: false, new-page: false) = {
   context {
     let all = _state_aufgaben.final()
     let opts = _state_options.get()
@@ -199,7 +199,8 @@
     }
 
     if rows.len() > 0 {
-      page[
+      let element = if new-page {page} else {block}
+      element[
         #block(text(size: 1.25em, weight: "bold")[Erwartungshorizont])
         #table(
           columns: (auto, 1fr, auto),

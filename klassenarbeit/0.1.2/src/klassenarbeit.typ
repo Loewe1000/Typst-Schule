@@ -154,13 +154,13 @@
     text(14pt, weight: "semibold")[Name:#h(0.25em) #schueler]
     line(length: 100%, stroke: 0.5pt + luma(200))
   }
-  
+
   body
 
   [#metadata("ende-des-dokuments") <ende-arbeitsblatt>]
 
   if erwartungen == true {
-    show-erwartungen()
+    show-erwartungen(new-page: true)
   }
 
   [
