@@ -131,7 +131,14 @@
   dropdown: false,
   body,
 ) = {
-  set text(font: "Helvetica Neue", colors.text-color, weight: 500)
+  // Automatische Textfarbe: dunkel bei weißem Hintergrund, sonst Theme-Farbe
+  let final-text-color = if fill == white or fill == rgb("#FFFFFF") {
+    rgb("#575E75")  // Dunkelgrau für weiße Hintergründe
+  } else {
+    colors.text-color  // Theme-Farbe für farbige Hintergründe
+  }
+  
+  set text(font: "Helvetica Neue", weight: 500)
   box(
     fill: fill,
     stroke: stroke,
@@ -147,7 +154,7 @@
           height
         }
         let width = pill-inset-x
-        stack(dir: ltr, spacing: pill-spacing, box(height: height, text(text-color, body)), image(icons.dropdown-arrow, height: 2mm))
+        stack(dir: ltr, spacing: pill-spacing, box(height: height, text(final-text-color, body)), image(icons.dropdown-arrow, height: 2mm))
       }
     } else {
       context [
@@ -157,7 +164,7 @@
         } else {
           height
         }
-        #box(height: height, text(text-color, body))
+        #box(height: height, text(final-text-color, body))
       ]
     }),
   )
