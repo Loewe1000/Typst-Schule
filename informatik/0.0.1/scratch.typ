@@ -179,6 +179,7 @@
 #let block-height = 10mm
 #let corner-radius = 0.75mm
 #let block-offset-y = 1.5mm  // Vertikaler Offset für Anweisungsblöcke
+#let block-left-indent = 5 * corner-radius  // Linker Einzug für Notch (≈3.75mm)
 
 // Hat (Kappe) Dimensionen für Ereignis-Block
 #let hat-cp1-x = 4mm
@@ -402,7 +403,6 @@
       pill-round(box(width: width, str(value)), stroke: colorschema.tertiary + stroke-thickness)
     }
   } else {
-    // Es ist bereits Content (bedingung, reporter, etc.)
     value
   }
 }
@@ -420,7 +420,7 @@
       curve.quad((corner-radius, 0mm), (corner-radius, corner-radius), relative: true),
       curve.line((0mm, height - 2 * corner-radius), relative: true),
       curve.quad((0mm, corner-radius), (-corner-radius, corner-radius), relative: true),
-      curve.line((-width + 3.7mm + notch-spacing + notch-reserved-space + corner-radius, 0mm), relative: true),
+      curve.line((-width + corner-radius + notch-spacing + notch-total-width, 0mm), relative: true),
       ..notch-path,
       curve.line((-notch-spacing + corner-radius, 0mm), relative: true),
       curve.quad((-corner-radius, 0mm), (-corner-radius, -corner-radius), relative: true),
@@ -432,7 +432,7 @@
       curve.quad((5 * corner-radius, 0mm), (5 * corner-radius, 5 * corner-radius), relative: true),
       curve.line((0mm, height - corner-radius), relative: true),
       curve.quad((0mm, corner-radius), (-corner-radius, corner-radius), relative: true),
-      curve.line((-(width - corner-radius - notch-reserved-space - notch-spacing - 3.7mm), 0mm), relative: true),
+      curve.line((-width + corner-radius + notch-total-width + notch-spacing, 0mm), relative: true),
       ..notch-path,
       curve.line((-notch-spacing + corner-radius, 0mm), relative: true),
       curve.quad((-corner-radius, 0mm), (-corner-radius, -corner-radius), relative: true),
@@ -447,12 +447,12 @@
       } else {
         (curve.line((notch-total-width, 0mm), relative: true),)
       }.flatten(),
-      curve.line((width - 3.7mm - notch-spacing - notch-reserved-space, 0mm), relative: true),
+      curve.line((width - block-left-indent - notch-spacing - notch-reserved-space, 0mm), relative: true),
       curve.quad((corner-radius, 0mm), (corner-radius, corner-radius), relative: true),
       curve.line((0mm, +block-offset-y - corner-radius), relative: true),
       curve.line((0mm, height - block-offset-y - corner-radius), relative: true),
       curve.quad((0mm, corner-radius), (-corner-radius, corner-radius), relative: true),
-      curve.line((-width + 3.7mm + notch-spacing + notch-reserved-space, 0mm), relative: true),
+      curve.line((-width + block-left-indent + notch-spacing + notch-reserved-space, 0mm), relative: true),
       ..if bottom-notch {
         (notch-path,)
       } else {
@@ -476,12 +476,12 @@
       curve.quad((0mm, -corner-radius), (corner-radius, -corner-radius), relative: true),
       curve.line((notch-spacing - corner-radius, 0mm), relative: true),
       ..inverted-notch-path,
-      curve.line((width - 3.7mm - notch-spacing - notch-reserved-space, 0mm), relative: true),
+      curve.line((width - block-left-indent - notch-spacing - notch-reserved-space, 0mm), relative: true),
       curve.quad((corner-radius, 0mm), (corner-radius, corner-radius), relative: true),
       curve.line((0mm, +block-offset-y - corner-radius), relative: true),
       curve.line((0mm, height - block-offset-y - corner-radius), relative: true),
       curve.quad((0mm, corner-radius), (-corner-radius, corner-radius), relative: true),
-      curve.line((-width + 3.7mm + 3 * notch-spacing + notch-reserved-space, 0mm), relative: true),
+      curve.line((-width + block-left-indent + 3 * notch-spacing + notch-reserved-space, 0mm), relative: true),
       ..notch-path,
       curve.line((-notch-spacing + corner-radius, 0mm), relative: true),
       curve.quad((-corner-radius, 0mm), (-corner-radius, corner-radius), relative: true),
@@ -490,11 +490,11 @@
       curve.quad((0mm, corner-radius), (corner-radius, corner-radius), relative: true),
       curve.line((notch-spacing - corner-radius, 0mm), relative: true),
       ..inverted-notch-path,
-      curve.line((width - 3.7mm - 3 * notch-spacing - notch-reserved-space, 0mm), relative: true),
+      curve.line((width - block-left-indent - 3 * notch-spacing - notch-reserved-space, 0mm), relative: true),
       curve.quad((corner-radius, 0mm), (corner-radius, corner-radius), relative: true),
       curve.line((0mm, 3mm), relative: true),
       curve.quad((0mm, corner-radius), (-corner-radius, corner-radius), relative: true),
-      curve.line((-width + 3.7mm + 1 * notch-spacing + notch-reserved-space, 0mm), relative: true),
+      curve.line((-width + block-left-indent + 1 * notch-spacing + notch-reserved-space, 0mm), relative: true),
       ..if bottom-notch {
         (notch-path,)
       } else {
@@ -509,12 +509,12 @@
       curve.quad((0mm, -corner-radius), (corner-radius, -corner-radius), relative: true),
       curve.line((notch-spacing - corner-radius, 0mm), relative: true),
       ..inverted-notch-path,
-      curve.line((width - 3.7mm - notch-spacing - notch-reserved-space, 0mm), relative: true),
+      curve.line((width - block-left-indent - notch-spacing - notch-reserved-space, 0mm), relative: true),
       curve.quad((corner-radius, 0mm), (corner-radius, corner-radius), relative: true),
       curve.line((0mm, +block-offset-y - corner-radius), relative: true),
       curve.line((0mm, height - block-offset-y - corner-radius), relative: true),
       curve.quad((0mm, corner-radius), (-corner-radius, corner-radius), relative: true),
-      curve.line((-width + 3.7mm + 3 * notch-spacing + notch-reserved-space, 0mm), relative: true),
+      curve.line((-width + block-left-indent + 3 * notch-spacing + notch-reserved-space, 0mm), relative: true),
       ..notch-path,
       curve.line((-notch-spacing + corner-radius, 0mm), relative: true),
       curve.quad((-corner-radius, 0mm), (-corner-radius, corner-radius), relative: true),
@@ -523,11 +523,11 @@
       curve.quad((0mm, corner-radius), (corner-radius, corner-radius), relative: true),
       curve.line((notch-spacing - corner-radius, 0mm), relative: true),
       ..inverted-notch-path,
-      curve.line((width - 3.7mm - 3 * notch-spacing - notch-reserved-space, 0mm), relative: true),
+      curve.line((width - block-left-indent - 3 * notch-spacing - notch-reserved-space, 0mm), relative: true),
       curve.quad((corner-radius, 0mm), (corner-radius, corner-radius), relative: true),
       curve.line((0mm, height - corner-radius), relative: true),
       curve.quad((0mm, corner-radius), (-corner-radius, corner-radius), relative: true),
-      curve.line((-width + 3.7mm + 3 * notch-spacing + notch-reserved-space, 0mm), relative: true),
+      curve.line((-width + block-left-indent + 3 * notch-spacing + notch-reserved-space, 0mm), relative: true),
       ..notch-path,
       curve.line((-notch-spacing + corner-radius, 0mm), relative: true),
       curve.quad((-corner-radius, 0mm), (-corner-radius, corner-radius), relative: true),
@@ -536,11 +536,11 @@
       curve.quad((0mm, corner-radius), (corner-radius, corner-radius), relative: true),
       curve.line((notch-spacing - corner-radius, 0mm), relative: true),
       ..inverted-notch-path,
-      curve.line((width - 3.7mm - 3 * notch-spacing - notch-reserved-space, 0mm), relative: true),
+      curve.line((width - block-left-indent - 3 * notch-spacing - notch-reserved-space, 0mm), relative: true),
       curve.quad((corner-radius, 0mm), (corner-radius, corner-radius), relative: true),
       curve.line((0mm, 3mm), relative: true),
       curve.quad((0mm, corner-radius), (-corner-radius, corner-radius), relative: true),
-      curve.line((-width + 3.7mm + 1 * notch-spacing + notch-reserved-space, 0mm), relative: true),
+      curve.line((-width + block-left-indent + 1 * notch-spacing + notch-reserved-space, 0mm), relative: true),
       ..notch-path,
       curve.line((-notch-spacing + corner-radius, 0mm), relative: true),
       curve.quad((-corner-radius, 0mm), (-corner-radius, -corner-radius), relative: true),
@@ -1119,7 +1119,7 @@
         )
       ]
       #if block-type == "loop" {
-        place(bottom + right)[
+        place(bottom + left, dx: header-box-sizes.width - 0.5 * block-height)[
           #image(icons.repeat, height: 0.5 * block-height)
         ]
       }
