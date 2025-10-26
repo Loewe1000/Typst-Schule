@@ -38,8 +38,8 @@
 // ------------------------------------------------
 // State für globale Scratch-Einstellungen
 #let scratch-block-options = state("scratch-block-options", (
-  theme: "normal",        // "normal" oder "high-contrast"
-  stroke-width: auto,     // auto oder spezifische Länge (z.B. 1pt)
+  theme: "normal", // "normal" oder "high-contrast"
+  stroke-width: auto, // auto oder spezifische Länge (z.B. 1pt)
 ))
 
 // Funktion zum Setzen der globalen Scratch-Optionen
@@ -232,8 +232,8 @@
   } else {
     stroke
   }
-  
-  // Automatische Textfarbe: 
+
+  // Automatische Textfarbe:
   // - Bei expliziter Angabe: verwende die angegebene Farbe
   // - Bei weißem Hintergrund: verwende dunkelgrau (normal) oder schwarz (high-contrast)
   // - Bei farbigem Hintergrund: verwende Theme-Farbe (weiß für normal, schwarz für high-contrast)
@@ -242,14 +242,14 @@
   } else if fill == white or fill == rgb("#FFFFFF") {
     // Weiße Pills brauchen dunkle Schrift
     if colors == colors-high-contrast {
-      black  // Schwarz bei high-contrast
+      black // Schwarz bei high-contrast
     } else {
-      rgb("#575E75")  // Dunkelgrau bei normal
+      rgb("#575E75") // Dunkelgrau bei normal
     }
   } else {
-    colors.text-color  // Theme-Farbe für farbige Hintergründe
+    colors.text-color // Theme-Farbe für farbige Hintergründe
   }
-  
+
   set text(font: "Helvetica Neue", weight: 500)
   box(
     fill: fill,
@@ -296,7 +296,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   _pill-base-internal(
     fill: fill,
     stroke: stroke,
@@ -356,7 +356,7 @@
 #let pill-color(body, fill: white) = context {
   let options = scratch-block-options.get()
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   _pill-base(
     fill: fill,
     stroke: white + stroke-thickness,
@@ -393,7 +393,7 @@
     context {
       let options = scratch-block-options.get()
       let stroke-thickness = get-stroke-from-options(options)
-      
+
       let width = measure(str(value)).width
       let width = if width < 2.5mm {
         2.5mm
@@ -482,7 +482,11 @@
       curve.line((0mm, height - block-offset-y - corner-radius), relative: true),
       curve.quad((0mm, corner-radius), (-corner-radius, corner-radius), relative: true),
       curve.line((-width + block-left-indent + 3 * notch-spacing + notch-reserved-space, 0mm), relative: true),
-      ..notch-path,
+      ..if bottom-notch {
+        (notch-path,)
+      } else {
+        (curve.line((-notch-total-width, 0mm), relative: true),)
+      }.flatten(),
       curve.line((-notch-spacing + corner-radius, 0mm), relative: true),
       curve.quad((-corner-radius, 0mm), (-corner-radius, corner-radius), relative: true),
     ),
@@ -508,40 +512,64 @@
       curve.line((0mm, -block-offset-y + corner-radius), relative: true),
       curve.quad((0mm, -corner-radius), (corner-radius, -corner-radius), relative: true),
       curve.line((notch-spacing - corner-radius, 0mm), relative: true),
-      ..inverted-notch-path,
+      ..if top-notch {
+        (inverted-notch-path,)
+      } else {
+        (curve.line((notch-total-width, 0mm), relative: true),)
+      }.flatten(),
       curve.line((width - block-left-indent - notch-spacing - notch-reserved-space, 0mm), relative: true),
       curve.quad((corner-radius, 0mm), (corner-radius, corner-radius), relative: true),
       curve.line((0mm, +block-offset-y - corner-radius), relative: true),
       curve.line((0mm, height - block-offset-y - corner-radius), relative: true),
       curve.quad((0mm, corner-radius), (-corner-radius, corner-radius), relative: true),
       curve.line((-width + block-left-indent + 3 * notch-spacing + notch-reserved-space, 0mm), relative: true),
-      ..notch-path,
+      ..if bottom-notch {
+        (notch-path,)
+      } else {
+        (curve.line((-notch-total-width, 0mm), relative: true),)
+      }.flatten(),
       curve.line((-notch-spacing + corner-radius, 0mm), relative: true),
       curve.quad((-corner-radius, 0mm), (-corner-radius, corner-radius), relative: true),
     ),
     falls-middle: (
       curve.quad((0mm, corner-radius), (corner-radius, corner-radius), relative: true),
       curve.line((notch-spacing - corner-radius, 0mm), relative: true),
-      ..inverted-notch-path,
+      ..if top-notch {
+        (inverted-notch-path,)
+      } else {
+        (curve.line((notch-total-width, 0mm), relative: true),)
+      }.flatten(),
       curve.line((width - block-left-indent - 3 * notch-spacing - notch-reserved-space, 0mm), relative: true),
       curve.quad((corner-radius, 0mm), (corner-radius, corner-radius), relative: true),
       curve.line((0mm, height - corner-radius), relative: true),
       curve.quad((0mm, corner-radius), (-corner-radius, corner-radius), relative: true),
       curve.line((-width + block-left-indent + 3 * notch-spacing + notch-reserved-space, 0mm), relative: true),
-      ..notch-path,
+      ..if bottom-notch {
+        (notch-path,)
+      } else {
+        (curve.line((-notch-total-width, 0mm), relative: true),)
+      }.flatten(),
       curve.line((-notch-spacing + corner-radius, 0mm), relative: true),
       curve.quad((-corner-radius, 0mm), (-corner-radius, corner-radius), relative: true),
     ),
     falls-footer: (
       curve.quad((0mm, corner-radius), (corner-radius, corner-radius), relative: true),
       curve.line((notch-spacing - corner-radius, 0mm), relative: true),
-      ..inverted-notch-path,
+      ..if top-notch {
+        (inverted-notch-path,)
+      } else {
+        (curve.line((notch-total-width, 0mm), relative: true),)
+      }.flatten(),
       curve.line((width - block-left-indent - 3 * notch-spacing - notch-reserved-space, 0mm), relative: true),
       curve.quad((corner-radius, 0mm), (corner-radius, corner-radius), relative: true),
       curve.line((0mm, 3mm), relative: true),
       curve.quad((0mm, corner-radius), (-corner-radius, corner-radius), relative: true),
       curve.line((-width + block-left-indent + 1 * notch-spacing + notch-reserved-space, 0mm), relative: true),
-      ..notch-path,
+      ..if bottom-notch {
+        (notch-path,)
+      } else {
+        (curve.line((-notch-total-width, 0mm), relative: true),)
+      }.flatten(),
       curve.line((-notch-spacing + corner-radius, 0mm), relative: true),
       curve.quad((-corner-radius, 0mm), (-corner-radius, -corner-radius), relative: true),
       curve.close(),
@@ -561,8 +589,9 @@
     height: if type == "definiere" { 1.5 * block-height } else { auto },
     [
       #context [
-        #let height = measure(body).height
-        #stack(dir: ltr, box(body, height: if height < block-height { 0.75 * block-height } else { auto }))
+        #let content-height = measure(body).height
+        #let min-height = 0.75 * block-height
+        #box(body, height: calc.max(content-height, min-height))
       ]
     ],
   ))
@@ -593,7 +622,7 @@
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
   let final-colorschema = if colorschema == auto { colors.bewegung } else { colorschema }
-  
+
   scratch-block-internal(
     final-colorschema,
     type: type,
@@ -614,7 +643,7 @@
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
   let final-colorschema = if colorschema == auto { colors.steuerung } else { colorschema }
-  
+
   set text(font: "Helvetica Neue", colors.text-color, weight: 500)
   box([
     // nested kann bool (beide Seiten gleich) oder (left, right) array sein
@@ -627,7 +656,7 @@
     #let x-inset-left = if nested-left { -0.3 } else { 1.0 }
     #let x-inset-right = if nested-right { -0.3 } else { 1.0 }
     #let content-box = if body != [] {
-      let body = if std.type(body) != array { (body, ) } else { body }
+      let body = if std.type(body) != array { (body,) } else { body }
       box(inset: (left: pill-inset-x * x-inset-left, right: pill-inset-x * x-inset-right, y: pill-inset-y), align(horizon, [
         #grid(
           columns: (body.len() * 2 + 1) * (auto,),
@@ -675,7 +704,7 @@
 #let bewegung(body) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   scratch-block(
     colorschema: colors.bewegung,
     type: "anweisung",
@@ -687,7 +716,7 @@
 #let aussehen(body) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   scratch-block(
     colorschema: colors.aussehen,
     type: "anweisung",
@@ -699,7 +728,7 @@
 #let klang(body) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   scratch-block(
     colorschema: colors.klang,
     type: "anweisung",
@@ -711,7 +740,7 @@
 #let fühlen(body) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   scratch-block(
     colorschema: colors.fühlen,
     type: "anweisung",
@@ -723,7 +752,7 @@
 #let steuerung(body, bottom-notch: true) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   scratch-block(
     colorschema: colors.steuerung,
     type: "anweisung",
@@ -736,7 +765,7 @@
 #let variablen(body) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   scratch-block(
     colorschema: colors.variablen,
     type: "anweisung",
@@ -748,7 +777,7 @@
 #let listen(body) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   scratch-block(
     colorschema: colors.listen,
     type: "anweisung",
@@ -760,7 +789,7 @@
 #let eigene(body, dark: false) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   scratch-block(
     colorschema: if dark {
       (primary: colors.eigene.secondary, tertiary: colors.eigene.tertiary)
@@ -780,7 +809,7 @@
 #let ereignis(body, children) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   scratch-block(
     colorschema: colors.ereignisse,
     type: "ereignis",
@@ -793,7 +822,7 @@
 #let ereignis-grüne-flagge(children) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   scratch-block(
     colorschema: colors.ereignisse,
     type: "ereignis",
@@ -812,7 +841,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   scratch-block(
     colorschema: colors.ereignisse,
     type: "ereignis",
@@ -825,7 +854,7 @@
 #let ereignis-figur-angeklickt(children) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   scratch-block(
     colorschema: colors.ereignisse,
     type: "ereignis",
@@ -839,7 +868,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   scratch-block(
     colorschema: colors.ereignisse,
     type: "ereignis",
@@ -853,7 +882,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   scratch-block(
     colorschema: colors.ereignisse,
     type: "ereignis",
@@ -870,7 +899,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   scratch-block(
     colorschema: colors.ereignisse,
     type: "ereignis",
@@ -882,7 +911,7 @@
 #let ereignis-anweisung(body) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   scratch-block(
     colorschema: colors.ereignisse,
     type: "anweisung",
@@ -895,7 +924,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   ereignis-anweisung(
     stack(dir: ltr, spacing: 1.5mm, "sende", pill-reporter(nachricht, fill: colors.ereignisse.secondary, stroke: colors.ereignisse.tertiary + stroke-thickness, dropdown: true, inline: true), if wait {
       "an alle und warte"
@@ -907,7 +936,7 @@
 #let wenn-ich-als-klon-entstehe(children) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   scratch-block(
     colorschema: colors.steuerung,
     type: "ereignis",
@@ -920,7 +949,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   steuerung(
     stack(dir: ltr, spacing: 1.5mm, "erstelle Klon von", pill-reporter(element, fill: colors.steuerung.secondary, stroke: colors.steuerung.tertiary + stroke-thickness, dropdown: true, inline: true)),
   )
@@ -937,7 +966,7 @@
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
   let final-colorschema = if colorschema == auto { colors.aussehen } else { colorschema }
-  
+
   pill-reporter(
     fill: final-colorschema.primary,
     stroke: final-colorschema.tertiary + stroke-thickness,
@@ -961,7 +990,7 @@
 #let bewegung-reporter(body, dropdown-content: none) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   reporter(
     colorschema: colors.bewegung,
     body,
@@ -973,7 +1002,7 @@
 #let aussehen-reporter(body, dropdown-content: none) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   reporter(
     colorschema: colors.aussehen,
     body,
@@ -985,7 +1014,7 @@
 #let klang-reporter(body, dropdown-content: none) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   reporter(
     colorschema: colors.klang,
     body,
@@ -997,7 +1026,7 @@
 #let fühlen-reporter(body, dropdown-content: none) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   reporter(
     colorschema: colors.fühlen,
     body,
@@ -1009,7 +1038,7 @@
 #let variablen-reporter(body, dropdown-content: none) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   reporter(
     colorschema: colors.variablen,
     body,
@@ -1021,7 +1050,7 @@
 #let listen-reporter(body, dropdown-content: none) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   reporter(
     colorschema: colors.listen,
     body,
@@ -1033,13 +1062,25 @@
 #let eigene-reporter(body, dropdown-content: none) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   reporter(
     colorschema: colors.eigene,
     body,
     dropdown-content: dropdown-content,
   )
 }
+
+// Parameter-Reporter (pink) für eigene Block-Parameter
+// Nutzung: #parameter("Anzahl")
+// Verwendet die gleichen Insets wie eigene-eingabe() für konsistente Höhe
+#let parameter(name) = context {
+  let options = scratch-block-options.get()
+  let colors = get-colors-from-options(options)
+  let stroke-thickness = get-stroke-from-options(options)
+
+  pill-round(name, fill: colors.eigene.primary, stroke: colors.eigene.tertiary + stroke-thickness)
+}
+
 // ------------------------------------------------
 // 13) Kontrollstrukturen (Grundgerüst + Blöcke)
 // ------------------------------------------------
@@ -1047,15 +1088,18 @@
 #let conditional-block(
   header-label,
   first-body: none, // Der erste Körper (Schleifeninhalt oder "dann"-Zweig)
+  middle-notch: false, 
   middle-label: none, // Das "sonst"-Label (nur bei falls-Block)
   second-body: none, // Der zweite Körper (nur "sonst"-Zweig bei falls-Block)
   bottom-notch: true,
+  first-inset-notch: true,
+  second-inset-notch: true,
   block-type: "loop", // "loop" oder "falls"
 ) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   block(
     above: 0em,
     below: 0mm,
@@ -1111,11 +1155,11 @@
           curve.line((0mm, first-height), relative: true),
           ..if middle-label != none {
             (
-              ..block-path(middle-height, header-box-sizes.width, path-prefix + "-middle"),
+              ..block-path(middle-height, header-box-sizes.width, path-prefix + "-middle", bottom-notch: first-inset-notch),
               curve.line((0mm, second-height), relative: true),
             )
           },
-          ..block-path(header-height, header-box-sizes.width, path-prefix + "-footer", bottom-notch: bottom-notch),
+          ..block-path(header-height, header-box-sizes.width, path-prefix + "-footer", bottom-notch: bottom-notch, top-notch: second-inset-notch),
         )
       ]
       #if block-type == "loop" {
@@ -1149,7 +1193,7 @@
 #let wiederhole(anzahl: 10, body: none) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   conditional-block(
     [#stack(dir: ltr, spacing: 1.5mm, "wiederhole", zahl-oder-content(anzahl, colors.steuerung), "mal")],
     first-body: body,
@@ -1160,7 +1204,7 @@
 #let wiederhole-bis(bdg, body: none) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   conditional-block(
     [#stack(dir: ltr, spacing: 1.5mm, "wiederhole bis", if bdg != [] { bdg } else { bedingung(colorschema: colors.steuerung, []) })],
     first-body: body,
@@ -1175,23 +1219,25 @@
 )
 
 // Falls-Dann-Sonst Block
-#let falls(bdg, dann: none, sonst: none) = context {
+#let falls(bdg, dann: none, sonst: none, dann-end: false, sonst-end: false) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   conditional-block(
     [#stack(dir: ltr, spacing: 1.5mm, "falls", if bdg != [] { bdg } else { bedingung(colorschema: colors.steuerung, []) }, ", dann")],
     first-body: dann,
     middle-label: if sonst != none { [#stack(dir: ltr, spacing: 1.5mm, "sonst")] } else { none },
     second-body: sonst,
     block-type: "falls",
+    first-inset-notch: not sonst-end,
+    second-inset-notch: not dann-end,
   )
 }
 
 #let warte(sekunde) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   steuerung(
     stack(dir: ltr, spacing: 1.5mm, "warte", zahl-oder-content(sekunde, colors.steuerung), "Sekunden"),
   )
@@ -1200,7 +1246,7 @@
 #let warte-bis(bdg) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   steuerung(
     stack(dir: ltr, spacing: 1.5mm, "warte bis", if bdg != [] { zahl-oder-content(bdg, colors.steuerung) } else { bedingung[] }),
   )
@@ -1210,7 +1256,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   steuerung(
     bottom-notch: false,
     stack(dir: ltr, spacing: 1.5mm, "stoppe", pill-rect(
@@ -1234,7 +1280,7 @@
 #let gehe-zu(x: 0, y: 0) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   bewegung(
     stack(dir: ltr, spacing: 1.5mm, "gehe zu x:", zahl-oder-content(x, colors.bewegung), "y:", zahl-oder-content(y, colors.bewegung)),
   )
@@ -1243,7 +1289,7 @@
 #let gleite-in-zu(sek: 1, x: 0, y: 0) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   bewegung(
     stack(
       dir: ltr,
@@ -1261,7 +1307,7 @@
 #let setze-Richtung-auf(grad: 90) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   bewegung(
     stack(dir: ltr, spacing: 1.5mm, "setze Richtung auf", zahl-oder-content(grad, colors.bewegung), "Grad"),
   )
@@ -1271,7 +1317,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   bewegung(
     stack(dir: ltr, spacing: 1.5mm, "gehe zu", pill-reporter(
       inline: true,
@@ -1288,7 +1334,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   bewegung(
     stack(dir: ltr, spacing: 1.5mm, "drehe dich zu", pill-reporter(
       inline: true,
@@ -1304,7 +1350,7 @@
 #let gehe-schritt(schritt: 10) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   bewegung(
     stack(dir: ltr, spacing: 1.5mm, "gehe", zahl-oder-content(schritt, colors.bewegung), "er Schritt"),
   )
@@ -1313,7 +1359,7 @@
 #let drehe-dich-um(richtung: "rechts", grad: 15) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   bewegung(
     stack(dir: ltr, spacing: 1.5mm, "drehe dich", if richtung == "rechts" { image(icons.rotate-right) } else { image(icons.rotate-left) }, "um", zahl-oder-content(grad, colors.bewegung), "Grad"),
   )
@@ -1322,7 +1368,7 @@
 #let ändere-um(richtung: "x", auf: false, schritt: 0) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   bewegung(
     stack(dir: ltr, spacing: 1.5mm, if auf { "setze " } else { "ändere " } + str(richtung) + if auf { " auf" } else { " um" }, zahl-oder-content(schritt, colors.bewegung)),
   )
@@ -1351,7 +1397,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   bewegung(
     stack(dir: ltr, spacing: 1.5mm, "setze Drehtyp auf", pill-rect(
       typ,
@@ -1367,7 +1413,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   bewegung(
     stack(dir: ltr, spacing: 1.5mm, "gleite in", zahl-oder-content(sek, colors.bewegung), "Sek. zu", pill-reporter(
       inline: true,
@@ -1387,7 +1433,7 @@
 #let sage(text: "Hallo!", sekunden: none) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   aussehen(
     if sekunden == none {
       stack(dir: ltr, spacing: 1.5mm, "sage", zahl-oder-content(text, colors.aussehen))
@@ -1400,7 +1446,7 @@
 #let denke(text: "Hmm...", sekunden: none) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   aussehen(
     if sekunden == none {
       stack(dir: ltr, spacing: 1.5mm, "denke", zahl-oder-content(text, colors.aussehen))
@@ -1414,7 +1460,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   aussehen(
     stack(dir: ltr, spacing: 1.5mm, "wechsle zu Kostüm", pill-reporter(
       inline: true,
@@ -1435,7 +1481,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   aussehen(
     stack(dir: ltr, spacing: 1.5mm, "wechsle zu Bühnenbild", pill-reporter(
       inline: true,
@@ -1455,7 +1501,7 @@
 #let ändere-größe-um(wert: 10) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   aussehen(
     stack(dir: ltr, spacing: 1.5mm, "ändere Größe um", zahl-oder-content(wert, colors.aussehen)),
   )
@@ -1464,7 +1510,7 @@
 #let setze-größe-auf(wert: 100) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   aussehen(
     stack(dir: ltr, spacing: 1.5mm, "setze Größe auf", zahl-oder-content(wert, colors.aussehen)),
   )
@@ -1474,7 +1520,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   aussehen(
     stack(
       dir: ltr,
@@ -1497,7 +1543,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   aussehen(
     stack(
       dir: ltr,
@@ -1532,7 +1578,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   aussehen(
     stack(
       dir: ltr,
@@ -1554,7 +1600,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   aussehen(
     stack(
       dir: ltr,
@@ -1581,7 +1627,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   klang(
     if ganz {
       stack(
@@ -1619,7 +1665,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   klang(
     stack(
       dir: ltr,
@@ -1642,7 +1688,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   klang(
     stack(
       dir: ltr,
@@ -1668,7 +1714,7 @@
 #let ändere-lautstärke-um(wert: -10) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   klang(
     stack(dir: ltr, spacing: 1.5mm, "ändere Lautstärke um", zahl-oder-content(wert, colors.klang)),
   )
@@ -1677,7 +1723,7 @@
 #let setze-lautstärke-auf(wert: 100) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   klang(
     stack(dir: ltr, spacing: 1.5mm, "setze Lautstärke auf", zahl-oder-content(wert, colors.klang), "%"),
   )
@@ -1691,7 +1737,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   aussehen-reporter(stack(
     dir: ltr,
     spacing: pill-spacing,
@@ -1711,7 +1757,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   aussehen-reporter(stack(
     dir: ltr,
     spacing: pill-spacing,
@@ -1736,7 +1782,7 @@
 #let frage(text: "Wie heißt du?") = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   fühlen(
     stack(dir: ltr, spacing: 1.5mm, "frage", zahl-oder-content(text, colors.fühlen), "und warte"),
   )
@@ -1746,7 +1792,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   fühlen(
     stack(dir: ltr, spacing: 1.5mm, "setze Ziehbarkeit auf", pill-rect(
       modus,
@@ -1773,7 +1819,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   bedingung(
     colorschema: colors.fühlen,
     type: "bedingung",
@@ -1796,7 +1842,7 @@
 #let maustaste-gedrückt(nested: false) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   bedingung(
     colorschema: colors.fühlen,
     type: "bedingung",
@@ -1815,7 +1861,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   fühlen-reporter(
     stack(
       dir: ltr,
@@ -1845,7 +1891,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   fühlen-reporter(
     stack(
       dir: ltr,
@@ -1871,7 +1917,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   bedingung(
     colorschema: colors.fühlen,
     type: "bedingung",
@@ -1894,7 +1940,7 @@
 #let wird-farbe-berührt(color: rgb("#36B7CE"), nested: false) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   bedingung(
     colorschema: colors.fühlen,
     type: "bedingung",
@@ -1906,7 +1952,7 @@
 #let farbe-berührt(color: (rgb("#83FEF3"), rgb("#CB6622")), nested: false) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   bedingung(
     colorschema: colors.fühlen,
     type: "bedingung",
@@ -1931,7 +1977,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   variablen(
     stack(
       dir: ltr,
@@ -1954,7 +2000,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   variablen(
     stack(
       dir: ltr,
@@ -1977,7 +2023,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   variablen(
     stack(
       dir: ltr,
@@ -1998,7 +2044,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   variablen(
     stack(
       dir: ltr,
@@ -2023,7 +2069,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   listen(
     stack(
       dir: ltr,
@@ -2047,7 +2093,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   listen(
     stack(
       dir: ltr,
@@ -2070,7 +2116,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   listen(
     stack(
       dir: ltr,
@@ -2091,7 +2137,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   listen(
     stack(
       dir: ltr,
@@ -2117,7 +2163,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   listen(
     stack(
       dir: ltr,
@@ -2142,7 +2188,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   listen-reporter(
     stack(
       dir: ltr,
@@ -2165,7 +2211,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   listen-reporter(
     stack(
       dir: ltr,
@@ -2188,7 +2234,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   listen-reporter(
     stack(
       dir: ltr,
@@ -2209,7 +2255,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   bedingung(
     colorschema: colors.listen,
     type: "bedingung",
@@ -2233,7 +2279,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   listen(
     stack(
       dir: ltr,
@@ -2254,7 +2300,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   listen(
     stack(
       dir: ltr,
@@ -2271,6 +2317,75 @@
   )
 }
 
+// Visuelle Listen-Darstellung (wie im Scratch-Monitor)
+#let liste(name: "Liste", items: (), width: 4cm) = context {
+  let options = scratch-block-options.get()
+  let colors = get-colors-from-options(options)
+  let stroke-thickness = get-stroke-from-options(options)
+
+  // Berechne Länge
+  let len = items.len()
+
+  box(
+    width: width,
+    fill: rgb("#E5F0FF"),
+    stroke: (paint: gray, thickness: 0.5pt),
+    radius: 5pt,
+    clip: true,
+  )[
+    #set text(size: 9pt, font: "Helvetica Neue", weight: 500)
+    // Kopfzeile mit Namen
+    #box(
+      fill: white,
+      width: 100%,
+      inset: 5pt,
+      align(center)[
+        #text(fill: rgb("#4C4C4C"), weight: 600, name)
+      ],
+    )
+    // Listenelemente
+    #box(inset: (x: 2mm))[
+      #grid(
+        columns: (auto, 1fr),
+        column-gutter: 8pt,
+        row-gutter: 2pt,
+        align: left + horizon,
+        ..items
+          .enumerate()
+          .map(((index, item)) => {
+            (
+              grid.cell(str(index + 1)),
+              grid.cell(box(
+                width: 100%,
+                height: 5mm,
+                fill: colors.listen.primary,
+                stroke: colors.listen.tertiary + stroke-thickness,
+                radius: 3pt,
+                inset: 3pt,
+                align(left, item),
+              )),
+            )
+          })
+          .flatten(),
+      )
+    ]
+    // Fußzeile mit Länge
+    #box(
+      fill: white,
+      width: 100%,
+      align(center)[
+        #grid(
+          columns: (auto, 1fr, auto),
+          column-gutter: 5pt,
+          inset: 5pt,
+          align: (left + horizon, center + horizon, right + horizon),
+          text(fill: rgb("#4C4C4C"), size: 8pt, "+"), text(fill: rgb("#4C4C4C"), size: 8pt, weight: 600, [Länge: #len]), text(fill: rgb("#4C4C4C"), size: 8pt, "="),
+        )
+      ],
+    )
+  ]
+}
+
 // ------------------------------------------------
 // 20) Eigene Blöcke
 // ------------------------------------------------
@@ -2280,7 +2395,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   pill-round(text, stroke: colors.eigene.tertiary + stroke-thickness)
 }
 
@@ -2294,7 +2409,7 @@
     let options = scratch-block-options.get()
     let colors = get-colors-from-options(options)
     let stroke-thickness = get-stroke-from-options(options)
-    
+
     eigene(dark: dark, {
       let values = values.pos()
       stack(
@@ -2304,6 +2419,8 @@
           for item in items {
             if std.type(item) == str {
               (item,)
+            } else if std.type(item) == dictionary {
+              (pill-round(stroke: colors.eigene.tertiary, fill: colors.eigene.primary, text-color: colors.text-color, item.name),)
             } else {
               (pill-round(stroke: colors.eigene.tertiary, fill: colors.eigene.primary, text-color: colors.text-color, str("number or text")),)
             }
@@ -2328,7 +2445,7 @@
 #let definiere(label, ..children) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   scratch-block(
     colorschema: colors.eigene,
     type: "definiere",
@@ -2351,7 +2468,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   pill-reporter(
     stack(
       dir: ltr,
@@ -2370,7 +2487,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   pill-reporter(
     stack(
       dir: ltr,
@@ -2389,7 +2506,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   pill-reporter(
     stack(
       dir: ltr,
@@ -2408,7 +2525,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   pill-reporter(
     stack(
       dir: ltr,
@@ -2427,16 +2544,16 @@
 #let op-label(text, start: false, end: false) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   pill-round(
     text,
     fill: none,
     stroke: none,
     inset: (
       left: if start { pill-inset-x } else { 0.25 * pill-inset-x },
-      right: if end { pill-inset-x } else { 0.25 * pill-inset-x }
+      right: if end { pill-inset-x } else { 0.25 * pill-inset-x },
     ),
-    text-color: colors.text-color
+    text-color: colors.text-color,
   )
 }
 
@@ -2444,7 +2561,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   pill-reporter(
     stack(
       dir: ltr,
@@ -2463,7 +2580,7 @@
 #let größer-als(arg1, arg2, nested: false) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   bedingung(
     colorschema: colors.operatoren,
     type: "bedingung",
@@ -2475,7 +2592,7 @@
 #let kleiner-als(arg1, arg2, nested: false) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   bedingung(
     colorschema: colors.operatoren,
     type: "bedingung",
@@ -2487,7 +2604,7 @@
 #let gleich(arg1, arg2, nested: false) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   bedingung(
     colorschema: colors.operatoren,
     type: "bedingung",
@@ -2499,7 +2616,7 @@
 #let und(arg1, arg2, nested: (false, false)) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   bedingung(
     colorschema: colors.operatoren,
     type: "bedingung",
@@ -2511,7 +2628,7 @@
 #let oder(arg1, arg2, nested: (false, false)) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   bedingung(
     colorschema: colors.operatoren,
     type: "bedingung",
@@ -2523,7 +2640,7 @@
 #let nicht(arg1, nested: false) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   bedingung(
     colorschema: colors.operatoren,
     type: "bedingung",
@@ -2536,7 +2653,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   pill-reporter(
     stack(
       dir: ltr,
@@ -2556,7 +2673,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   pill-reporter(
     stack(
       dir: ltr,
@@ -2576,7 +2693,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   pill-reporter(
     stack(
       dir: ltr,
@@ -2593,7 +2710,7 @@
 #let enthält(text: "Apfel", zeichen: "a", nested: false) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
-  
+
   bedingung(
     colorschema: colors.operatoren,
     type: "bedingung",
@@ -2606,7 +2723,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   pill-reporter(
     stack(
       dir: ltr,
@@ -2625,7 +2742,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   pill-reporter(
     stack(
       dir: ltr,
@@ -2643,7 +2760,7 @@
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
-  
+
   pill-reporter(
     stack(
       dir: ltr,
