@@ -370,7 +370,6 @@
 }
 
 #let show-materialien(curr: false) = {
-  set figure(numbering: "1", supplement: "Abb.")
   context {
     let all = _state_aufgaben.get()
     if curr { all = (all.last(),) }
