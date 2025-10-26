@@ -743,6 +743,7 @@
           for f in processed-fills {
             plot.add-fill-between(
               domain: f.domain,
+              samples: samples,
               style: (fill: f.clr, stroke: none),
               f.lower,
               f.upper,
