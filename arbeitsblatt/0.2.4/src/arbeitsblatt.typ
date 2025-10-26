@@ -391,7 +391,7 @@
     body
 
     // To show materials on a separate page
-    context if materialien == "seite" and _state_aufgaben.final().len() > 0 {
+    context if materialien in ("seite", "reinquetschen") and _state_aufgaben.final().len() > 0 {
       show-materialien()
     }
     // To show solutions on a seperate page

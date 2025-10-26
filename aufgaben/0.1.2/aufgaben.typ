@@ -199,7 +199,7 @@
     }
 
     if rows.len() > 0 {
-      let element = if new-page {page} else {block}
+      let element = if new-page { page } else { block }
       element[
         #block(text(size: 1.25em, weight: "bold")[Erwartungshorizont])
         #table(
@@ -373,17 +373,15 @@
   context {
     let all = _state_aufgaben.get()
     if curr { all = (all.last(),) }
-    if _state_options.final().materialien == "seite" and  _state_options.final().materialien != "reinquetschen" {
+    if _state_options.final().materialien == "seite" {
       pagebreak(weak: true)
     }
     for aufg in all {
       if aufg.materialien.len() > 0 {
-        if _state_options.final().materialien == "seite" {
-          show-material(aufg)
-        } else if _state_options.final().materialien in ("sofort", "folgend") {
-          show-material(aufg)
-        } else {
+        if _state_options.final().materialien == "seiten" {
           page(show-material(aufg))
+        } else {
+          show-material(aufg)
         }
       }
     }
