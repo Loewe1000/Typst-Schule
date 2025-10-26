@@ -246,7 +246,9 @@
       // Margin-Logik: Prüfe zuerst page-settings.margin, dann Standard-Margins
       margin: if "margin" in page-settings.keys() {
         // Wenn explizit ein Margin in page-settings gesetzt wurde, verwende dieses
-        let top = if type(page-settings.margin) == dictionary { page-settings.margin.at("top", default: 0cm) } else { page-settings.margin }
+        let top = if type(page-settings.margin) == dictionary { page-settings.margin.at("top", default: 0cm) } else {
+          page-settings.margin
+        }
         let values = page-settings.margin
         let _ = if type(values) == dictionary {
           values.remove("top")
@@ -357,7 +359,7 @@
           #align(left, grid(
             columns: 2,
             column-gutter: 0.5em,
-            text(size: figure-font-size, strong(thm_num) + ":"), it.caption,
+            text(size: figure-font-size, strong(thm_num) + ":"), text(size: figure-font-size, it.caption),
           ))
         ]
       }
