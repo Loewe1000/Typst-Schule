@@ -199,6 +199,8 @@
           numbering("a)", counter(figure.where(kind: "teilaufgabe")).at(el.location()).first())
         }
       }
+    } else if el != none and el.func() == figure and (el.kind == image or el.kind == table) {
+      "A" + it
     } else {
       // Other references as usual.
       it
