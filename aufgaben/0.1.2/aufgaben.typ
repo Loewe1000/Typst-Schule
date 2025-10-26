@@ -373,7 +373,7 @@
   context {
     let all = _state_aufgaben.get()
     if curr { all = (all.last(),) }
-    if _state_options.final().materialien == "seite" {
+    if _state_options.final().materialien == "seite" and  _state_options.final().materialien != "reinquetschen" {
       pagebreak(weak: true)
     }
     for aufg in all {
