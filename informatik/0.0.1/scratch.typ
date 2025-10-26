@@ -1,5 +1,41 @@
-#set page(width: auto, height: auto, margin: 5mm)
+// ================================================================
+// Scratch-Blöcke für Typst
+//
+// Dieses Paket rendert Scratch-ähnliche Blöcke und Reporter in Typst.
+// Die Darstellung ist global über einen State konfigurierbar (Theme & Linienbreite).
+//
+// Schnellstart:
+//   - Globale Optionen setzen:  #set-scratch(theme: "high-contrast", stroke-width: 1pt)
+//   - Blöcke verwenden:         #bewegung[ ... ], #steuerung[ ... ], #ereignis[ ... ] usw.
+//   - Reporter/Werte:            #zahl-oder-content(42, colors.bewegung) oder #bewegung-reporter[ ... ]
+//
+// Inhaltsverzeichnis (Sektionen):
+//   1) Konfiguration & State
+//   2) Assets & Icons
+//   3) Farbpaletten (normal / high-contrast)
+//   4) Theme-/Stroke-Helpers
+//   5) Hilfsfunktionen für Benutzer (get-colors, get-stroke)
+//   6) Geometrie & Layout-Konstanten
+//   7) Pill-Primitives (Basis + Varianten)
+//   8) Wert-/Content-Helfer
+//   9) Blockpfade & Rendering (scratch-block, bedingung)
+//  10) Kategorie-Wrapper (bewegung, aussehen, ...)
+//  11) Ereignisse
+//  12) Reporter (generisch + je Kategorie)
+//  13) Kontrollstrukturen (wiederhole, falls, ...)
+//  14) Bewegungsblöcke
+//  15) Aussehen
+//  16) Klang
+//  17) Fühlen (Sensoren)
+//  18) Variablen
+//  19) Listen
+//  20) Eigene Blöcke
+//  21) Operatoren
+// ================================================================
 
+// ------------------------------------------------
+// 1) Konfiguration & State
+// ------------------------------------------------
 // State für globale Scratch-Einstellungen
 #let scratch-block-options = state("scratch-block-options", (
   theme: "normal",        // "normal" oder "high-contrast"
@@ -20,9 +56,9 @@
   })
 }
 
-// Hilfsvariable - wird intern verwendet
-#let high-contrast = false
-
+// ------------------------------------------------
+// 2) Assets & Icons
+// ------------------------------------------------
 #let icons = (
   dropdown-arrow: bytes(
     "<svg id=\"Layer_1\" data-name=\"Layer 1\" xmlns=\"http://www.w3.org/2000/svg\" width=\"12.71\" height=\"8.79\" viewBox=\"0 0 12.71 8.79\"><title>dropdown-arrow</title><g opacity=\"0.1\"><path d=\"M12.71,2.44A2.41,2.41,0,0,1,12,4.16L8.08,8.08a2.45,2.45,0,0,1-3.45,0L0.72,4.16A2.42,2.42,0,0,1,0,2.44,2.48,2.48,0,0,1,.71.71C1,0.47,1.43,0,6.36,0S11.75,0.46,12,.71A2.44,2.44,0,0,1,12.71,2.44Z\" fill=\"#231f20\"/></g><path d=\"M6.36,7.79a1.43,1.43,0,0,1-1-.42L1.42,3.45a1.44,1.44,0,0,1,0-2c0.56-.56,9.31-0.56,9.87,0a1.44,1.44,0,0,1,0,2L7.37,7.37A1.43,1.43,0,0,1,6.36,7.79Z\" fill=\"#fff\"/></svg>",
@@ -57,9 +93,9 @@
 ",
   ),
 )
-
-
-
+// ------------------------------------------------
+// 3) Farbpaletten (normal / high-contrast)
+// ------------------------------------------------
 // Standard Scratch-Farben (mit offizieller Blockly-Namenskonvention)
 #let colors-normal = (
   text-color: rgb("#FFFFFF"),
@@ -90,6 +126,9 @@
   eigene: (primary: rgb("#FF99AA"), secondary: rgb("#FFCCD5"), tertiary: rgb("#FF3355"), quaternary: rgb("#FFE5EA")),
 )
 
+// ------------------------------------------------
+// 4) Theme-/Stroke-Helpers
+// ------------------------------------------------
 // Hilfsfunktionen zum Auslesen der Farben und Stroke-Dicke aus den Optionen
 #let get-colors-from-options(options) = {
   if options.theme == "high-contrast" {
@@ -109,36 +148,39 @@
   }
 }
 
-// Fallback globale Variablen für direkten Zugriff (deprecated, aber für Kompatibilität)
-#let colors = if high-contrast {
-  colors-high-contrast
-} else {
-  colors-normal
+// ------------------------------------------------
+// 5) Hilfsfunktionen für Benutzer (benötigen context!)
+// ------------------------------------------------
+// Hilfsfunktion: Gibt das aktuelle colors-Dictionary zurück (benötigt context!)
+// Verwendung: #context { let colors = get-colors(); bedingung(colorschema: colors.operatoren)[] }
+#let get-colors() = {
+  let options = scratch-block-options.get()
+  get-colors-from-options(options)
 }
 
-#let stroke-thickness = if high-contrast {
-  1.0pt
-} else {
-  0.5pt
+// Hilfsfunktion: Gibt die aktuelle Stroke-Dicke zurück (benötigt context!)
+#let get-stroke() = {
+  let options = scratch-block-options.get()
+  get-stroke-from-options(options)
 }
 
-//#move(dy: 15.4mm, dx: -stroke-thickness, image("ereignis.svg", width: 4cm))
-//#image("ereignis.svg", width: 4cm)
-
-// Notch (Auskerbung) Dimensionen
-#let notch-depth = 1.5mm
-#let notch-width = 2.2mm
-#let notch-cp-x = 0.75mm  // Bézierkurven-Kontrollpunkt
+// ------------------------------------------------
+// 6) Geometrie & Layout-Konstanten
+// ------------------------------------------------
+// Notch (Auskerbung/Puzzle-Verbinder) Dimensionen
+#let notch-height = 1.5mm              // Vertikale Höhe der Auskerbung
+#let notch-inner-width = 2.2mm         // Breite des flachen Mittelteils
+#let notch-curve-control = 0.75mm      // Bézierkurven-Kontrollpunkt für Rundung
+#let notch-spacing = 1.3mm             // Horizontaler Abstand vor/nach Notch
+#let notch-total-width = notch-inner-width + 2 * (notch-height + notch-curve-control)  // Gesamtbreite inkl. Kurven
+#let notch-reserved-space = notch-inner-width + notch-spacing  // Reservierter Platz in Breitenberechnungen (Approximation)
 
 // Block-Dimensionen
 #let block-height = 10mm
 #let corner-radius = 0.75mm
-#let block-offset-y = 1.5mm  // Vertikaler Offset für bewegung
-#let notch-margin = 1.3mm    // Horizontaler Abstand vor/nach Notch
-#let notch-total = 3mm       // Gesamtbreite der Notch-Region
-#let notch-complete-width = notch-width + 2 * (notch-depth + notch-cp-x)
+#let block-offset-y = 1.5mm  // Vertikaler Offset für Anweisungsblöcke
 
-// Hat (Kappe) Dimensionen für ereignis-Block
+// Hat (Kappe) Dimensionen für Ereignis-Block
 #let hat-cp1-x = 4mm
 #let hat-cp1-y = 3.1mm
 #let hat-cp2-x = 5.2mm
@@ -151,18 +193,24 @@
 
 // Layout
 #let content-inset = 5pt
+
+// Notch-Pfade (für Puzzle-Verbinder unten)
 #let notch-path = (
-  curve.cubic((-notch-cp-x, 0mm), (-notch-depth, notch-depth), (-notch-depth - notch-cp-x, notch-depth), relative: true),
-  curve.line((-notch-width, 0mm), relative: true),
-  curve.cubic((-notch-cp-x, 0mm), (-notch-depth, -notch-depth), (-notch-depth - notch-cp-x, -notch-depth), relative: true),
+  curve.cubic((-notch-curve-control, 0mm), (-notch-height, notch-height), (-notch-height - notch-curve-control, notch-height), relative: true),
+  curve.line((-notch-inner-width, 0mm), relative: true),
+  curve.cubic((-notch-curve-control, 0mm), (-notch-height, -notch-height), (-notch-height - notch-curve-control, -notch-height), relative: true),
 )
 
+// Invertierte Notch-Pfade (für Puzzle-Verbinder oben)
 #let inverted-notch-path = (
-  curve.cubic((notch-cp-x, 0mm), (notch-depth, notch-depth), (notch-depth + notch-cp-x, notch-depth), relative: true),
-  curve.line((notch-width, 0mm), relative: true),
-  curve.cubic((notch-cp-x, 0mm), (notch-depth, -notch-depth), (notch-depth + notch-cp-x, -notch-depth), relative: true),
+  curve.cubic((notch-curve-control, 0mm), (notch-height, notch-height), (notch-height + notch-curve-control, notch-height), relative: true),
+  curve.line((notch-inner-width, 0mm), relative: true),
+  curve.cubic((notch-curve-control, 0mm), (notch-height, -notch-height), (notch-height + notch-curve-control, -notch-height), relative: true),
 )
 
+// ------------------------------------------------
+// 7) Pill-Primitives (Basis + Varianten)
+// ------------------------------------------------
 // Interne Basis-Funktion für alle Pills
 // Akzeptiert explizite colors und stroke-thickness Parameter
 #let _pill-base-internal(
@@ -263,6 +311,7 @@
 }
 
 // Weiße Input-Pills (feste Höhe 8.4mm, keine Insets)
+// Hinweis: Textfarbe wird abhängig von Theme/Hintergrund automatisch gewählt.
 #let pill-round(body, stroke: auto, inset: (x: 1.3 * pill-inset-x, y: 1mm), fill: white, text-color: auto) = _pill-base(
   fill: fill,
   stroke: stroke,
@@ -331,7 +380,9 @@
     pill-color(body, fill: fill)
   }
 }
-
+// ------------------------------------------------
+// 8) Wert-/Content-Helfer
+// ------------------------------------------------
 // Helper-Funktion: Wert oder Content
 // Wandelt einfache Werte (String, Int, Float) in Pills um,
 // lässt Content (Blöcke, Reporter, etc.) unverändert
@@ -356,6 +407,9 @@
   }
 }
 
+// ------------------------------------------------
+// 9) Blockpfade & Rendering (scratch-block, bedingung)
+// ------------------------------------------------
 #let block-path(height, width, type, top-notch: true, bottom-notch: true) = {
   return (
     ereignis: (
@@ -366,9 +420,9 @@
       curve.quad((corner-radius, 0mm), (corner-radius, corner-radius), relative: true),
       curve.line((0mm, height - 2 * corner-radius), relative: true),
       curve.quad((0mm, corner-radius), (-corner-radius, corner-radius), relative: true),
-      curve.line((-width + 3.7mm + notch-margin + notch-total + corner-radius, 0mm), relative: true),
+      curve.line((-width + 3.7mm + notch-spacing + notch-reserved-space + corner-radius, 0mm), relative: true),
       ..notch-path,
-      curve.line((-notch-margin + corner-radius, 0mm), relative: true),
+      curve.line((-notch-spacing + corner-radius, 0mm), relative: true),
       curve.quad((-corner-radius, 0mm), (-corner-radius, -corner-radius), relative: true),
       curve.close(),
     ),
@@ -378,33 +432,33 @@
       curve.quad((5 * corner-radius, 0mm), (5 * corner-radius, 5 * corner-radius), relative: true),
       curve.line((0mm, height - corner-radius), relative: true),
       curve.quad((0mm, corner-radius), (-corner-radius, corner-radius), relative: true),
-      curve.line((-(width - corner-radius - notch-total - notch-margin - 3.7mm), 0mm), relative: true),
+      curve.line((-(width - corner-radius - notch-reserved-space - notch-spacing - 3.7mm), 0mm), relative: true),
       ..notch-path,
-      curve.line((-notch-margin + corner-radius, 0mm), relative: true),
+      curve.line((-notch-spacing + corner-radius, 0mm), relative: true),
       curve.quad((-corner-radius, 0mm), (-corner-radius, -corner-radius), relative: true),
       curve.close(),
     ),
     anweisung: (
       curve.line((0mm, -block-offset-y + corner-radius), relative: true),
       curve.quad((0mm, -corner-radius), (corner-radius, -corner-radius), relative: true),
-      curve.line((notch-margin - corner-radius, 0mm), relative: true),
+      curve.line((notch-spacing - corner-radius, 0mm), relative: true),
       ..if top-notch {
         (inverted-notch-path,)
       } else {
-        (curve.line((notch-complete-width, 0mm), relative: true),)
+        (curve.line((notch-total-width, 0mm), relative: true),)
       }.flatten(),
-      curve.line((width - 3.7mm - notch-margin - notch-total, 0mm), relative: true),
+      curve.line((width - 3.7mm - notch-spacing - notch-reserved-space, 0mm), relative: true),
       curve.quad((corner-radius, 0mm), (corner-radius, corner-radius), relative: true),
       curve.line((0mm, +block-offset-y - corner-radius), relative: true),
       curve.line((0mm, height - block-offset-y - corner-radius), relative: true),
       curve.quad((0mm, corner-radius), (-corner-radius, corner-radius), relative: true),
-      curve.line((-width + 3.7mm + notch-margin + notch-total, 0mm), relative: true),
+      curve.line((-width + 3.7mm + notch-spacing + notch-reserved-space, 0mm), relative: true),
       ..if bottom-notch {
         (notch-path,)
       } else {
-        (curve.line((-notch-complete-width, 0mm), relative: true),)
+        (curve.line((-notch-total-width, 0mm), relative: true),)
       }.flatten(),
-      curve.line((-notch-margin + corner-radius, 0mm), relative: true),
+      curve.line((-notch-spacing + corner-radius, 0mm), relative: true),
       curve.quad((-corner-radius, 0mm), (-corner-radius, -corner-radius), relative: true),
       curve.close(),
     ),
@@ -420,75 +474,75 @@
     loop-header: (
       curve.line((0mm, -block-offset-y + corner-radius), relative: true),
       curve.quad((0mm, -corner-radius), (corner-radius, -corner-radius), relative: true),
-      curve.line((notch-margin - corner-radius, 0mm), relative: true),
+      curve.line((notch-spacing - corner-radius, 0mm), relative: true),
       ..inverted-notch-path,
-      curve.line((width - 3.7mm - notch-margin - notch-total, 0mm), relative: true),
+      curve.line((width - 3.7mm - notch-spacing - notch-reserved-space, 0mm), relative: true),
       curve.quad((corner-radius, 0mm), (corner-radius, corner-radius), relative: true),
       curve.line((0mm, +block-offset-y - corner-radius), relative: true),
       curve.line((0mm, height - block-offset-y - corner-radius), relative: true),
       curve.quad((0mm, corner-radius), (-corner-radius, corner-radius), relative: true),
-      curve.line((-width + 3.7mm + 3 * notch-margin + notch-total, 0mm), relative: true),
+      curve.line((-width + 3.7mm + 3 * notch-spacing + notch-reserved-space, 0mm), relative: true),
       ..notch-path,
-      curve.line((-notch-margin + corner-radius, 0mm), relative: true),
+      curve.line((-notch-spacing + corner-radius, 0mm), relative: true),
       curve.quad((-corner-radius, 0mm), (-corner-radius, corner-radius), relative: true),
     ),
     loop-footer: (
       curve.quad((0mm, corner-radius), (corner-radius, corner-radius), relative: true),
-      curve.line((notch-margin - corner-radius, 0mm), relative: true),
+      curve.line((notch-spacing - corner-radius, 0mm), relative: true),
       ..inverted-notch-path,
-      curve.line((width - 3.7mm - 3 * notch-margin - notch-total, 0mm), relative: true),
+      curve.line((width - 3.7mm - 3 * notch-spacing - notch-reserved-space, 0mm), relative: true),
       curve.quad((corner-radius, 0mm), (corner-radius, corner-radius), relative: true),
       curve.line((0mm, 3mm), relative: true),
       curve.quad((0mm, corner-radius), (-corner-radius, corner-radius), relative: true),
-      curve.line((-width + 3.7mm + 1 * notch-margin + notch-total, 0mm), relative: true),
+      curve.line((-width + 3.7mm + 1 * notch-spacing + notch-reserved-space, 0mm), relative: true),
       ..if bottom-notch {
         (notch-path,)
       } else {
-        (curve.line((-notch-complete-width, 0mm), relative: true),)
+        (curve.line((-notch-total-width, 0mm), relative: true),)
       }.flatten(),
-      curve.line((-notch-margin + corner-radius, 0mm), relative: true),
+      curve.line((-notch-spacing + corner-radius, 0mm), relative: true),
       curve.quad((-corner-radius, 0mm), (-corner-radius, -corner-radius), relative: true),
       curve.close(),
     ),
     falls-header: (
       curve.line((0mm, -block-offset-y + corner-radius), relative: true),
       curve.quad((0mm, -corner-radius), (corner-radius, -corner-radius), relative: true),
-      curve.line((notch-margin - corner-radius, 0mm), relative: true),
+      curve.line((notch-spacing - corner-radius, 0mm), relative: true),
       ..inverted-notch-path,
-      curve.line((width - 3.7mm - notch-margin - notch-total, 0mm), relative: true),
+      curve.line((width - 3.7mm - notch-spacing - notch-reserved-space, 0mm), relative: true),
       curve.quad((corner-radius, 0mm), (corner-radius, corner-radius), relative: true),
       curve.line((0mm, +block-offset-y - corner-radius), relative: true),
       curve.line((0mm, height - block-offset-y - corner-radius), relative: true),
       curve.quad((0mm, corner-radius), (-corner-radius, corner-radius), relative: true),
-      curve.line((-width + 3.7mm + 3 * notch-margin + notch-total, 0mm), relative: true),
+      curve.line((-width + 3.7mm + 3 * notch-spacing + notch-reserved-space, 0mm), relative: true),
       ..notch-path,
-      curve.line((-notch-margin + corner-radius, 0mm), relative: true),
+      curve.line((-notch-spacing + corner-radius, 0mm), relative: true),
       curve.quad((-corner-radius, 0mm), (-corner-radius, corner-radius), relative: true),
     ),
     falls-middle: (
       curve.quad((0mm, corner-radius), (corner-radius, corner-radius), relative: true),
-      curve.line((notch-margin - corner-radius, 0mm), relative: true),
+      curve.line((notch-spacing - corner-radius, 0mm), relative: true),
       ..inverted-notch-path,
-      curve.line((width - 3.7mm - 3 * notch-margin - notch-total, 0mm), relative: true),
+      curve.line((width - 3.7mm - 3 * notch-spacing - notch-reserved-space, 0mm), relative: true),
       curve.quad((corner-radius, 0mm), (corner-radius, corner-radius), relative: true),
       curve.line((0mm, height - corner-radius), relative: true),
       curve.quad((0mm, corner-radius), (-corner-radius, corner-radius), relative: true),
-      curve.line((-width + 3.7mm + 3 * notch-margin + notch-total, 0mm), relative: true),
+      curve.line((-width + 3.7mm + 3 * notch-spacing + notch-reserved-space, 0mm), relative: true),
       ..notch-path,
-      curve.line((-notch-margin + corner-radius, 0mm), relative: true),
+      curve.line((-notch-spacing + corner-radius, 0mm), relative: true),
       curve.quad((-corner-radius, 0mm), (-corner-radius, corner-radius), relative: true),
     ),
     falls-footer: (
       curve.quad((0mm, corner-radius), (corner-radius, corner-radius), relative: true),
-      curve.line((notch-margin - corner-radius, 0mm), relative: true),
+      curve.line((notch-spacing - corner-radius, 0mm), relative: true),
       ..inverted-notch-path,
-      curve.line((width - 3.7mm - 3 * notch-margin - notch-total, 0mm), relative: true),
+      curve.line((width - 3.7mm - 3 * notch-spacing - notch-reserved-space, 0mm), relative: true),
       curve.quad((corner-radius, 0mm), (corner-radius, corner-radius), relative: true),
       curve.line((0mm, 3mm), relative: true),
       curve.quad((0mm, corner-radius), (-corner-radius, corner-radius), relative: true),
-      curve.line((-width + 3.7mm + 1 * notch-margin + notch-total, 0mm), relative: true),
+      curve.line((-width + 3.7mm + 1 * notch-spacing + notch-reserved-space, 0mm), relative: true),
       ..notch-path,
-      curve.line((-notch-margin + corner-radius, 0mm), relative: true),
+      curve.line((-notch-spacing + corner-radius, 0mm), relative: true),
       curve.quad((-corner-radius, 0mm), (-corner-radius, -corner-radius), relative: true),
       curve.close(),
     ),
@@ -615,6 +669,9 @@
   ])
 }
 
+// ------------------------------------------------
+// 10) Kategorie-Wrapper (bewegung, aussehen, klang, fühlen, steuerung, variablen, listen, eigene)
+// ------------------------------------------------
 #let bewegung(body) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
@@ -717,6 +774,9 @@
 }
 
 
+// ------------------------------------------------
+// 11) Ereignisse
+// ------------------------------------------------
 #let ereignis(body, children) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
@@ -729,6 +789,7 @@
   )
 }
 
+// Wenn die grüne Flagge angeklickt wird
 #let ereignis-grüne-flagge(children) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
@@ -746,6 +807,7 @@
   )
 }
 
+// Wenn Taste <taste> gedrückt wird
 #let ereignis-taste(taste, children) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
@@ -759,6 +821,7 @@
   )
 }
 
+// Wenn die Figur angeklickt wird
 #let ereignis-figur-angeklickt(children) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
@@ -771,7 +834,7 @@
   )
 }
 
-// Wenn das Bühnenbild zu Hintergrund1 wechselt
+// Wenn das Bühnenbild zu <name> wechselt
 #let ereignis-bühnenbild-wechselt-zu(taste, children) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
@@ -785,7 +848,7 @@
   )
 }
 
-// Wenn Lautstärke > 10
+// Wenn <Element> einen Schwellwert überschreitet (z. B. Lautstärke > 10)
 #let ereignis-über(element, wert, children) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
@@ -802,6 +865,7 @@
   )
 }
 
+// Wenn ich eine Nachricht empfange
 #let ereignis-nachricht-empfangen(nachricht, children) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
@@ -862,8 +926,12 @@
   )
 }
 
+// ------------------------------------------------
+// 12) Reporter (generisch + je Kategorie)
+// ------------------------------------------------
 // Reporter-Blöcke (Werte)
 // Allgemeine Reporter-Funktion für alle Kategorien
+// Optional: dropdown-content rendert einen In-Reporter-Dropdown rechts.
 #let reporter(colorschema: auto, body, dropdown-content: none) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
@@ -972,8 +1040,9 @@
     dropdown-content: dropdown-content,
   )
 }
-
-
+// ------------------------------------------------
+// 13) Kontrollstrukturen (Grundgerüst + Blöcke)
+// ------------------------------------------------
 // Gemeinsame Hilfsfunktion für Schleifen- und Bedingungs-Blöcke
 #let conditional-block(
   header-label,
@@ -1061,7 +1130,7 @@
         above: 0em,
         below: 0em,
         inset: (bottom: if middle-label == none { 3mm + 2 * corner-radius } else { corner-radius }),
-        move(dx: 2 * notch-margin, first-body),
+        move(dx: 2 * notch-spacing, first-body),
       )
       #if middle-label != none {
         box(height: middle-height, middle-box)
@@ -1069,7 +1138,7 @@
           above: 0em,
           below: 0em,
           inset: (bottom: 3mm + 2 * corner-radius),
-          move(dx: 2 * notch-margin, second-body),
+          move(dx: 2 * notch-spacing, second-body),
         )
       }
     ]
@@ -1159,6 +1228,9 @@
   stack(dir: ltr, spacing: 1.5mm, "lösche diesen Klon"),
 )
 
+// ------------------------------------------------
+// 14) Bewegungsblöcke
+// ------------------------------------------------
 #let gehe-zu(x: 0, y: 0) = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
@@ -1308,6 +1380,9 @@
   )
 }
 
+// ------------------------------------------------
+// 15) Aussehen
+// ------------------------------------------------
 // Aussehen-Blöcke
 #let sage(text: "Hallo!", sekunden: none) = context {
   let options = scratch-block-options.get()
@@ -1498,6 +1573,9 @@
   )
 }
 
+// ------------------------------------------------
+// 16) Klang
+// ------------------------------------------------
 // Klang-Blöcke
 #let spiele-klang(sound: "Meow", ganz: true) = context {
   let options = scratch-block-options.get()
@@ -1605,6 +1683,9 @@
   )
 }
 
+// ------------------------------------------------
+// 17) Fühlen (Sensoren) und spezifische Reporter
+// ------------------------------------------------
 // Spezifische Aussehen-Reporter
 #let kostüm(eigenschaft: "Nummer") = context {
   let options = scratch-block-options.get()
@@ -1840,6 +1921,9 @@
   )
 }
 
+// ------------------------------------------------
+// 18) Variablen
+// ------------------------------------------------
 // Variablen-Blöcke
 #let variable(name) = variablen-reporter(name)
 
@@ -1931,6 +2015,9 @@
   )
 }
 
+// ------------------------------------------------
+// 19) Listen
+// ------------------------------------------------
 // Listen-Blöcke (eigene Farbe)
 #let füge-zu-hinzu(wert: "Ding", liste: "Test") = context {
   let options = scratch-block-options.get()
@@ -2184,6 +2271,9 @@
   )
 }
 
+// ------------------------------------------------
+// 20) Eigene Blöcke
+// ------------------------------------------------
 // Eigene Blöcke
 // Weißer Argument-Platzhalter für eigene Blöcke
 #let eigene-eingabe(text) = context {
@@ -2194,7 +2284,10 @@
   pill-round(text, stroke: colors.eigene.tertiary + stroke-thickness)
 }
 
-// Eigener Anweisungsblock: Übergib gemischte Inhalte (Text, eigene-eingabe(...), Reporter ...)
+// Erzeugt einen eigenen Anweisungsblock mit Text und Platzhaltern.
+// Verwendung:
+//   #let mein-block = eigener-block("drehe", eigene-eingabe("Grad"))
+//   #mein-block(45)[ ... ]
 #let eigener-block(..body) = {
   let items = body.pos()
   return (dark: true, ..values) => context {
@@ -2231,20 +2324,28 @@
   }
 }
 
-// "Definiere"-Block: Kopf der Definition mit innerem Label (Block-Signatur)
-#let definiere(label, ..children) = scratch-block(
-  colorschema: colors.eigene,
-  type: "definiere",
-  dy: 2.5 * corner-radius,
-  stack(
-    dir: ltr,
-    spacing: 1.5mm,
-    "Definiere",
-    label(dark: true),
-  ),
-  ..children,
-)
+// Kopf einer eigenen Block-Definition inkl. Label (Signatur)
+#let definiere(label, ..children) = context {
+  let options = scratch-block-options.get()
+  let colors = get-colors-from-options(options)
+  
+  scratch-block(
+    colorschema: colors.eigene,
+    type: "definiere",
+    dy: 2.5 * corner-radius,
+    stack(
+      dir: ltr,
+      spacing: 1.5mm,
+      "Definiere",
+      label(dark: true),
+    ),
+    ..children,
+  )
+}
 
+// ------------------------------------------------
+// 21) Operatoren
+// ------------------------------------------------
 // Operatoren-Blöcke
 #let plus(arg1: "  ", arg2: "  ") = context {
   let options = scratch-block-options.get()
@@ -2395,26 +2496,41 @@
   )
 }
 
-#let und(arg1, arg2, nested: (false, false)) = bedingung(
-  colorschema: colors.operatoren,
-  type: "bedingung",
-  (arg1, "und", arg2),
-  nested: nested,
-)
+#let und(arg1, arg2, nested: (false, false)) = context {
+  let options = scratch-block-options.get()
+  let colors = get-colors-from-options(options)
+  
+  bedingung(
+    colorschema: colors.operatoren,
+    type: "bedingung",
+    (arg1, "und", arg2),
+    nested: nested,
+  )
+}
 
-#let oder(arg1, arg2, nested: (false, false)) = bedingung(
-  colorschema: colors.operatoren,
-  type: "bedingung",
-  (arg1, "oder", arg2),
-  nested: nested,
-)
+#let oder(arg1, arg2, nested: (false, false)) = context {
+  let options = scratch-block-options.get()
+  let colors = get-colors-from-options(options)
+  
+  bedingung(
+    colorschema: colors.operatoren,
+    type: "bedingung",
+    (arg1, "oder", arg2),
+    nested: nested,
+  )
+}
 
-#let nicht(arg1, nested: false) = bedingung(
-  colorschema: colors.operatoren,
-  type: "bedingung",
-  ("nicht", arg1),
-  nested: (false, nested), // Links immer false (nur "nicht"), rechts variabel
-)
+#let nicht(arg1, nested: false) = context {
+  let options = scratch-block-options.get()
+  let colors = get-colors-from-options(options)
+  
+  bedingung(
+    colorschema: colors.operatoren,
+    type: "bedingung",
+    ("nicht", arg1),
+    nested: (false, nested), // Links immer false (nur "nicht"), rechts variabel
+  )
+}
 
 #let verbinde(text1, text2) = context {
   let options = scratch-block-options.get()
