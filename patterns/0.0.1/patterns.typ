@@ -7,6 +7,7 @@
   items-spacing: 2,
   grid-size: 0.5cm,
   height: none,
+  annotations: (),
   line-stroke: (paint: rgb("#AAAAAA").lighten(10%), dash: "solid", thickness: 0.5pt),
   fill-color: white,
   ..args,
@@ -64,6 +65,7 @@
             )
           }
         }
+        annotations
       },
     )
   })
