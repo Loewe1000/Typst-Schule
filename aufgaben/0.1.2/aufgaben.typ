@@ -126,6 +126,8 @@
 
     // Erstelle Tabellenzeilen
     let rows = ()
+    // Gesamtsumme über alle Aufgaben sammeln
+    let gesamt-punkte = 0
 
     for aufg in all {
       if "erwartungen" in aufg and aufg.erwartungen.len() > 0 {
@@ -136,6 +138,8 @@
           []
         }
         let aufg-punkte = get-points(aufg.nummer)
+        // Zur Gesamtsumme addieren
+        gesamt-punkte += aufg-punkte
 
         rows.push(table.cell(fill: gray.lighten(70%), strong[#aufg.nummer]))
         rows.push(table.cell(fill: gray.lighten(70%), strong[#if aufg-title != [] [#aufg-title]]))
@@ -196,6 +200,13 @@
           }
         }
       }
+    }
+
+    // Schlusszeile mit Gesamtsumme der Punkte hinzufügen (nur wenn es überhaupt Zeilen gibt)
+    if rows.len() > 0 {
+      rows.push(table.cell(fill: gray.lighten(70%), strong[$Sigma$]))
+      rows.push(table.cell(fill: gray.lighten(70%), strong[Summe]))
+      rows.push(table.cell(fill: gray.lighten(70%), strong[#gesamt-punkte]))
     }
 
     if rows.len() > 0 {
