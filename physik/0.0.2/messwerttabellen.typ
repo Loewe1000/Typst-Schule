@@ -409,7 +409,12 @@
             unit(per-mode: "fraction")[#(datensatz.prefix + datensatz.einheit)]
           } 
         }),
-        ..datensatz.werte.map(x => if x != "" { $#znum(x, decimal-separator: ",", round: (mode: "places", precision: datensatz_max_digits, pad: has_decimals, direction: "nearest"))$ }),
+        ..datensatz.werte.map(x => {
+          // Leere oder fehlende Zellen leer lassen, Content direkt ausgeben, Zahlen formatieren
+          if x == none or x == "" { [] }
+          else if type(x) == content { x }
+          else { $#znum(x, decimal-separator: ",", round: (mode: "places", precision: datensatz_max_digits, pad: has_decimals, direction: "nearest"))$ }
+        }),
       )
     },
   )]
