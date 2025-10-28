@@ -189,57 +189,19 @@
       let label = none // Label-Definition (position, content)
 
       if type(plot-def) == function or type(plot-def) == content {
-        // Nur Funktion oder Mathe-Content übergeben
+        // Einfachste Form: nur Funktion oder Mathe-Content übergeben
+        // Beispiel: #graphen($x^2$)
         term = to-func(plot-def)
-      } else if type(plot-def) == array {
-        // Tuple/Array: kann (term), (domain, term) oder (domain, term, color) sein
-        // ODER (term, (label: ..., color: ...)) - Funktion + Dictionary mit Optionen
-        if plot-def.len() == 1 {
-          term = to-func(plot-def.at(0))
-        } else if plot-def.len() == 2 {
-          // Prüfe ob erstes Element eine Domain ist (Array) oder eine Funktion/Content
-          if type(plot-def.at(0)) == array {
-            domain = plot-def.at(0)
-            term = to-func(plot-def.at(1))
-          } else if (type(plot-def.at(0)) == function or type(plot-def.at(0)) == content) and type(plot-def.at(1)) == dictionary {
-            // (func/content, (label: ..., color: ...))
-            term = to-func(plot-def.at(0))
-            let opts = plot-def.at(1)
-            if "domain" in opts { domain = opts.domain }
-            if "clr" in opts { clr = resolve-color(opts.clr) }
-            if "color" in opts { clr = resolve-color(opts.color) }
-            if "label" in opts { label = opts.label }
-          } else {
-            term = to-func(plot-def.at(0))
-            clr = plot-def.at(1)
-          }
-        } else if plot-def.len() == 3 {
-          // (domain, func, (options)) oder (domain, term, color)
-          if type(plot-def.at(0)) == array and type(plot-def.at(2)) == dictionary {
-            // (domain, func, (label: ..., color: ...))
-            domain = plot-def.at(0)
-            term = to-func(plot-def.at(1))
-            let opts = plot-def.at(2)
-            if "clr" in opts { clr = resolve-color(opts.clr) }
-            if "color" in opts { clr = resolve-color(opts.color) }
-            if "label" in opts { label = opts.label }
-          } else {
-            domain = plot-def.at(0)
-            term = to-func(plot-def.at(1))
-            clr = resolve-color(plot-def.at(2))
-          }
-        } else if plot-def.len() >= 4 {
-          domain = plot-def.at(0)
-          term = to-func(plot-def.at(1))
-          clr = resolve-color(plot-def.at(2))
-        }
       } else if type(plot-def) == dictionary {
-        // Dictionary mit optionalen keys: domain, term, clr, label
+        // Dictionary-Form mit allen Optionen
+        // Beispiel: #graphen((term: $x^2$, color: red, domain: (-2, 2), label: ...))
         if "domain" in plot-def { domain = plot-def.domain }
         if "term" in plot-def { term = to-func(plot-def.term) }
         if "clr" in plot-def { clr = resolve-color(plot-def.clr) }
         if "color" in plot-def { clr = resolve-color(plot-def.color) }
         if "label" in plot-def { label = plot-def.label }
+      } else {
+        panic("Plot muss entweder eine Funktion/Content ($x^2$) oder ein Dictionary (term: $x^2$, color: ...) sein")
       }
 
       if term != none {
@@ -248,43 +210,24 @@
     }
   }
 
-  // Verarbeite die Fills in ein einheitliches Format
+  // Verarbeite die Fills in ein einheitlichesFormat
   let processed-fills = ()
 
-  // Normalisiere fills: wenn es direkt eine Funktion oder Content ist, mache es zu einem Array
-  // Erkenne auch einzelne Fill-Definitionen: wenn erstes Element ein Array (Domain) ist
-  let fills-array = if type(fills) == function or type(fills) == content {
-    // Direkt eine Funktion/Content ohne Array-Klammern: $f$ → mache zu Array
-    ((fills,),)
-  } else if type(fills) == array and fills.len() == 1 and (type(fills.at(0)) == function or type(fills.at(0)) == content) {
-    // Ein einzelnes Element das eine Funktion ist: ($f$) → ist bereits richtig gewickelt
+  // Normalisiere fills zu einem Array von Fill-Definitionen
+  let fills-array = if type(fills) == dictionary {
+    // Einzelnes Fill-Dictionary: (between: ($f$, $g$), ...)
     (fills,)
-  } else if type(fills) == array and fills.len() > 0 and type(fills.at(0)) == array {
-    // Erstes Element ist Array (Domain) → könnte einzelner Fill sein
-    // Prüfe ob es ein einzelner Fill ist: (domain, func), (domain, func1, func2) oder (domain, func1, func2, color)
-    if fills.len() == 2 and (type(fills.at(1)) == function or type(fills.at(1)) == content) {
-      // Einzelner Fill: (domain, func)
-      (fills,)
-    } else if fills.len() >= 3 and (type(fills.at(1)) == function or type(fills.at(1)) == content) and (type(fills.at(2)) == function or type(fills.at(2)) == content) {
-      // Einzelner Fill: (domain, func1, func2, ...)
-      (fills,)
-    } else {
-      fills
-    }
   } else if type(fills) == array and fills.len() == 2 and (type(fills.at(0)) == function or type(fills.at(0)) == content) and (type(fills.at(1)) == function or type(fills.at(1)) == content) {
-    // Zwei Funktionen direkt: ($f$, $g$) → einzelner Fill mit auto-domain
-    (fills,)
-  } else if (
-    type(fills) == array
-      and fills.len() == 3
-      and fills.at(0) == "auto"
-      and (type(fills.at(1)) == function or type(fills.at(1)) == content)
-      and (type(fills.at(2)) == function or type(fills.at(2)) == content)
-  ) {
-    // ("auto", $f$, $g$) → einzelner Fill mit explizit auto-domain
-    (fills,)
-  } else {
+    // Shortcut: zwei Funktionen direkt: ($f$, $g$)
+    // Wird zu einem Fill zwischen diesen beiden Funktionen mit auto-domain
+    ((between: (fills.at(0), fills.at(1)), domain: "auto"),)
+  } else if type(fills) == content or type(fills) == function {
+    // Shortcut: eine einzelne Funktion -> Fläche zwischen Funktion und x-Achse
+    ((term: fills, domain: "auto"),)
+  } else if type(fills) == array {
     fills
+  } else {
+    ()
   }
 
   if fills-array.len() > 0 {
@@ -295,87 +238,10 @@
       let clr = colors.at(calc.rem(index, colors.len())).saturate(100%).lighten(60%).transparentize(50%) // Rotiere Farben, heller und transparent
       let auto-domain = false // Flag für automatische Domain-Berechnung
 
-      if type(fill-def) == array {
-        // Verschiedene Array-Formate:
-        // (func) - eine Funktion, zweite ist x-Achse (x => 0)
-        // (func1, func2) - zwei Funktionen → auto-domain!
-        // ("auto", func1, func2) - explizit auto-domain
-        // (domain, func1, func2) - mit Domain
-        // (func1, func2, color) - mit Farbe
-        // (domain, func1, func2, color) - vollständig
-
-        if fill-def.len() == 1 {
-          // Eine Funktion/Content, zweite ist x-Achse → auto-domain zwischen Nullstellen
-          if type(fill-def.at(0)) == function or type(fill-def.at(0)) == content {
-            lower = x => 0
-            upper = to-func(fill-def.at(0))
-            auto-domain = true // Automatisch zwischen Nullstellen füllen
-          }
-        } else if fill-def.len() == 2 {
-          // Kann sein: (domain, func), (func1, func2), oder (func, color)
-          if type(fill-def.at(0)) == array {
-            // (domain, func) - Fläche unter einer Funktion in bestimmtem Bereich
-            domain = fill-def.at(0)
-            lower = x => 0
-            upper = to-func(fill-def.at(1))
-          } else if (type(fill-def.at(0)) == function or type(fill-def.at(0)) == content) and (type(fill-def.at(1)) == function or type(fill-def.at(1)) == content) {
-            // (func1, func2) - zwei Funktionen mit auto-domain
-            lower = to-func(fill-def.at(0))
-            upper = to-func(fill-def.at(1))
-            auto-domain = true // Automatische Domain-Erkennung
-          } else if type(fill-def.at(0)) == function or type(fill-def.at(0)) == content {
-            // (func, color)
-            lower = x => 0
-            upper = to-func(fill-def.at(0))
-            clr = resolve-color(fill-def.at(1))
-          }
-        } else if fill-def.len() == 3 {
-          // Prüfe ob erstes Element Domain ist (Array/String) oder Funktion/Content
-          if type(fill-def.at(0)) == str and fill-def.at(0) == "auto" {
-            // ("auto", func1, func2) - explizit auto
-            lower = to-func(fill-def.at(1))
-            upper = to-func(fill-def.at(2))
-            auto-domain = true
-          } else if type(fill-def.at(0)) == array {
-            // (domain, func1, func2) oder (domain, func, color)
-            domain = fill-def.at(0)
-            if type(fill-def.at(2)) == function or type(fill-def.at(2)) == content {
-              // (domain, func1, func2)
-              lower = to-func(fill-def.at(1))
-              upper = to-func(fill-def.at(2))
-            } else {
-              // (domain, func, color)
-              lower = x => 0
-              upper = to-func(fill-def.at(1))
-              clr = resolve-color(fill-def.at(2))
-            }
-          } else if (type(fill-def.at(0)) == function or type(fill-def.at(0)) == content) and (type(fill-def.at(1)) == function or type(fill-def.at(1)) == content) {
-            // (func1, func2, color)
-            lower = to-func(fill-def.at(0))
-            upper = to-func(fill-def.at(1))
-            clr = resolve-color(fill-def.at(2))
-            auto-domain = true // Automatische Domain-Erkennung
-          }
-        } else if fill-def.len() >= 4 {
-          // (domain, func1, func2, color) oder ("auto", func1, func2, color)
-          if type(fill-def.at(0)) == str and fill-def.at(0) == "auto" {
-            lower = to-func(fill-def.at(1))
-            upper = to-func(fill-def.at(2))
-            clr = resolve-color(fill-def.at(3))
-            auto-domain = true
-          } else {
-            domain = fill-def.at(0)
-            lower = to-func(fill-def.at(1))
-            upper = to-func(fill-def.at(2))
-            clr = resolve-color(fill-def.at(3))
-          }
-        }
-      } else if type(fill-def) == function or type(fill-def) == content {
-        // Direkt eine Funktion/Content übergeben
-        lower = x => 0
-        upper = to-func(fill-def)
-      } else if type(fill-def) == dictionary {
-        // Dictionary mit optionalen keys: domain, lower, upper, clr, auto-domain
+      if type(fill-def) == dictionary {
+        // Dictionary-Form (einzige erlaubte Form)
+        // Beispiel: (between: ($f$, $g$), domain: "auto", color: red)
+        // oder: (term: $x^2$, domain: "auto", color: red)
         if "domain" in fill-def {
           if type(fill-def.domain) == str and fill-def.domain == "auto" {
             auto-domain = true
@@ -383,17 +249,29 @@
             domain = fill-def.domain
           }
         }
-        if "lower" in fill-def { lower = to-func(fill-def.lower) }
-        if "upper" in fill-def { upper = to-func(fill-def.upper) }
-        if "func1" in fill-def { lower = to-func(fill-def.func1) }
-        if "func2" in fill-def { upper = to-func(fill-def.func2) }
-        if "func" in fill-def {
-          upper = to-func(fill-def.func)
-          if lower == none { lower = x => 0 }
+        
+        // Verarbeite "between" - zwei Funktionen
+        if "between" in fill-def {
+          let between-funcs = fill-def.between
+          if type(between-funcs) == array and between-funcs.len() == 2 {
+            lower = to-func(between-funcs.at(0))
+            upper = to-func(between-funcs.at(1))
+          } else {
+            panic("'between' muss ein Array mit zwei Funktionen sein: between: ($f$, $g$)")
+          }
         }
+        
+        // Verarbeite "term" - eine Funktion (füllt zur x-Achse)
+        if "term" in fill-def {
+          lower = x => 0
+          upper = to-func(fill-def.term)
+        }
+        
         if "clr" in fill-def { clr = resolve-color(fill-def.clr) }
         if "color" in fill-def { clr = resolve-color(fill-def.color) }
         if "auto-domain" in fill-def { auto-domain = fill-def.at("auto-domain") }
+      } else {
+        panic("Fill muss ein Dictionary sein: (between: ($f$, $g$), domain: ..., color: ...) oder (term: $f$, domain: ..., color: ...)")
       }
 
       // Automatische Domain-Berechnung wenn gewünscht
