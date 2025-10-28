@@ -8,7 +8,7 @@
 /// - date (string): Date of the exam.
 /// - logo (content): Logo to display in header.
 /// - teacher (string): Teacher name.
-/// - schueler (string): Student name.
+/// - student (string): Student name.
 /// - table (array): Additional info table rows.
 /// - stufe (string, boolean): "I" for Sekundarstufe I, "II" for Sekundarstufe II.
 /// - info-table (boolean): Whether to show info table with name.
@@ -24,7 +24,8 @@
   date: "",
   logo: "angela",
   teacher: "",
-  schueler: "",
+  student: "",
+  name-field: "Name:",
   info-table: false,
   page-numbering: true,
   klausurboegen: false,
@@ -137,7 +138,7 @@
       )
     })
 
-    text(14pt, weight: "semibold")[Name:#h(0.25em) #schueler]
+    if name-field != none { text(14pt, weight: "semibold")[#name #h(0.25em) #student] }
 
     std.table(
       columns: (auto, 1fr),
@@ -150,9 +151,9 @@
       },
       std.table.hline(stroke: 0.5pt + luma(200)),
     )
-  } else {
-    text(14pt, weight: "semibold")[Name:#h(0.25em) #schueler]
-    line(length: 100%, stroke: 0.5pt + luma(200))
+  } else if name-field != none {  
+      text(14pt, weight: "semibold")[#name #h(0.25em) #student]
+      line(length: 100%, stroke: 0.5pt + luma(200))
   }
 
   body
