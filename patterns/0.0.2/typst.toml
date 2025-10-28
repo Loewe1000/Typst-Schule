@@ -1,0 +1,8 @@
+[package]
+name = "patterns"
+version = "0.0.2"
+entrypoint = "patterns.typ"
+
+
+description = "Package for patterns"
+license = "MIT"
