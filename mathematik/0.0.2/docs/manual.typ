@@ -272,7 +272,7 @@ Das Paket kann Datensätze aus dem Physik-Paket direkt plotten:
 
 #graphen(
   size: (10, 7),
-  datensätze: (zeit, strecke),
+  datensätze: (x: zeit, y: strecke),
   x: auto, // Automatische Bereichserkennung
   y: auto,
 )
@@ -295,8 +295,37 @@ Datensätze können auch als einfache Zahlen-Arrays übergeben werden:
 ```]
 
 #pagebreak(weak: true)
+== Datensätze als Dictionary
+
+Für erweiterte Kontrolle können Datensätze als Dictionary übergeben werden:
+
+#example[```typ
+#let zeit = datensatz($t$, "s", (0, 1, 2, 3, 4, 5))
+#let strecke = datensatz($s$, "m", (0, 2, 8, 18, 32, 50))
+
+#graphen(
+  size: (10, 7),
+  datensätze: (
+    x: zeit,
+    y: strecke,
+    marker: "o",
+    color: blue
+  ),
+  x: auto,
+  y: auto,
+)
+```]
+
+Dictionary-Format:
+- `x`: x-Datensatz (erforderlich)
+- `y`: y-Datensatz (erforderlich)
+- `marker`: Marker-Stil (optional, Standard: `"x"`)
+- `color` oder `clr`: Farbe als Color-Objekt oder Integer 1-10 (optional)
+
+#pagebreak(weak: true)
 == Mehrere Datensätze
-Mehrere Datensätze mit gleichem x-Bereich:
+
+Mehrere Datensätze können als Array von Dictionaries übergeben werden:
 
 #example[```typ
 #let zeit = datensatz($t$, "s", (0, 1, 2, 3))
@@ -305,31 +334,14 @@ Mehrere Datensätze mit gleichem x-Bereich:
 
 #graphen(
   size: (10, 7),
-  datensätze: (zeit, weg1, weg2),
-  x: auto,
-  y: auto,
-)
-```]
-
-== Marker und Farben anpassen
-
-#example[```typ
-#let zeit = datensatz($t$, "s", (0, 1, 2, 3, 4, 5))
-#let strecke = datensatz($s$, "m", (0, 2, 8, 18, 32, 50))
-#let strecke2 = datensatz($s$, "m", (0, 3, 9, 12, 15, 18))
-
-#graphen(
-  size: (10, 7),
   datensätze: (
-    ((zeit, strecke), (marker: "o", color: blue)),
-    ((zeit, strecke2), (marker: "x", color: red))
+    (x: zeit, y: weg1, marker: "o", color: blue),
+    (x: zeit, y: weg2, marker: "x", color: red),
   ),
   x: auto,
   y: auto,
 )
 ```]
-
-Verfügbare Marker: `"x"`, `"o"`, `"+"`, `"*"`, `"square"`, `"triangle"`, etc. (CeTZ-Marker)
 
 = Koordinatensystem-Anpassungen
 
@@ -545,12 +557,25 @@ Diese Variante ist besonders praktisch, da:
     - `color` Farbe (optional)
   ]
 
-  #argument("datensätze", types: ("array", "tuple"), default: ())[
-    Datensätze zum Plotten. Formate:
-    - `(x-ds, y-ds)`: Ein Datensatz-Paar (aus Physik-Paket)
-    - `(x-ds, y1-ds, y2-ds, ...)`: Mehrere y-Datensätze mit gleichem x
-    - `((x-ds, y-ds), (marker: "o", color: blue))`: Mit Optionen
+  #argument("datensätze", types: ("array", "tuple", "dictionary"), default: ())[
+    Datensätze zum Plotten. Unterstützt mehrere Formate:
+    
+    *Einfaches Tupel:*
+    - `(x-ds, y-ds)`: Ein Datensatz-Paar (Physik-Paket Datensätze)
     - `(x-array, y-array)`: Einfache Zahlen-Arrays
+    
+    *Dictionary-Format (empfohlen):*
+    - `(x: x-ds, y: y-ds)`: Einzelner Datensatz
+    - `(x: x-ds, y: y-ds, marker: "o", color: blue)`: Mit Optionen
+    
+    *Array von Dictionaries:*
+    - `((x: x, y: y1, ...), (x: x, y: y2, ...))`: Mehrere Datensätze
+    
+    Jedes Dictionary kann enthalten:
+    - `x`: x-Datensatz (erforderlich)
+    - `y`: y-Datensatz (erforderlich)
+    - `marker`: Marker-Stil (optional, Standard: `"x"`)
+    - `color`/`clr`: Farbe als Color-Objekt oder Integer 1-10 (optional)
   ]
 
   #argument("annotations", types: "content", default: {})[
@@ -695,7 +720,7 @@ Diese Variante ist besonders praktisch, da:
 
 #graphen(
   size: (10, 6),
-  datensätze: (zeit, weg),
+  datensätze: (x: zeit, y: weg),
   // Regressionskurve hinzufügen
   (term: $5 dot x^2$, color: red)
 )
