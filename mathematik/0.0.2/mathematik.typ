@@ -187,6 +187,7 @@
       let term = none
       let clr = colors.at(calc.rem(index, colors.len())) // Rotiere Farben
       let label = none // Label-Definition (position, content)
+      let strk = (thickness: line-width, paint: clr) // Label-Definition (position, content)
 
       if type(plot-def) == function or type(plot-def) == content {
         // Einfachste Form: nur Funktion oder Mathe-Content übergeben
@@ -197,15 +198,16 @@
         // Beispiel: #graphen((term: $x^2$, color: red, domain: (-2, 2), label: ...))
         if "domain" in plot-def { domain = plot-def.domain }
         if "term" in plot-def { term = to-func(plot-def.term) }
-        if "clr" in plot-def { clr = resolve-color(plot-def.clr) }
-        if "color" in plot-def { clr = resolve-color(plot-def.color) }
+        if "stroke" in plot-def { strk = plot-def.stroke }
+        if "clr" in plot-def { strk.paint = resolve-color(plot-def.clr) }
+        if "color" in plot-def { strk.paint = resolve-color(plot-def.color) }
         if "label" in plot-def { label = plot-def.label }
       } else {
         panic("Plot muss entweder eine Funktion/Content ($x^2$) oder ein Dictionary (term: $x^2$, color: ...) sein")
       }
 
       if term != none {
-        processed-plots.push((domain: domain, term: term, clr: clr, label: label))
+        processed-plots.push((domain: domain, term: term, label: label, stroke: strk))
       }
     }
   }
@@ -249,7 +251,7 @@
             domain = fill-def.domain
           }
         }
-        
+
         // Verarbeite "between" - zwei Funktionen
         if "between" in fill-def {
           let between-funcs = fill-def.between
@@ -260,13 +262,13 @@
             panic("'between' muss ein Array mit zwei Funktionen sein: between: ($f$, $g$)")
           }
         }
-        
+
         // Verarbeite "term" - eine Funktion (füllt zur x-Achse)
         if "term" in fill-def {
           lower = x => 0
           upper = to-func(fill-def.term)
         }
-        
+
         if "clr" in fill-def { clr = resolve-color(fill-def.clr) }
         if "color" in fill-def { clr = resolve-color(fill-def.color) }
         if "auto-domain" in fill-def { auto-domain = fill-def.at("auto-domain") }
@@ -309,54 +311,60 @@
   let auto-y-range = none
 
   if datensätze != () {
-    // Normalisiere Eingabe: kann Tupel (x, y) oder Array von Tupeln ((x1, y1), (x2, y2)) sein
-    // Neue Syntax: ((x, y), (marker: "o", color: red))
-    // Unterstützt auch einfache Arrays: (x_array, y_array) wo x und y einfache Zahlen-Arrays sind
+    // Normalisiere Eingabe zu einem Array von Datensatz-Definitionen
+    let ds-array = if type(datensätze) == dictionary {
+      // Einzelnes Dictionary: (x: x-ds, y: y-ds, marker: ..., color: ...)
+      (datensätze,)
+    } else if type(datensätze) == array and datensätze.len() == 2 {
+      // Prüfe ob es ein einfaches Tupel (x, y) ist
+      let first = datensätze.at(0)
+      let second = datensätze.at(1)
+
+      // Fall 1: Einfache Zahlen-Arrays (x-array, y-array)
+      if type(first) == array and type(second) == array and first.len() > 0 and type(first.at(0)) != dictionary and type(first.at(0)) != array {
+        let x_ds = (name: $x$, einheit: none, werte: first, prefix: "1")
+        let y_ds = (name: $y$, einheit: none, werte: second, prefix: "1")
+        ((x: x_ds, y: y_ds),)
+        // Fall 2: Physik-Datensätze (x-ds, y-ds)
+      } else if type(first) == dictionary and "werte" in first and type(second) == dictionary and "werte" in second {
+        ((x: first, y: second),)
+      } else {
+        datensätze
+      }
+    } else if type(datensätze) == array {
+      datensätze
+    } else {
+      ()
+    }
+
     let ds-pairs = ()
 
-    if type(datensätze) == array and datensätze.len() > 0 {
-      // NEUER FALL: Einfache Arrays (x, y) ohne Datensatz-Struktur
-      if datensätze.len() == 2 and type(datensätze.at(0)) == array and type(datensätze.at(1)) == array {
-        // Prüfe ob es einfache Zahlen-Arrays sind (nicht Datensätze)
-        let first_x = datensätze.at(0).at(0)
-        let first_y = datensätze.at(1).at(0)
-        if type(first_x) != dictionary and type(first_x) != array and type(first_y) != dictionary and type(first_y) != array {
-          // Konvertiere einfache Arrays zu Dummy-Datensätzen
-          let x_array = datensätze.at(0)
-          let y_array = datensätze.at(1)
+    if ds-array.len() > 0 {
+      for (index, ds-def) in ds-array.enumerate() {
+        let x-ds = none
+        let y-ds = none
+        let opts = none
 
-          let x_ds = (name: $x$, einheit: none, werte: x_array, prefix: "1")
-          let y_ds = (name: $y$, einheit: none, werte: y_array, prefix: "1")
-
-          ds-pairs = (((x_ds, y_ds), none),)
-        }
-      }
-
-      // Prüfe ob es ein einzelnes Paar (x, y) ist oder mehrere Paare
-      if ds-pairs.len() == 0 and type(datensätze.at(0)) == dictionary and "werte" in datensätze.at(0) {
-        // Erstes Element ist ein Datensatz
-        if datensätze.len() == 2 and type(datensätze.at(1)) == dictionary and "werte" in datensätze.at(1) {
-          // Einzelnes Paar: (x, y)
-          ds-pairs = (((datensätze.at(0), datensätze.at(1)), none),)
-        } else if datensätze.len() > 2 {
-          // Mehrere y-Datensätze mit gleichem x: (x, y1, y2, ...)
-          let x-ds = datensätze.at(0)
-          for i in range(1, datensätze.len()) {
-            ds-pairs.push(((x-ds, datensätze.at(i)), none))
+        if type(ds-def) == dictionary {
+          // Dictionary-Form mit allen Optionen
+          // Beispiel: (x: x-ds, y: y-ds, marker: "o", color: red)
+          if "x" in ds-def and "y" in ds-def {
+            x-ds = ds-def.x
+            y-ds = ds-def.y
+            // Extrahiere Optionen aus dem Dictionary
+            opts = (
+              marker: if "marker" in ds-def { ds-def.marker } else { "x" },
+              color: if "color" in ds-def { ds-def.color } else if "clr" in ds-def { ds-def.clr } else { index + 1 },
+            )
+          } else {
+            panic("Datensatz-Dictionary muss 'x' und 'y' Keys haben")
           }
+        } else {
+          panic("Datensatz muss entweder ein Tupel (x, y) oder ein Dictionary (x: x, y: y, marker: ...) sein")
         }
-      } else if ds-pairs.len() == 0 and type(datensätze.at(0)) == array {
-        // Array von Paaren: ((x1, y1), (x2, y2)) oder (((x1, y1), (options)), ((x2, y2), (options)))
-        for item in datensätze {
-          if item.len() == 2 and type(item.at(0)) == dictionary and "werte" in item.at(0) {
-            // Einfaches Paar: (x, y)
-            ds-pairs.push(((item.at(0), item.at(1)), none))
-          } else if item.len() == 2 and type(item.at(0)) == array and item.at(0).len() == 2 {
-            // Paar mit Optionen: ((x, y), (marker: "o", color: red))
-            let datasets = item.at(0)
-            let options = item.at(1)
-            ds-pairs.push(((datasets.at(0), datasets.at(1)), options))
-          }
+
+        if x-ds != none and y-ds != none {
+          ds-pairs.push(((x-ds, y-ds), opts))
         }
       }
     }
@@ -409,82 +417,80 @@
       } else {
         auto-y-label = first-y-ds.name
       }
-    } else {
-      auto-y-label = first-y-ds.name
-    }
 
-    // Berechne automatische Achsenbereiche
-    let all-x-vals = ()
-    let all-y-vals = ()
+      // Berechne automatische Achsenbereiche
+      let all-x-vals = ()
+      let all-y-vals = ()
 
-    // Konvertiere Datensätze zu Punkten
-    for (i, item) in ds-pairs.enumerate() {
-      let pair = item.at(0)
-      let opts = item.at(1)
-      let x-ds = pair.at(0)
-      let y-ds = pair.at(1)
-      let points = ()
+      // Konvertiere Datensätze zu Punkten
+      for (i, item) in ds-pairs.enumerate() {
+        let pair = item.at(0)
+        let opts = item.at(1)
+        let x-ds = pair.at(0)
+        let y-ds = pair.at(1)
+        let points = ()
 
-      // Optionen extrahieren
-      let clr = colors.at(calc.rem(i, colors.len())) // Standard-Farbe
-      let marker = "x" // Standard-Marker
+        // Optionen extrahieren mit Standardwerten
+        let clr = colors.at(calc.rem(i, colors.len())) // Standard-Farbe
+        let marker = "x" // Standard-Marker
 
-      if opts != none {
-        if type(opts) == dictionary {
-          if "color" in opts { clr = resolve-color(opts.color) }
-          if "clr" in opts { clr = resolve-color(opts.clr) }
-          if "marker" in opts { marker = opts.marker }
+        if opts != none {
+          if type(opts) == dictionary {
+            if "color" in opts { clr = resolve-color(opts.color) }
+            if "clr" in opts { clr = resolve-color(opts.clr) }
+            if "marker" in opts { marker = opts.marker }
+          }
         }
-      }
 
-      // Ermittele Multiplikator aus der Einheit (z.B. mA → 1e-3)
-      // umrechnungseinheit gibt (faktor, neue_einheit) zurück
-      let (x-mult, _) = umrechnungseinheit(1, x-ds.einheit)
-      let (y-mult, _) = umrechnungseinheit(1, y-ds.einheit)
+        // Ermittele Multiplikator aus der Einheit (z.B. mA → 1e-3)
+        // umrechnungseinheit gibt (faktor, neue_einheit) zurück
+        let (x-mult, _) = umrechnungseinheit(1, x-ds.einheit)
+        let (y-mult, _) = umrechnungseinheit(1, y-ds.einheit)
 
-      // Berücksichtige auch den prefix-Parameter falls vorhanden
-      if "prefix" in x-ds and x-ds.prefix != "1" {
-        let (prefix-mult, _) = umrechnungseinheit(1, x-ds.prefix)
-        x-mult = x-mult / prefix-mult
-      }
-      if "prefix" in y-ds and y-ds.prefix != "1" {
-        let (prefix-mult, _) = umrechnungseinheit(1, y-ds.prefix)
-        y-mult = y-mult / prefix-mult
-      }
-
-      // Erstelle Punkte aus x- und y-Werten
-      // Werte werden mit dem Multiplikator multipliziert um in Basiseinheiten zu kommen
-      let min-len = calc.min(x-ds.werte.len(), y-ds.werte.len())
-      for j in range(min-len) {
-        let x-val = x-ds.werte.at(j)
-        let y-val = y-ds.werte.at(j)
-
-        // Überspringe none/content Werte
-        if type(x-val) != content and x-val != none and type(y-val) != content and y-val != none {
-          points.push((x-val * x-mult, y-val * y-mult))
-          all-x-vals.push(x-val * x-mult)
-          all-y-vals.push(y-val * y-mult)
+        // Berücksichtige auch den prefix-Parameter falls vorhanden
+        if "prefix" in x-ds and x-ds.prefix != "1" {
+          let (prefix-mult, _) = umrechnungseinheit(1, x-ds.prefix)
+          x-mult = x-mult / prefix-mult
         }
+        if "prefix" in y-ds and y-ds.prefix != "1" {
+          let (prefix-mult, _) = umrechnungseinheit(1, y-ds.prefix)
+          y-mult = y-mult / prefix-mult
+        }
+
+        // Erstelle Punkte aus x- und y-Werten
+        // Werte werden mit dem Multiplikator multipliziert um in Basiseinheiten zu kommen
+        let min-len = calc.min(x-ds.werte.len(), y-ds.werte.len())
+        for j in range(min-len) {
+          let x-val = x-ds.werte.at(j)
+          let y-val = y-ds.werte.at(j)
+
+          // Überspringe none/content Werte
+          if type(x-val) != content and x-val != none and type(y-val) != content and y-val != none {
+            points.push((x-val * x-mult, y-val * y-mult))
+            all-x-vals.push(x-val * x-mult)
+            all-y-vals.push(y-val * y-mult)
+          }
+        }
+
+        processed-data.push((points: points, clr: clr, marker: marker))
       }
 
-      processed-data.push((points: points, clr: clr, marker: marker))
-    }
+      // Berechne Achsenbereiche mit etwas Padding (10%)
+      if all-x-vals.len() > 0 {
+        let x-min = calc.min(..all-x-vals)
+        let x-max = calc.max(..all-x-vals)
+        let x-range = x-max - x-min
+        let x-padding = x-range * 0.1
+        auto-x-range = (x-min - x-padding, x-max + x-padding)
+      }
 
-    // Berechne Achsenbereiche mit etwas Padding (10%)
-    if all-x-vals.len() > 0 {
-      let x-min = calc.min(..all-x-vals)
-      let x-max = calc.max(..all-x-vals)
-      let x-range = x-max - x-min
-      let x-padding = x-range * 0.1
-      auto-x-range = (x-min - x-padding, x-max + x-padding)
-    }
-
-    if all-y-vals.len() > 0 {
-      let y-min = calc.min(..all-y-vals)
-      let y-max = calc.max(..all-y-vals)
-      let y-range = y-max - y-min
-      let y-padding = y-range * 0.1
-      auto-y-range = (y-min - y-padding, y-max + y-padding)
+      if all-y-vals.len() > 0 {
+        let y-min = calc.min(..all-y-vals)
+        let y-max = calc.max(..all-y-vals)
+        let y-range = y-max - y-min
+        let y-padding = y-range * 0.1
+        auto-y-range = (y-min - y-padding, y-max + y-padding)
+      }
     }
   }
 
@@ -628,11 +634,16 @@
             )
           }
         }
+        if annotations != {} {
+          plot.annotate({
+            annotations
+          })
+        }
         // Füge alle Plots hinzu
         if processed-plots.len() > 0 {
           for p in processed-plots {
             plot.add(
-              style: (stroke: p.clr + line-width),
+              style: (stroke: p.stroke),
               samples: samples,
               domain: p.domain,
               p.term,
@@ -648,7 +659,7 @@
               let label-pos = if "position" in p.label { p.label.position } else { "tr" }
               let label-fill = if "fill" in p.label { p.label.fill } else { white }
               let label-size = if "size" in p.label { p.label.size } else { none }
-              let label-color = if "color" in p.label { p.label.color } else { p.clr }
+              let label-color = if "color" in p.label { p.label.color } else { p.stroke.paint }
               let label-padding = if "padding" in p.label { p.label.padding } else { 1mm }
 
               // Extrahiere Richtung: t/b für above/below, l/r für anchor
@@ -711,11 +722,6 @@
               mark-style: (fill: d.clr, stroke: d.clr + 1.25pt),
             )
           }
-        }
-        if annotations != {} {
-          plot.annotate({
-            annotations
-          })
         }
       },
     )
