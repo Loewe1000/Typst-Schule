@@ -177,6 +177,20 @@
 
 // Funktion zur Berechnung von Werten basierend auf einem oder mehreren Datensätzen
 #let berechnung(name, einheit, datensaetze, formel, prefix: "1", auto-einheit: true, fehler: 0, max-digits: none) = {
+  // Prüfe, ob die Einheit zusammengesetzt ist (enthält /, ·, ^, ², ³)
+  let ist_zusammengesetzt = type(einheit) == str and (
+    einheit.contains("/") or 
+    einheit.contains("·") or 
+    einheit.contains("^") or
+    einheit.contains("²") or
+    einheit.contains("³")
+  )
+  
+  // Deaktiviere auto-einheit bei zusammengesetzten Einheiten (außer expliziter prefix ist gesetzt)
+  if ist_zusammengesetzt and prefix == "1" {
+    auto-einheit = false
+  }
+  
   // Wenn ein expliziter prefix gesetzt ist, deaktiviere auto-einheit
   if prefix != "1" {
     auto-einheit = false
