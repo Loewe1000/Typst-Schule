@@ -207,7 +207,7 @@ Teilaufgaben können mit Labels versehen werden:
 
 #example[```typ
 #aufgabe[
-  #teilaufgabe(label-ref: "teilaufg-a")[
+  #teilaufgabe(label: <teilaufg-a>)[
     Berechne den Wert von x.
   ]
 ]
@@ -583,7 +583,7 @@ Optionen können auch einzeln gesetzt werden:
 
 == Hauptfunktionen
 
-#command("aufgabe", arg(title: none), arg(method: ""), arg(icons: ()), arg(large: true), arg(number: true), arg(workspace: none), arg(label-ref: none), arg[body])[
+#command("aufgabe", arg(title: none), arg(method: ""), arg(icons: ()), arg(large: true), arg(number: true), arg(workspace: none), arg(label: none), arg[body])[
 
   #argument("title", types: (none, "content"), default: none)[
     Titel der Aufgabe. Kann auch als erstes Positionsargument übergeben werden.
@@ -609,7 +609,7 @@ Optionen können auch einzeln gesetzt werden:
     Arbeitsbereich für Schülerantworten (z.B. `v(3cm)` oder ein Grid).
   ]
 
-  #argument("label-ref", types: (none, "label"), default: none)[
+  #argument("label", types: (none, "label", "string"), default: none)[
     Label zur Referenzierung der Aufgabe.
   ]
 
@@ -618,14 +618,14 @@ Optionen können auch einzeln gesetzt werden:
   ]
 ]
 
-#command("teilaufgabe", arg(item-label: none), arg(label-ref: none), arg(workspace: none), arg[body])[
+#command("teilaufgabe", arg(item-label: none), arg(label: none), arg(workspace: none), arg[body])[
   Erstellt eine Teilaufgabe innerhalb einer Aufgabe.
 
   #argument("item-label", types: (none, "content"), default: none)[
     Benutzerdefinierte Beschriftung statt automatischer Nummerierung.
   ]
 
-  #argument("label-ref", types: (none, "label"), default: none)[
+  #argument("label", types: (none, "label", "string"), default: none)[
     Label zur Referenzierung der Teilaufgabe.
   ]
 
@@ -805,7 +805,7 @@ Optionen können auch einzeln gesetzt werden:
 
 #material(
   caption: "Hilfsmittel: Ableitungsregeln",
-  label: "ableitungen"
+  label: <ableitungen>
 )[
   - Potenzregel: $(x^n)' = n x^(n-1)$
   - Konstantenregel: $(c)' = 0$

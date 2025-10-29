@@ -405,7 +405,7 @@
       caption: caption,
       kind: "material",
       supplement: none,
-    ) #if label != none { std.label(label) }
+    ) #if label != none { if type(label) == std.label { label } else { std.label(label) } }
     #v(-0.5em)
     #line(length: 100%, stroke: 0.5pt)
   ]
@@ -432,7 +432,7 @@
   large: true,
   number: true,
   workspace: none,
-  label-ref: none,
+  label: none,
   ..args,
 ) = {
   // Parse positional arguments
@@ -479,37 +479,40 @@
 
   if (actual-title != none and actual-title != []) or number {
     context {
-      let auf-head = block(
-        width: 100%,
-        below: 0.75em,
-        above: 1.8em,
-        figure(
-          kind: "aufgabe",
-          supplement: none,
-          text(
-            weight: "bold",
-            size: if large { 1.25em } else { 1em },
-            [
-              #let nums = _counter_aufgaben.get()
-              #if ic.len() > 0 { ic.join() }
-              #if number { "Aufgabe " + str(nums.first()) }
-              #if number and (actual-title != none and actual-title != []) [ $-$ ]
-              #if actual-title != none [#actual-title]
-              #h(1fr)
-              // Gesamtpunkte der Aufgabe
-              #let opts = _state_options.get()
-              #if opts.punkte in ("aufgaben", "alle") {
-                let points = get-points(_counter_aufgaben.get().at(0))
-                if points > 0 {
-                  [#points BE]
-                }
+      let auf-head = figure(
+        kind: "aufgabe",
+        supplement: none,
+        text(
+          weight: "bold",
+          size: if large { 1.25em } else { 1em },
+          [
+            #let nums = _counter_aufgaben.get()
+            #if ic.len() > 0 { ic.join() }
+            #if number { "Aufgabe " + str(nums.first()) }
+            #if number and (actual-title != none and actual-title != []) [ $-$ ]
+            #if actual-title != none [#actual-title]
+            #h(1fr)
+            // Gesamtpunkte der Aufgabe
+            #let opts = _state_options.get()
+            #if opts.punkte in ("aufgaben", "alle") {
+              let points = get-points(_counter_aufgaben.get().at(0))
+              if points > 0 {
+                [#points BE]
               }
-            ],
-          ),
+            }
+          ],
         ),
       )
-      if label-ref != none [
-        #auf-head #label(label-ref)
+      if label != none [
+        #block(
+          width: 100%,
+          below: 0.75em,
+          above: 1.8em,
+          [
+            #auf-head
+            #if type(label) == std.label { label } else { std.label(label) }
+          ],
+        )
       ] else [
         #auf-head
       ]
@@ -540,7 +543,7 @@
 
 #let teilaufgabe(
   item-label: none,
-  label-ref: none,
+  label: none,
   workspace: none,
   body,
 ) = {
@@ -605,8 +608,8 @@
         )
       },
     )
-    if label-ref != none [
-      #figure(kind: "teilaufgabe", supplement: "Teilaufgabe", ta-enum, numbering: "a)") #label(label-ref)
+    if label != none [
+      #figure(kind: "teilaufgabe", supplement: "Teilaufgabe", ta-enum, numbering: "a)") #if type(label) == std.label { label } else { std.label(label) }
     ] else [
       #figure(kind: "teilaufgabe", supplement: "Teilaufgabe", ta-enum, numbering: "a)")
     ]
