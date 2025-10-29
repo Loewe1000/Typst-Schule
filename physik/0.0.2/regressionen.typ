@@ -71,14 +71,30 @@
 #let format-equation-term(koeff, koeff-einheit, x-name, x-potenz, is-first, notation, precision) = {
   if calc.abs(koeff) < precision { return (skip: true) }
   
-  let koeff-str = format-number(calc.abs(koeff), notation: notation)
+  // Prüfe ob Koeffizient nahe bei 1 oder -1 ist
+  let abs-koeff = calc.abs(koeff)
+  let koeff-ist-eins = calc.abs(abs-koeff - 1) < 0.01
+  
+  let koeff-str = if koeff-ist-eins { "" } else { format-number(abs-koeff, notation: notation) }
+  
   let term = if x-potenz == 0 {
-    $#koeff-str #koeff-einheit$
+    // Konstanter Term: immer Koeffizient anzeigen
+    let koeff-str-const = format-number(abs-koeff, notation: notation)
+    $#koeff-str-const #koeff-einheit$
   } else if x-potenz == 1 {
     // x^1 wird einfach als x geschrieben
-    $#koeff-str #koeff-einheit dot #x-name$
+    if koeff-ist-eins {
+      $#koeff-einheit dot #x-name$
+    } else {
+      $#koeff-str #koeff-einheit dot #x-name$
+    }
   } else {
-    $#koeff-str #koeff-einheit dot #x-name^#x-potenz$
+    // x^2, x^3, etc.
+    if koeff-ist-eins {
+      $#koeff-einheit dot #x-name^#x-potenz$
+    } else {
+      $#koeff-str #koeff-einheit dot #x-name^#x-potenz$
+    }
   }
   
   (skip: false, term: term, is-negative: koeff < 0)
@@ -308,8 +324,14 @@
   
   let format-func(koeff, x_name: none, y_name: none, x_einheit: none, y_einheit: none, notation: "dec", precision: 1e-10, digits: 2) = {
     let (a, b) = (koeff.at(0), koeff.at(1))
-    let a_str = format-number(a, notation: notation, digits: digits)
-    let b_str = format-number(b, notation: notation, digits: digits)
+    
+    // Prüfe ob a nahe bei 1 ist (dann wird nur "x" statt "1·x" angezeigt)
+    let a_ist_eins = calc.abs(a - 1) < 0.01
+    let a_str = if a_ist_eins { "" } else { format-number(a, notation: notation, digits: digits) }
+    
+    // Prüfe ob b nahe bei 1 ist (dann wird "e^(...)" statt "1·e^(...)" angezeigt)
+    let b_ist_eins = calc.abs(b - 1) < 0.01
+    let b_str = if b_ist_eins { "" } else { format-number(b, notation: notation, digits: digits) }
     
     if x_einheit != none and x_einheit != "" and y_einheit != none and y_einheit != "" {
       let a_einheit = if type(x_einheit) == content {
@@ -318,9 +340,28 @@
         unit(per-mode: "fraction")[1/#x_einheit]
       }
       let b_einheit = format-unit(y_einheit)
-      $#y_name = #b_str #b_einheit dot e^(#a_str #a_einheit dot #x_name)$
+      
+      // Baue Gleichung abhängig davon, ob a und b gleich 1 sind
+      if b_ist_eins and a_ist_eins {
+        $#y_name = #b_einheit dot e^(#a_einheit dot #x_name)$
+      } else if b_ist_eins {
+        $#y_name = #b_einheit dot e^(#a_str #a_einheit dot #x_name)$
+      } else if a_ist_eins {
+        $#y_name = #b_str #b_einheit dot e^(#a_einheit dot #x_name)$
+      } else {
+        $#y_name = #b_str #b_einheit dot e^(#a_str #a_einheit dot #x_name)$
+      }
     } else {
-      $y = #b_str dot e^(#a_str x)$
+      // Baue Gleichung abhängig davon, ob a und b gleich 1 sind
+      if b_ist_eins and a_ist_eins {
+        $y = e^x$
+      } else if b_ist_eins {
+        $y = e^(#a_str x)$
+      } else if a_ist_eins {
+        $y = #b_str dot e^x$
+      } else {
+        $y = #b_str dot e^(#a_str x)$
+      }
     }
   }
   
@@ -351,7 +392,7 @@
   
   let format-func(koeff, x_name: none, y_name: none, x_einheit: none, y_einheit: none, notation: "dec", precision: 1e-10, digits: 2) = {
     let (a, m) = (koeff.at(0), koeff.at(1))
-    let a_str = format-number(a, notation: notation, digits: digits)
+    let a_ist_eins = calc.abs(a - 1) < 0.01
     let m_str = format-number(m, notation: notation, digits: digits)
     
     if x_einheit != none and x_einheit != "" and y_einheit != none and y_einheit != "" {
@@ -365,9 +406,19 @@
         $frac(upright(#y_einheit), upright(#x_einheit)^#m_str)$
       }
       
-      $#y_name = #a_str #a_einheit dot #x_name^#m_str$
+      if a_ist_eins {
+        $#y_name = #a_einheit dot #x_name^#m_str$
+      } else {
+        let a_str = format-number(a, notation: notation, digits: digits)
+        $#y_name = #a_str #a_einheit dot #x_name^#m_str$
+      }
     } else {
-      $y = #a_str dot x^#m_str$
+      if a_ist_eins {
+        $y = x^#m_str$
+      } else {
+        let a_str = format-number(a, notation: notation, digits: digits)
+        $y = #a_str dot x^#m_str$
+      }
     }
   }
   
@@ -435,8 +486,30 @@
       let terms = ()
       for i in range(koeff.len() - 1, -1, step: -1) {
         if calc.abs(koeff.at(i)) >= precision {
-          let c_str = format-number(calc.abs(koeff.at(i)), notation: notation, digits: digits)
-          let term = if i == 0 { $#c_str$ } else if i == 1 { $#c_str x$ } else { $#c_str x^#i$ }
+          let abs_koeff = calc.abs(koeff.at(i))
+          let koeff_ist_eins = calc.abs(abs_koeff - 1) < 0.01
+          
+          let term = if i == 0 {
+            // Konstanter Term: immer anzeigen
+            let c_str = format-number(abs_koeff, notation: notation, digits: digits)
+            $#c_str$
+          } else if i == 1 {
+            // x^1 Term
+            if koeff_ist_eins {
+              $x$
+            } else {
+              let c_str = format-number(abs_koeff, notation: notation, digits: digits)
+              $#c_str x$
+            }
+          } else {
+            // x^i Term (i >= 2)
+            if koeff_ist_eins {
+              $x^#i$
+            } else {
+              let c_str = format-number(abs_koeff, notation: notation, digits: digits)
+              $#c_str x^#i$
+            }
+          }
           terms.push((term: term, is-negative: koeff.at(i) < 0, skip: false))
         }
       }
