@@ -4,9 +4,11 @@
 
 #import "@preview/codly:1.3.0": *
 
+#import "@schule/blockst:0.0.1": de, set-blockst
+
 #show: mantys(
   name: "informatik",
-  version: "0.0.1",
+  version: "0.0.2",
   authors: (
     "Lukas Köhl",
     "Alexander Schulz",
@@ -19,8 +21,8 @@
   ],
 
   examples-scope: (
-    scope: (informatik: info),
-    imports: (informatik: "*"),
+    scope: (informatik: info, de: de),
+    imports: (informatik: "*", de: "*"),
   ),
 )
 
@@ -268,23 +270,23 @@ Vor der Verwendung sollte das Theme konfiguriert werden:
 === Bewegung (Blau)
 
 #sourcecode[```typ
-#gehe-schritt(schritt: 10)
-#drehe-dich-um(grad: 15)
-#drehe-dich-um(richtung: "links", grad: 15)
-#gehe(zu: "Mauszeiger")
+#gehe(schritte: 10)
+#drehe-rechts(grad: 15)
+#drehe-links(grad: 15)
+#gehe-zu-position("Mauszeiger")
 #gehe-zu(x: 0, y: 0)
-#gleite-in(sek: 1, zu: "Mauszeiger")
-#gleite-in-zu(sek: 1, x: 0, y: 0)
-#setze-Richtung-auf(grad: 90)
-#drehe-dich(zu: "Mauszeiger")
+#gleite-zu-position(sekunden: 1, "Mauszeiger")
+#gleite-zu(sekunden: 1, x: 0, y: 0)
+#setze-richtung(grad: 90)
+#drehe-zu("Mauszeiger")
 
-#ändere-x-um(schritt: 10)
-#setze-x-auf(x: 0)
-#ändere-y-um(schritt: 10)
-#setze-y-auf(y: 0)
+#aendere-x(aenderung: 10)
+#setze-x(x: 0)
+#aendere-y(aenderung: 10)
+#setze-y(y: 0)
 
 #pralle-vom-rand-ab()
-#setze-drehtyp-auf(typ: "links-rechts")
+#setze-drehtyp(typ: "links-rechts")
 #x-position()
 #y-position()
 #richtung()
@@ -293,93 +295,93 @@ Vor der Verwendung sollte das Theme konfiguriert werden:
 === Aussehen (Lila)
 
 #sourcecode[```typ
-#sage(text: "Hallo!", sekunden: 2)
-#sage(text: "Hallo!")
-#denke(text: "Hmm...", sekunden: 2)
-#denke(text: "Hmm...")
+#sage-fuer-sekunden("Hallo!", sekunden: 2)
+#sage("Hallo!")
+#denke-fuer-sekunden("Hmm...", sekunden: 2)
+#denke("Hmm...")
 
-#wechsle-zu-kostüm(kostüm: "Kostüm2")
-#wechsle-zum-nächsten-kostüm()
-#wechsle-zu-bühnenbild(bild: "Hintergrund1")
-#wechsle-zum-nächsten-bühnenbild()
+#wechsle-zu-kostuem(kostuem: "Kostüm2")
+#naechstes-kostuem()
+#wechsle-zu-buehnenbild(buehnenbild: "Hintergrund1")
+#naechstes-buehnenbild()
 
-#ändere-größe-um(wert: 10)
-#setze-größe-auf(wert: 100)
-#ändere-effekt(effekt: "Farbe", um: 25)
-#setze-effekt(effekt: "Farbe", auf: 0)
+#aendere-groesse(aenderung: 10)
+#setze-groesse(groesse: 100)
+#aendere-effekt("Farbe", aenderung: 25)
+#setze-effekt("Farbe", wert: 0)
 #schalte-grafikeffekte-aus()
 #zeige-dich()
 #verstecke-dich()
-#gehe-zu-ebene(ebene: "vorderster")
-#gehe-ebenen-nach(vorne: true, schritte: 1)
-#kostüm(eigenschaft: "Nummer")
-#bühnenbild(eigenschaft: "Nummer")
-#größe()
+#gehe-zu-ebene("vorderster")
+#gehe-ebenen(anzahl: 1, richtung: "vor")
+#kostuem-eigenschaft("Nummer")
+#buehnenbild-eigenschaft("Nummer")
+#groesse()
 ```]
 
 === Klang (Pink/Magenta)
 
 #sourcecode[```typ
-#spiele-klang(sound: "Meow")
-#spiele-klang(sound: "Meow", ganz: false)
-#stoppe-alle-klänge()
-#ändere-klang-effekt(effekt: "Höhe", um: 10)
-#setze-klang-effekt(effekt: "Höhe", auf: 100)
+#spiele-klang-ganz("Meow")
+#spiele-klang("Meow")
+#stoppe-alle-klaenge()
+#aendere-klangeffekt("Höhe", aenderung: 10)
+#setze-klangeffekt("Höhe", wert: 100)
 #schalte-klangeffekte-aus()
-#ändere-lautstärke-um(wert: -10)
-#setze-lautstärke-auf(wert: 100)
-#lautstärke()
+#aendere-lautstaerke(aenderung: -10)
+#setze-lautstaerke(lautstaerke: 100)
+#lautstaerke()
 ```]
 
 === Ereignisse (Gelb)
 
 #sourcecode[```typ
-#ereignis-grüne-flagge([])
-#ereignis-taste("Leertaste", [])
-#ereignis-figur-angeklickt([])
-#ereignis-bühnenbild-wechselt-zu("Bühnenbild1", [])
-#ereignis-über("Lautstärke", "10", [])
-#ereignis-nachricht-empfangen("Nachricht1", [])
+#wenn-gruene-flagge-geklickt([])
+#wenn-taste-gedrueckt("Leertaste", [])
+#wenn-diese-figur-angeklickt([])
+#wenn-buehnenbildwechsel("Bühnenbild1", [])
+#wenn-ueberschreitet("Lautstärke", "10", [])
+#wenn-nachricht-empfangen("Nachricht1", [])
 
-#sende-nachricht-an-alle("Nachricht1")
-#sende-nachricht-an-alle("Nachricht1", wait: true)
+#sende-nachricht("Nachricht1")
+#sende-nachricht-und-warte("Nachricht1")
 ```]
 
 === Steuerung (Orange)
 
 #sourcecode[```typ
-#warte(1)
-#wiederhole(anzahl: 10, body: [])
+#warte(dauer: 1)
+#wiederhole(anzahl: 10, [])
 #wiederhole-fortlaufend([])
-#falls([], dann: [], sonst: [])
-#falls([], dann: [])
+#falls-sonst([], [], [])
+#falls([], [])
 #warte-bis([])
-#wiederhole-bis([], body: [])
+#wiederhole-bis([], [])
 #stoppe("alles")
 #wenn-ich-als-klon-entstehe([])
-#erstelle-klon-von()
-#lösche-diesen-klon()
+#erzeuge-klon("mir selbst")
+#loesche-diesen-klon()
 ```]
 
 === Fühlen (Hellblau)
 
 #sourcecode[```typ
-#wird-berührt(element: "Mauszeiger")
-#wird-farbe-berührt(color: rgb("#36B7CE"))
-#farbe-berührt(color: (rgb("#83FEF3"), rgb("#CB6622")))
-#entfernung-von(objekt: "Mauszeiger")
-#frage(text: "Wie heißt du?")
+#wird-beruehrt("Mauszeiger")
+#wird-farbe-beruehrt(rgb("#36B7CE"))
+#farbe-beruehrt-farbe(rgb("#83FEF3"), rgb("#CB6622"))
+#entfernung-von("Mauszeiger")
+#frage("Wie heißt du?")
 #antwort()
-#taste-gedrückt(taste: "Leertaste")
-#maustaste-gedrückt()
-#maus-x-position()
-#maus-y-position()
-#setze-ziehbarkeit-auf(modus: "ziehbar")
-#lautstärke-fühlen()
+#taste-gedrueckt("Leertaste")
+#maustaste-gedrueckt()
+#maus-x()
+#maus-y()
+#setze-ziehbarkeit("ziehbar")
+#lautstaerke-fuehlen()
 #stoppuhr()
-#setze-stoppuhr-zurück()
-#von(eigenschaft: "Bühnenbildnummer", objekt: "Bühne")
-#zeit(einheit: "Jahr")
+#setze-stoppuhr-zurueck()
+#eigenschaft-von("Bühnenbildnummer", "Bühne")
+#aktuell("Jahr")
 #tage-seit-2000()
 #benutzername()
 ```]
@@ -387,50 +389,49 @@ Vor der Verwendung sollte das Theme konfiguriert werden:
 === Operatoren (Grün)
 
 #sourcecode[```typ
-#plus(arg1: 5, arg2: 3)
-#minus(arg1: 10, arg2: 4)
-#mal(arg1: 3, arg2: 7)
-#geteilt(arg1: 20, arg2: 4)
+#addiere(5, 3)
+#subtrahiere(10, 4)
+#multipliziere(3, 7)
+#dividiere(20, 4)
 #zufallszahl(von: 1, bis: 10)
-#größer-als(50, 25)
+#groesser-als(50, 25)
 #kleiner-als(10, 50)
 #gleich(42, 42)
-#und(`bedingung>`, `bedingung>`, nested: (true, true))
-#oder(`bedingung>`, `bedingung>`, nested: (true, true))
-#nicht(`bedingung>`, nested: true)
+#und(`bedingung>`, `bedingung>`)
+#oder(`bedingung>`, `bedingung>`)
+#nicht(`bedingung>`)
 #verbinde("Hallo ", "Welt")
-#zeichen(position: 1, von: "Apfel")
-#länge-von(text: "Apfel")
-#enthält(text: "Apfel", zeichen: "a")
+#zeichen-von(1, "Apfel")
+#laenge-von("Apfel")
+#enthaelt("Apfel", "a")
 #modulo(12, 5)
-#gerundet(3.7)
-#betrag-von(operation: "Betrag", zahl: -5)
+#runde(3.7)
+#mathematik("Betrag", -5)
 ```]
 
 === Variablen (Orange)
 
 #sourcecode[```typ
-#setze-variable-auf(name: "Punkte", wert: 0)
-#ändere-variable-um(name: "Punkte", wert: 1)
-#zeige-variable(name: "Punkte")
-#verstecke-variable(name: "Punkte")
-#variable("Punkte")
+#setze-variable("Punkte", 0)
+#aendere-variable("Punkte", 1)
+#zeige-variable("Punkte")
+#verstecke-variable("Punkte")
 ```]
 
 === Listen (Rot)
 
 #sourcecode[```typ
-#füge-zu-hinzu(wert: "Ding", liste: "Test")
-#lösche-aus(index: 1, liste: "Test")
-#lösche-alles-aus(liste: "Test")
-#füge-bei-in-ein(wert: "Ding", index: 1, liste: "Test")
-#ersetze-element-von-durch(index: 1, liste: "Test", wert: "Neues Ding")
-#element-von(index: 1, liste: "Test")
-#nummer-von-in(wert: "Ding", liste: "Test")
-#länge-von-liste("Test")
-#liste-enthält(liste: "Test", wert: "Ding")
-#zeige-liste(liste: "Test")
-#verstecke-liste(liste: "Test")
+#fuege-zu-liste-hinzu("Ding", "Test")
+#entferne-aus-liste(1, "Test")
+#entferne-alles-aus-liste("Test")
+#fuege-bei-ein("Ding", 1, "Test")
+#ersetze-element(1, "Test", "Neues Ding")
+#element-von-liste(1, "Test")
+#nummer-von-element("Ding", "Test")
+#laenge-von-liste("Test")
+#liste-enthaelt("Test", "Ding")
+#zeige-liste("Test")
+#verstecke-liste("Test")
 ```]
 
 === Eigene Blöcke (Pink)
@@ -443,33 +444,39 @@ Vor der Verwendung sollte das Theme konfiguriert werden:
 
 Blöcke können verschachtelt werden, z.B. in Wiederholungen und Bedingungen:
 
-#example[```typ
-#set-scratch(theme: "normal")
+#set-blockst(theme: "normal", scale: 70%)
 
-#ereignis-grüne-flagge([
-  #wiederhole(anzahl: 10, body: [
-    #gehe(zu: "Zufallsposition")
-    #falls(wird-berührt(element: "Wand", nested: true), dann: [
-      #drehe-dich-um(grad: 180)
+#example[```typ
+#blockst[
+  #import scratch.de: *
+
+  #wenn-gruene-flagge-geklickt([
+  #wiederhole(anzahl: 10, [
+    #gehe-zu-position("Zufallsposition")
+    #falls(wird-beruehrt("Wand"), [
+      #drehe-rechts(grad: 180)
     ])
   ])
 ])
+
+]
 ```]
 
 == Komplettes Programm
 
 #example[```typ
-#set-scratch(theme: "normal")
 
-#scale(75%, reflow: true)[
-  #ereignis-grüne-flagge([
-    #setze-variable-auf(name: [Punkte], wert:0)
+#blockst[
+  #import scratch.de: *
+
+  #wenn-gruene-flagge-geklickt([
+    #setze-variable("Punkte", 0)
     #wiederhole-fortlaufend([
-      #falls(taste-gedrückt(taste: "Leertaste"), dann: [
-        #ändere-variable-um(name: [Punkte], wert: 1)
-        #sage(text: [Punkt!], sekunden: 0.5)
+      #falls(taste-gedrueckt("Leertaste"), [
+        #aendere-variable("Punkte", 1)
+        #sage-fuer-sekunden("Punkt!", sekunden: 0.5)
       ])
-      #warte(0.1)
+      #warte(dauer: 0.1)
     ])
   ])
 ]
@@ -479,312 +486,182 @@ Blöcke können verschachtelt werden, z.B. in Wiederholungen und Bedingungen:
 
 == Kryptographie
 
-#command("caesar", arg("key"), arg(keyword: "none"), arg(advanced: false))[
-  Caesar-Verschlüsselung mit Verschiebung oder Schlüsselwort-Alphabet.
-
-  #argument("key", types: ("integer", none), default: none)[
-    Verschiebung im Alphabet (1-25). Bei `keyword` wird dieser Parameter ignoriert.
-  ]
-
-  #argument("keyword", types: ("string", none), default: none)[
-    Schlüsselwort für Alphabet-Substitution. Erstellt ein modifiziertes Alphabet beginnend mit dem Schlüsselwort (ohne Duplikate), gefolgt von den restlichen Buchstaben.
-  ]
-
-  #argument("advanced", types: "boolean", default: false)[
-    - `false`: Gibt Verschlüsselungsfunktion zurück (nur encode)
-    - `true`: Gibt Objekt mit `.encode()` und `.decode()` zurück
-  ]
-]
-
-#command("vigenere", arg("keyword"), arg(advanced: false))[
-  Vigenère-Verschlüsselung mit polyalphabetischer Substitution.
-
-  #argument("keyword", types: "string")[
-    Schlüsselwort für die Verschlüsselung.
-  ]
-
-  #argument("advanced", types: "boolean", default: false)[
-    - `false`: Gibt Verschlüsselungsfunktion zurück
-    - `true`: Gibt Objekt mit `.encode()` und `.decode()` zurück
-  ]
-]
-#pagebreak(weak: true)
-#command("rot13", arg("text"))[
-  ROT13-Verschlüsselung (Caesar mit Verschiebung 13). Selbst-invers: `rot13(rot13(x)) == x`.
-
-  #argument("text", types: "string")[
-    Zu verschlüsselnder/entschlüsselnder Text.
-  ]
-]
-
-#command("atbash", arg(advanced: false))[
-  Atbash-Verschlüsselung (Alphabet-Spiegelung).
-
-  #argument("advanced", types: "boolean", default: false)[
-    - `false`: Gibt Verschlüsselungsfunktion zurück
-    - `true`: Gibt Objekt mit `.encode()` und `.decode()` zurück
-  ]
-]
+#command("caesar", arg("key"), arg(keyword: "none"), arg(advanced: false))
+#command("vigenere", arg("keyword"), arg(advanced: false))
+#command("rot13", arg("text"))
+#command("atbash", arg(advanced: false))
 
 == Kodierung
 
-#command("dec2bin", arg("number"))[
-  Konvertiert Dezimalzahl zu Binär.
-
-  #argument("number", types: "integer")[
-    Dezimalzahl (nicht-negativ).
-  ]
-]
-
-#command("bin2dec", arg("binary"))[
-  Konvertiert Binärzahl zu Dezimal.
-
-  #argument("binary", types: "string")[
-    Binärzahl als String (nur 0 und 1).
-  ]
-]
-
-#command("dec2hex", arg("number"))[
-  Konvertiert Dezimalzahl zu Hexadezimal.
-
-  #argument("number", types: "integer")[
-    Dezimalzahl (nicht-negativ).
-  ]
-]
-
-#command("hex2dec", arg("hex"))[
-  Konvertiert Hexadezimalzahl zu Dezimal.
-
-  #argument("hex", types: "string")[
-    Hexadezimalzahl als String (0-9, A-F).
-  ]
-]
-
-#command("ascii-table", arg(ranges: (("a", "z"),)), arg(height: 5), arg(variants: ("char", "dec")), arg(colored: true))[
-  Erstellt eine ASCII-Tabelle mit konfigurierbaren Zeichenbereichen und Darstellungsoptionen.
-
-  #argument("ranges", types: "array", default: (("a", "z"),))[
-    Array von Zeichenbereichen. Jeder Eintrag kann sein:
-    - Ein einzelnes Zeichen als String: `"A"`
-    - Ein Tupel `(start, end)` für einen Bereich: `("a", "z")`, `("0", "9")`
-    
-    Beispiele:
-    - `(("a", "z"),)` -- Kleinbuchstaben a-z
-    - `(("A", "Z"), ("a", "z"))` -- Groß- und Kleinbuchstaben
-    - `(("0", "9"), ("A", "F"))` -- Hexadezimalziffern
-  ]
-
-  #argument("height", types: "integer", default: 5)[
-    Anzahl der Zeilen in der Tabelle. Die Spaltenanzahl wird automatisch berechnet.
-  ]
-
-  #argument("variants", types: "array", default: ("char", "dec"))[
-    Array von Darstellungsvarianten. Verfügbare Werte:
-    - `"char"`: Das Zeichen selbst
-    - `"dec"`: Dezimalwert (ASCII-Code)
-    - `"hex"`: Hexadezimalwert
-    - `"bin"`: Binärwert
-    
-    Beispiel: `("char", "dec", "hex", "bin")` zeigt alle vier Varianten.
-  ]
-
-  #argument("colored", types: "boolean", default: true)[
-    - `true`: Farbige Header (Blau, Rot, Grün, Orange, etc.)
-    - `false`: Graustufige Header
-  ]
-]
-
-#command("text-to-blocks", arg("text"))[
-  Konvertiert Text in formatierte Blöcke für visuelle Darstellung.
-
-  #argument("text", types: "string")[
-    Text, der in Blöcke aufgeteilt werden soll.
-  ]
-]
+#command("dec2bin", arg("number"))
+#command("bin2dec", arg("binary"))
+#command("dec2hex", arg("number"))
+#command("hex2dec", arg("hex"))
+#command("ascii-table", arg(ranges: (("a", "z"),)), arg(height: 5), arg(variants: ("char", "dec")), arg(colored: true))
+#command("text-to-blocks", arg("text"))
 
 == Häufigkeitsanalyse
 
-#command("häufigkeitsanalyse", arg("text"))[
-  Analysiert die Häufigkeit von Buchstaben in einem Text.
+#command("häufigkeitsanalyse", arg("text"))
 
-  #argument("text", types: "string")[
-    Zu analysierender Text. Nur Buchstaben werden gezählt (Groß-/Kleinschreibung ignoriert).
-  ]
-
-  Rückgabe: Dictionary mit:
-  - `absolut`: Dictionary mit absoluten Häufigkeiten (z.B. `(E: 5, A: 3)`)
-  - `relativ`: Dictionary mit relativen Häufigkeiten (z.B. `(E: 25%, A: 15%)`)
-  - `diagramm`: Balkendiagramm als CeTZ-Content
-  - `data`: Array mit `(buchstabe, häufigkeit)` Paaren für eigene Plots
-]
+#pagebreak(weak: true)
 
 == Scratch-Blöcke
 
 === Konfiguration
 
-#command("set-scratch", arg(theme: "normal"), arg(stroke-width: 1pt))[
-  Konfiguriert das globale Theme für Scratch-Blöcke.
-
-  #argument("theme", types: "string", default: "normal")[
-    `"normal"` oder `"high-contrast"`
-  ]
-
-  #argument("stroke-width", types: "length", default: 1pt)[
-    Dicke der Block-Umrandungen.
-  ]
-]
+#command("set-scratch", arg(theme: "normal"), arg(stroke-width: 1pt))
 
 === Bewegung
 
-#command("gehe-schritt", arg(schritt: 10))[Block: Gehe _schritt_ Schritte vorwärts.]
-#command("drehe-dich-um", arg(richtung: "rechts"), arg(grad: 15))[Block: Drehe dich um _grad_ Grad in _richtung_ ("rechts" oder "links").]
-#command("gehe", arg(zu: "Zufallsposition"))[Block: Gehe zu Position _zu_ (z.B. "Mauszeiger", "Zufallsposition").]
-#command("gehe-zu", arg(x: 0), arg(y: 0))[Block: Gehe zu Position x: _x_, y: _y_.]
-#command("gleite-in", arg(sek: 1), arg(zu: "Zufallsposition"))[Block: Gleite in _sek_ Sekunden zu _zu_.]
-#pagebreak(weak: true)
-#command("gleite-in-zu", arg(sek: 1), arg(x: 0), arg(y: 0))[Block: Gleite in _sek_ Sekunden zu x: _x_, y: _y_.]
-#command("setze-Richtung-auf", arg(grad: 90))[Block: Setze Richtung auf _grad_ Grad.]
-#command("drehe-dich", arg(zu: "Mauszeiger"))[Block: Drehe dich zu _zu_.]
-#command("ändere-x-um", arg(schritt: 10))[Block: Ändere x um _schritt_.]
-#command("setze-x-auf", arg(x: 0))[Block: Setze x auf _x_.]
-#command("ändere-y-um", arg(schritt: 10))[Block: Ändere y um _schritt_.]
-#command("setze-y-auf", arg(y: 0))[Block: Setze y auf _y_.]
-#command("pralle-vom-rand-ab", ..args())[Block: Pralle vom Rand ab.]
-#command("setze-drehtyp-auf", arg(typ: "links-rechts"))[Block: Setze Drehtyp auf _typ_.]
-#command("x-position", ..args())[Reporter: x-Position der Figur.]
-#command("y-position", ..args())[Reporter: y-Position der Figur.]
-#command("richtung", ..args())[Reporter: Richtung der Figur in Grad.]
+#command("gehe", arg(schritte: 10))
+#command("drehe-rechts", arg(grad: 15))
+#command("drehe-links", arg(grad: 15))
+#command("gehe-zu-position", arg("zu"))
+#command("gehe-zu", arg(x: 0), arg(y: 0))
+#command("gleite-zu-position", arg(sekunden: 1), arg("zu"))
+#command("gleite-zu", arg(sekunden: 1), arg(x: 0), arg(y: 0))
+#command("setze-richtung", arg(grad: 90))
+#command("drehe-zu", arg("zu"))
+#command("aendere-x", arg(aenderung: 10))
+#command("setze-x", arg(x: 0))
+#command("aendere-y", arg(aenderung: 10))
+#command("setze-y", arg(y: 0))
+#command("pralle-vom-rand-ab", ..args())
+#command("setze-drehtyp", arg(typ: "links-rechts"))
+#command("x-position", ..args())
+#command("y-position", ..args())
+#command("richtung", ..args())
 
 === Aussehen
 
-#command("sage", arg(text: "Hallo!"), arg(sekunden: none))[Block: Sage _text_ (optional für _sekunden_ Sekunden).]
-#command("denke", arg(text: "Hmm..."), arg(sekunden: none))[Block: Denke _text_ (optional für _sekunden_ Sekunden).]
-#command("wechsle-zu-kostüm", arg(kostüm: "Kostüm2"))[Block: Wechsle zu Kostüm _kostüm_.]
-#command("wechsle-zum-nächsten-kostüm", ..args())[Block: Wechsle zum nächsten Kostüm.]
-#command("wechsle-zu-bühnenbild", arg(bild: "Hintergrund1"))[Block: Wechsle zu Bühnenbild _bild_.]
-#pagebreak(weak: true)
-#command("wechsle-zum-nächsten-bühnenbild", ..args())[Block: Wechsle zum nächsten Bühnenbild.]
-#command("ändere-größe-um", arg(wert: 10))[Block: Ändere Größe um _wert_.]
-#command("setze-größe-auf", arg(wert: 100))[Block: Setze Größe auf _wert_ %.]
-#command("ändere-effekt", arg(effekt: "Farbe"), arg(um: 25))[Block: Ändere Effekt _effekt_ um _um_.]
-#command("setze-effekt", arg(effekt: "Farbe"), arg(auf: 0))[Block: Setze Effekt _effekt_ auf _auf_.]
-#command("schalte-grafikeffekte-aus", ..args())[Block: Schalte Grafikeffekte aus.]
-#command("zeige-dich", ..args())[Block: Zeige dich.]
-#command("verstecke-dich", ..args())[Block: Verstecke dich.]
-#command("gehe-zu-ebene", arg(ebene: "vorderster"))[Block: Gehe zu Ebene _ebene_.]
-#command("gehe-ebenen-nach", arg(vorne: true), arg(schritte: 1))[Block: Gehe _schritte_ Ebenen nach vorne/hinten.]
-#command("kostüm", arg(eigenschaft: "Nummer"))[Reporter: Kostüm-Eigenschaft _eigenschaft_.]
-#command("bühnenbild", arg(eigenschaft: "Nummer"))[Reporter: Bühnenbild-Eigenschaft _eigenschaft_.]
-#command("größe", ..args())[Reporter: Größe der Figur in %.]
+#command("sage-fuer-sekunden", arg("nachricht"), arg(sekunden: 2))
+#command("sage", arg("nachricht"))
+#command("denke-fuer-sekunden", arg("nachricht"), arg(sekunden: 2))
+#command("denke", arg("nachricht"))
+#command("wechsle-zu-kostuem", arg(kostuem: "Kostüm2"))
+#command("naechstes-kostuem", ..args())
+#command("wechsle-zu-buehnenbild", arg(buehnenbild: "Hintergrund1"))
+#command("naechstes-buehnenbild", ..args())
+#command("aendere-groesse", arg(aenderung: 10))
+#command("setze-groesse", arg(groesse: 100))
+#command("aendere-effekt", arg("effekt"), arg(aenderung: 25))
+#command("setze-effekt", arg("effekt"), arg(wert: 0))
+#command("schalte-grafikeffekte-aus", ..args())
+#command("zeige-dich", ..args())
+#command("verstecke-dich", ..args())
+#command("gehe-zu-ebene", arg("ebene"))
+#command("gehe-ebenen", arg(anzahl: 1), arg("richtung"))
+#command("kostuem-eigenschaft", arg("eigenschaft"))
+#command("buehnenbild-eigenschaft", arg("eigenschaft"))
+#command("groesse", ..args())
 
 === Klang
 
-#command("spiele-klang", arg(sound: "Meow"), arg(ganz: true))[Block: Spiele Klang _sound_ (ganz oder bis fertig je nach _ganz_).]
-#command("stoppe-alle-klänge", ..args())[Block: Stoppe alle Klänge.]
-#command("ändere-klang-effekt", arg(effekt: "Höhe"), arg(um: 10))[Block: Ändere Klangeffekt _effekt_ um _um_.]
-#command("setze-klang-effekt", arg(effekt: "Höhe"), arg(auf: 100))[Block: Setze Klangeffekt _effekt_ auf _auf_.]
-#pagebreak(weak: true)
-#command("schalte-klangeffekte-aus", ..args())[Block: Schalte Klangeffekte aus.]
-#command("ändere-lautstärke-um", arg(wert: -10))[Block: Ändere Lautstärke um _wert_.]
-#command("setze-lautstärke-auf", arg(wert: 100))[Block: Setze Lautstärke auf _wert_ %.]
-#command("lautstärke", ..args())[Reporter: Aktuelle Lautstärke.]
+#command("spiele-klang-ganz", arg("klang"))
+#command("spiele-klang", arg("klang"))
+#command("stoppe-alle-klaenge", ..args())
+#command("aendere-klangeffekt", arg("effekt"), arg(aenderung: 10))
+#command("setze-klangeffekt", arg("effekt"), arg(wert: 100))
+#command("schalte-klangeffekte-aus", ..args())
+#command("aendere-lautstaerke", arg(aenderung: -10))
+#command("setze-lautstaerke", arg(lautstaerke: 100))
+#command("lautstaerke", ..args())
 
 === Ereignisse
 
-#command("ereignis-grüne-flagge", arg("children"))[Event-Block: Wenn grüne Flagge angeklickt. _children_ enthält die auszuführenden Blöcke.]
-#command("ereignis-taste", arg("taste"), arg("children"))[Event-Block: Wenn Taste _taste_ gedrückt wird.]
-#command("ereignis-figur-angeklickt", arg("children"))[Event-Block: Wenn diese Figur angeklickt wird.]
-#command("ereignis-bühnenbild-wechselt-zu", arg("taste"), arg("children"))[Event-Block: Wenn Bühnenbild zu _taste_ wechselt.]
-#command("ereignis-über", arg("element"), arg("wert"), arg("children"))[Event-Block: Wenn _element_ über _wert_ liegt.]
-#command("ereignis-nachricht-empfangen", arg("nachricht"), arg("children"))[Event-Block: Wenn Nachricht _nachricht_ empfangen wird.]
-#command("sende-nachricht-an-alle", arg("nachricht"), arg(wait: false))[Block: Sende Nachricht _nachricht_ an alle (warte optional).]
-#command("wenn-ich-als-klon-entstehe", arg("children"))[Event-Block: Wenn ich als Klon entstehe.]
-#command("erstelle-klon-von", arg(element: "mir selbst"))[Block: Erstelle Klon von _element_.]
+#command("wenn-gruene-flagge-geklickt", arg("children"))
+#command("wenn-taste-gedrueckt", arg("taste"), arg("children"))
+#command("wenn-diese-figur-angeklickt", arg("children"))
+#command("wenn-buehnenbildwechsel", arg("szene"), arg("children"))
+#command("wenn-ueberschreitet", arg("element"), arg("wert"), arg("children"))
+#command("wenn-nachricht-empfangen", arg("nachricht"), arg("children"))
+#command("sende-nachricht", arg("nachricht"))
+#command("sende-nachricht-und-warte", arg("nachricht"))
+#command("wenn-ich-als-klon-entstehe", arg("children"))
+#command("erzeuge-klon", arg("klon"))
 
 === Steuerung
 
-#command("warte", arg("sekunde"))[Block: Warte _sekunde_ Sekunden.]
-#command("wiederhole", arg(anzahl: 10), arg(body: none))[Block: Wiederhole _anzahl_ mal, führe _body_ aus.]
-#command("wiederhole-fortlaufend", arg("body"))[Block: Wiederhole _body_ unendlich.]
-#pagebreak(weak: true)
-#command("wiederhole-bis", arg("bdg"), arg(body: none))[Block: Wiederhole _body_ bis Bedingung _bdg_ wahr ist.]
-#command("falls", arg("bdg"), arg(dann: none), arg(sonst: none))[Block: Falls Bedingung _bdg_, dann _dann_, sonst _sonst_.]
-#command("warte-bis", arg("bdg"))[Block: Warte bis Bedingung _bdg_ wahr ist.]
-#command("stoppe", arg("element"))[Block: Stoppe _element_ ("alles", "dieses Skript", etc.).]
-#command("lösche-diesen-klon", ..args())[Block: Lösche diesen Klon.]
+#command("warte", arg(dauer: 1))
+#command("wiederhole", arg(anzahl: 10), arg("body"))
+#command("wiederhole-fortlaufend", arg("body"))
+#command("wiederhole-bis", arg("bedingung"), arg("body"))
+#command("falls", arg("bedingung"), arg("body"))
+#command("falls-sonst", arg("bedingung"), arg("dann"), arg("sonst"))
+#command("warte-bis", arg("bedingung"))
+#command("stoppe", arg("option"))
+#command("loesche-diesen-klon", ..args())
 
 === Fühlen
 
-#command("wird-berührt", arg(element: "Mauszeiger"), arg(nested: false))[Sensor-Block: Berühre _element_? _nested_ für Verwendung in Bedingungen.]
-#command("wird-farbe-berührt", arg(color: rgb("#36B7CE")), arg(nested: false))[Sensor-Block: Berühre Farbe _color_?]
-#command("farbe-berührt", arg(color: (rgb("#83FEF3"), rgb("#CB6622"))), arg(nested: false))[Sensor-Block: Farbe _color.0_ berührt Farbe _color.1_?]
-#command("taste-gedrückt", arg(taste: "Leertaste"), arg(nested: false))[Sensor-Block: Taste _taste_ gedrückt?]
-#command("maustaste-gedrückt", arg(nested: false))[Sensor-Block: Maustaste gedrückt?]
-#command("frage", arg(text: "Wie heißt du?"))[Block: Frage _text_ und warte auf Antwort.]
-#command("antwort", ..args())[Reporter: Antwort auf letzte Frage.]
-#command("entfernung-von", arg(objekt: "Mauszeiger"))[Reporter: Entfernung von _objekt_.]
-#command("maus-x-position", ..args())[Reporter: x-Position des Mauszeigers.]
-#command("maus-y-position", ..args())[Reporter: y-Position des Mauszeigers.]
-#command("setze-ziehbarkeit-auf", arg(modus: "ziehbar"))[Block: Setze Ziehbarkeit auf _modus_.]
-#command("lautstärke-fühlen", ..args())[Reporter: Aktuelle Lautstärke (Mikrofon).]
-#pagebreak(weak: true)
-#command("stoppuhr", ..args())[Reporter: Stoppuhr-Wert.]
-#command("setze-stoppuhr-zurück", ..args())[Block: Setze Stoppuhr zurück.]
-#command("von", arg(eigenschaft: "Bühnenbildnummer"), arg(objekt: "Bühne"))[Reporter: _eigenschaft_ von _objekt_.]
-#command("zeit", arg(einheit: "Jahr"))[Reporter: Aktuelle Zeit in _einheit_.]
-#command("tage-seit-2000", ..args())[Reporter: Tage seit 1.1.2000.]
-#command("benutzername", ..args())[Reporter: Scratch-Benutzername.]
+#command("wird-beruehrt", arg("objekt"))
+#command("wird-farbe-beruehrt", arg("farbe"))
+#command("farbe-beruehrt-farbe", arg("farbe1"), arg("farbe2"))
+#command("taste-gedrueckt", arg("taste"))
+#command("maustaste-gedrueckt", ..args())
+#command("frage", arg("frage"))
+#command("antwort", ..args())
+#command("entfernung-von", arg("objekt"))
+#command("maus-x", ..args())
+#command("maus-y", ..args())
+#command("setze-ziehbarkeit", arg("modus"))
+#command("lautstaerke-fuehlen", ..args())
+#command("stoppuhr", ..args())
+#command("setze-stoppuhr-zurueck", ..args())
+#command("eigenschaft-von", arg("eigenschaft"), arg("objekt"))
+#command("aktuell", arg("zeiteinheit"))
+#command("tage-seit-2000", ..args())
+#command("benutzername", ..args())
 
 === Operatoren
 
-#command("plus", arg(arg1: "  "), arg(arg2: "  "))[Operator: _arg1_ + _arg2_.]
-#command("minus", arg(arg1: "  "), arg(arg2: "  "))[Operator: _arg1_ - _arg2_.]
-#command("mal", arg(arg1: "  "), arg(arg2: "  "))[Operator: _arg1_ × _arg2_.]
-#command("geteilt", arg(arg1: "  "), arg(arg2: "  "))[Operator: _arg1_ ÷ _arg2_.]
-#command("modulo", arg("arg1"), arg("arg2"))[Operator: Rest von _arg1_ ÷ _arg2_.]
-#command("zufallszahl", arg(von: 1), arg(bis: 10))[Operator: Zufallszahl von _von_ bis _bis_.]
-#command("größer-als", arg("arg1"), arg("arg2"), arg(nested: false))[Operator: _arg1_ > _arg2_.]
-#command("kleiner-als", arg("arg1"), arg("arg2"), arg(nested: false))[Operator: _arg1_ < _arg2_.]
-#command("gleich", arg("arg1"), arg("arg2"), arg(nested: false))[Operator: _arg1_ = _arg2_.]
-#command("und", arg("arg1"), arg("arg2"), arg(nested: (false, false)))[Operator: _arg1_ und _arg2_. _nested_ ist Tupel für beide Argumente.]
-#command("oder", arg("arg1"), arg("arg2"), arg(nested: (false, false)))[Operator: _arg1_ oder _arg2_. _nested_ ist Tupel für beide Argumente.]
-#pagebreak(weak: true)
-#command("nicht", arg("arg1"), arg(nested: false))[Operator: nicht _arg1_.]
-#command("verbinde", arg("text1"), arg("text2"))[Operator: Verbinde _text1_ und _text2_.]
-#command("zeichen", arg(position: 1), arg(von: "Apfel"))[Operator: Zeichen _position_ von _von_.]
-#command("länge-von", arg(text: "Apfel"))[Operator: Länge von _text_.]
-#command("enthält", arg(text: "Apfel"), arg(zeichen: "a"), arg(nested: false))[Operator: _text_ enthält _zeichen_?]
-#command("gerundet", arg("zahl"))[Operator: Runde _zahl_.]
-#command("betrag-von", arg(operation: "Betrag"), arg("zahl"))[Operator: _operation_ von _zahl_ (Betrag, Wurzel, sin, cos, etc.).]
+#command("addiere", arg("zahl1"), arg("zahl2"))
+#command("subtrahiere", arg("zahl1"), arg("zahl2"))
+#command("multipliziere", arg("zahl1"), arg("zahl2"))
+#command("dividiere", arg("zahl1"), arg("zahl2"))
+#command("modulo", arg("zahl1"), arg("zahl2"))
+#command("zufallszahl", arg(von: 1), arg(bis: 10))
+#command("groesser-als", arg("operand1"), arg("operand2"))
+#command("kleiner-als", arg("operand1"), arg("operand2"))
+#command("gleich", arg("operand1"), arg("operand2"))
+#command("und", arg("operand1"), arg("operand2"))
+#command("oder", arg("operand1"), arg("operand2"))
+#command("nicht", arg("operand"))
+#command("verbinde", arg("string1"), arg("string2"))
+#command("zeichen-von", arg("position"), arg("text"))
+#command("laenge-von", arg("text"))
+#command("enthaelt", arg("text1"), arg("text2"))
+#command("runde", arg("zahl"))
+#command("mathematik", arg("operator"), arg("zahl"))
 
 === Variablen
 
-#command("setze-variable-auf", arg(name: "my variable"), arg(wert: 0))[Block: Setze Variable _name_ auf _wert_.]
-#command("ändere-variable-um", arg(name: "my variable"), arg(wert: 1))[Block: Ändere Variable _name_ um _wert_.]
-#command("zeige-variable", arg(name: "my variable"))[Block: Zeige Variable _name_.]
-#command("verstecke-variable", arg(name: "my variable"))[Block: Verstecke Variable _name_.]
-#command("variable", arg("name"))[Reporter: Wert der Variable _name_.]
+#command("setze-variable", arg("variable"), arg("wert"))
+#command("aendere-variable", arg("variable"), arg("wert"))
+#command("zeige-variable", arg("variable"))
+#command("verstecke-variable", arg("variable"))
 
 === Listen
 
-#command("füge-zu-hinzu", arg(wert: "Ding"), arg(liste: "Test"))[Block: Füge _wert_ zu Liste _liste_ hinzu.]
-#command("lösche-aus", arg(index: 1), arg(liste: "Test"))[Block: Lösche Element _index_ aus Liste _liste_.]
-#command("lösche-alles-aus", arg(liste: "Test"))[Block: Lösche alle Elemente aus Liste _liste_.]
-#command("füge-bei-in-ein", arg(wert: "Ding"), arg(index: 1), arg(liste: "Test"))[Block: Füge _wert_ an Position _index_ in Liste _liste_ ein.]
-#command("ersetze-element-von-durch", arg(index: 1), arg(liste: "Test"), arg(wert: "Ding"))[Block: Ersetze Element _index_ von Liste _liste_ durch _wert_.]
-#command("element-von", arg(index: 1), arg(liste: "Test"))[Reporter: Element _index_ von Liste _liste_.]
-#command("nummer-von-in", arg(wert: "Ding"), arg(liste: "Test"))[Reporter: Nummer von _wert_ in Liste _liste_.]
-#command("länge-von-liste", arg("liste"))[Reporter: Länge von Liste _liste_.]
-#command("liste-enthält", arg(liste: "Test"), arg(wert: "Ding"), arg(nested: false))[Reporter: Liste _liste_ enthält _wert_?]
-#command("zeige-liste", arg(liste: "Test"))[Block: Zeige Liste _liste_.]
-#command("verstecke-liste", arg(liste: "Test"))[Block: Verstecke Liste _liste_.]
+#command("fuege-zu-liste-hinzu", arg("element"), arg("liste"))
+#command("entferne-aus-liste", arg("index"), arg("liste"))
+#command("entferne-alles-aus-liste", arg("liste"))
+#command("fuege-bei-ein", arg("element"), arg("index"), arg("liste"))
+#command("ersetze-element", arg("index"), arg("liste"), arg("element"))
+#command("element-von-liste", arg("index"), arg("liste"))
+#command("nummer-von-element", arg("element"), arg("liste"))
+#command("laenge-von-liste", arg("liste"))
+#command("liste-enthaelt", arg("liste"), arg("element"))
+#command("zeige-liste", arg("liste"))
+#command("verstecke-liste", arg("liste"))
 
 === Eigene Blöcke
 
-#command("definiere", arg("label"), arg("..children"))[Block: Definiere eigenen Block mit Label _label_ und Parametern in _children_.]
-#command("eigener-block", arg("..body"))[Erzeugt einen eigenen Anweisungsblock mit Text und Platzhaltern aus _body_.]
-#command("eigene-eingabe", arg("text"))[Weißer Argument-Platzhalter für eigene Blöcke mit Text _text_.]
-#command("parameter", arg("name"))[Parameter-Reporter (pink) für eigene Block-Parameter _name_.]
+#command("definiere", arg("label"), arg("..children"))
+#command("eigener-block", arg("..body"))
+#command("eigene-eingabe", arg("text"))
+#command("parameter", arg("name"))
 
 = Beispielsammlung
 
@@ -809,10 +686,10 @@ Die häufigsten Buchstaben im Deutschen: E, N, I, S, R, A, T
 #set-scratch(theme: "normal")
 
 // Programm: Figur folgt Mauszeiger
-#ereignis-grüne-flagge([
+#wenn-gruene-flagge-geklickt([
   #wiederhole-fortlaufend([
-    #gehe(zu: "Mauszeiger")
-    #warte(0.1)
+    #gehe-zu-position("Mauszeiger")
+    #warte(dauer: 0.1)
   ])
 ])
 ```]
@@ -838,24 +715,25 @@ Die häufigsten Buchstaben im Deutschen: E, N, I, S, R, A, T
 
 // Initialisierung und Spiel-Logik
 #scale(60%, reflow: true)[
-#ereignis-grüne-flagge([
-  #setze-variable-auf(name: [Punkte], wert: 0)
-  #setze-variable-auf(name: [Level], wert: 1)
-  #gehe(zu: "Zufallsposition")
+#wenn-gruene-flagge-geklickt([
+  #setze-variable("Punkte", 0)
+  #setze-variable("Level", 1)
+  #gehe-zu-position("Zufallsposition")
 ])
 
-#ereignis-figur-angeklickt([
-  #ändere-variable-um(name: [Punkte], wert: 1)
-  #spiele-klang(sound: [Pop])
-  #falls(
-    größer-als(variable([Punkte]), 10),
-    dann: [
-      #ändere-variable-um(name: [Level], wert: 1)
-      #setze-variable-auf(name: [Punkte], wert: 0)
-      #sage(text: [Level Up!], sekunden: 2)
-    ]
+#wenn-diese-figur-angeklickt([
+  #aendere-variable("Punkte", 1)
+  #spiele-klang("Pop")
+  #falls-sonst(
+    groesser-als("Punkte", 10),
+    [
+      #aendere-variable("Level", 1)
+      #setze-variable("Punkte", 0)
+      #sage-fuer-sekunden("Level Up!", sekunden: 2)
+    ],
+    []
   )
-  #gehe(zu: "Zufallsposition")
+  #gehe-zu-position("Zufallsposition")
 ])]
 ```]
 
