@@ -19,20 +19,29 @@
 /// - page-settings (dictionary): Additional page settings.
 /// - klausurboegen (dictionary): Settings for exam sheet generation.
 /// - ..args (any): Additional arguments passed to arbeitsblatt (e.g. font, math-font, font-size, figure-font-size, teilaufgabe-numbering, punkte, loesungen, materialien, etc.).
+#let _ = counter("klassenarbeit")
 #let klassenarbeit(
   subtitle: "",
   date: "",
   logo: "angela",
   teacher: "",
   student: "",
-  name-field: "Name:",
+  name-field: "Name",
   info-table: false,
   page-numbering: true,
   klausurboegen: false,
   erwartungen: true,
   ..args,
   body,
-) = {
+) = context {
+  // Counter ZUERST erhöhen, damit die ID korrekt ist
+  counter("klassenarbeit").step()
+  counter(page).update(1)
+  
+  // Hole die aktuelle Klassenarbeit-ID direkt als Zahl
+  let current-ka-id = counter("klassenarbeit").get().first()
+  let ka-label = label("ende-arbeitsblatt-id-" + str(current-ka-id))
+  
   let table = if type(info-table) != bool and type(info-table) == array {
     info-table
   } else { () }
@@ -46,8 +55,9 @@
     footer: if page-numbering {
       context [
         #let current-page = counter(page).at(here()).at(0)
-        #let last-page = counter(page).at(<ende-arbeitsblatt>).at(0)
-        #if current-page <= last-page [
+        #let end-page = counter(page).at(ka-label).at(0)
+        #let last-page = end-page
+        #if current-page <= end-page [
           #set text(8pt, font: font)
           #set align(right)
           Seite #current-page von #last-page
@@ -138,7 +148,7 @@
       )
     })
 
-    if name-field != none { text(14pt, weight: "semibold")[#name-field #h(0.25em) #student] }
+    if name-field != none { text(14pt, weight: "semibold")[#name-field: #h(0.25em) #student] }
 
     std.table(
       columns: (auto, 1fr),
@@ -151,14 +161,16 @@
       },
       std.table.hline(stroke: 0.5pt + luma(200)),
     )
-  } else if name-field != none {  
-      text(14pt, weight: "semibold")[#name-field #h(0.25em) #student]
-      line(length: 100%, stroke: 0.5pt + luma(200))
+  } else if name-field != none {
+    text(14pt, weight: "semibold")[#name-field: #h(0.25em) #student]
+    line(length: 100%, stroke: 0.5pt + luma(200))
   }
 
   body
 
-  [#metadata("ende-des-dokuments") <ende-arbeitsblatt>]
+  // Setze das Label mit der fixierten Klassenarbeit-ID
+  [#metadata("ende-des-dokuments") #ka-label]
+
 
   if erwartungen == true {
     show-erwartungen(new-page: true)
