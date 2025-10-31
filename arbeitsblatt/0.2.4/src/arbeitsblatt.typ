@@ -502,16 +502,25 @@
 
 #let qrbox(url, name, width: 3cm, ..args) = {
   stickybox(width: width, ..args)[
-    #qr-code(url, width: width - 0.5cm, light-color: "#ffffff00", quiet-zone: false, alt: "QR-Code")
+    #set align(center)
+    #qr-code(url, width: 0.75 * width, light-color: "#ffffff00", quiet-zone: false, alt: "QR-Code")
     #align(
       center,
-      text(
-        size: 8pt,
-        [
-          #v(-1em)
-          #icon-link(url, name)
-        ],
-      ),
+      context {
+        let text-size = 14pt
+        while measure(text(size: text-size, icon-link(url, name))).width >= 0.8 * width and text-size > 10pt {
+          text-size = text-size - 0.1pt
+        }
+        text(
+          size: text-size,
+          [
+            #v(-1em)
+            #v(0.05 * width)
+            #icon-link(url, name)
+            #v(0.05 * width)
+          ],
+        )
+      },
     )
   ]
 }
