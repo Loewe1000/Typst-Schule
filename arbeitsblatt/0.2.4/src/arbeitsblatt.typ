@@ -507,17 +507,28 @@
     #align(
       center,
       context {
-        let text-size = 14pt
-        while measure(text(size: text-size, icon-link(url, name))).width >= 0.8 * width and text-size > 10pt {
+        let text-size = 12pt
+        let content-link = text(text-size, icon-link(url, name))
+        let icon = true
+        while measure(text(size: text-size, icon-link(url, name))).width > 0.8 * width and text-size > 10pt {
           text-size = text-size - 0.1pt
+          content-link = text(text-size, icon-link(url, name))
+        }
+        if text-size <= 10pt {
+          content-link = text(text-size, blue, link(url, name))
+          icon = false
+          while measure(text(size: text-size, link(url, name))).width < 0.8 * width and text-size < 12pt {
+            text-size = text-size + 0.1pt
+            content-link = text(text-size, blue, link(url, name))
+          }
         }
         text(
           size: text-size,
           [
             #v(-1em)
             #v(0.05 * width)
-            #icon-link(url, name)
-            #v(0.05 * width)
+            #content-link
+            #if icon { v(0.05 * width) }
           ],
         )
       },
