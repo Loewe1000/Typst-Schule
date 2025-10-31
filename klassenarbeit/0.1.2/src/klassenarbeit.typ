@@ -138,7 +138,7 @@
       )
     })
 
-    if name-field != none { text(14pt, weight: "semibold")[#name #h(0.25em) #student] }
+    if name-field != none { text(14pt, weight: "semibold")[#name-field #h(0.25em) #student] }
 
     std.table(
       columns: (auto, 1fr),
@@ -152,7 +152,7 @@
       std.table.hline(stroke: 0.5pt + luma(200)),
     )
   } else if name-field != none {  
-      text(14pt, weight: "semibold")[#name #h(0.25em) #student]
+      text(14pt, weight: "semibold")[#name-field #h(0.25em) #student]
       line(length: 100%, stroke: 0.5pt + luma(200))
   }
 
