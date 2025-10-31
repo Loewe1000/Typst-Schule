@@ -1,0 +1,7 @@
+[package]
+name = "blockst"
+version = "0.0.1"
+entrypoint = "lib.typ"
+
+description = "Package for informatik things"
+license = "MIT"
