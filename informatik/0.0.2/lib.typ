@@ -1,5 +1,4 @@
-// Scratch-Blöcke
-#import "scratch.typ": *
+#import "@schule/blockst:0.0.1": blockst, scratch, set-blockst, set-scratch
 
 // Konvertiert eine Binärzahl (als String oder Zahl) zu Dezimal
 #let bin2dec(zahl) = {
