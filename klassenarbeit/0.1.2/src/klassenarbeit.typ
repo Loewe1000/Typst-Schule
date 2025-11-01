@@ -177,7 +177,7 @@
   }
 
   [
-    #if klausurboegen != false and type(klausurboegen) == dictionary {
+    #if klausurboegen != false and (type(klausurboegen) == dictionary or klausurboegen == true) {
       import "@schule/klausurboegen:0.0.3": *
 
       klausurbögen(
@@ -186,22 +186,17 @@
         teacher: teacher,
         class: class,
         date: date,
-        sek1: if "stufe" in klausurboegen.keys() and klausurboegen.at("stufe") == "II" {
-          false
-        } else if "stufe" in klausurboegen.keys() and klausurboegen.at("stufe") == "I" {
-          true
-        } else {
-          true
-        },
-        result: if "ergebnisse" in klausurboegen.keys() and klausurboegen.at("ergebnisse") != none {
+        result: if type(klausurboegen) == dictionary and "ergebnisse" in klausurboegen.keys() and klausurboegen.at("ergebnisse") != none {
           true
         } else {
           false
         },
-        ..if "ergebnisse" in klausurboegen.keys() and klausurboegen.at("ergebnisse") != none {
+        ..if type(klausurboegen) == dictionary and "ergebnisse" in klausurboegen.keys() and klausurboegen.at("ergebnisse") != none {
           (students: ergebnisse)
         },
-        ..klausurboegen,
+        ..if type(klausurboegen) == dictionary {
+          klausurboegen
+        },
       )
     }
   ]
