@@ -5,7 +5,7 @@
 #import "@schule/patterns:0.0.1": *
 #import "@preview/eqalc:0.1.3": *
 #import "@preview/zero:0.5.0": *
-#import "@schule/mathematik:0.0.2": graphen, teilaufgaben
+#import "@schule/mathematik:0.0.2": graphen, teilaufgaben, steckbrief
 #import "@schule/informatik:0.0.2": *
 #import "@schule/physik:0.0.2": (
   // Tabellen und Daten
