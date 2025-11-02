@@ -731,20 +731,20 @@
 // Steckbriefaufgaben: Bestimme Polynomfunktion aus gegebenen Bedingungen
 #let steckbrief(..bedingungen, notation: "dec", precision: 1e-10) = {
   import "@preview/zero:0.5.0": num as znum
-  
+
   // Hilfsfunktion: Formatiere Zahl für Ausgabe
   let format-number(value, digits: 2) = {
     if notation == "sci" {
       let exp = if value == 0 { 0 } else { calc.floor(calc.log(calc.abs(value), base: 10)) }
       let mantissa = value / calc.pow(10, exp)
-      
+
       let clean-mantissa = if calc.round(mantissa, digits: 10) == calc.round(mantissa) {
         int(calc.round(mantissa))
       } else {
         mantissa
       }
-      let mantissa_formatted = znum(str(clean-mantissa), decimal-separator:",", digits: digits)
-      
+      let mantissa_formatted = znum(str(clean-mantissa), decimal-separator: ",", digits: digits)
+
       if exp == 0 {
         mantissa_formatted
       } else if exp == 1 {
@@ -756,16 +756,16 @@
       if calc.round(value, digits: 10) == calc.round(value) {
         str(int(calc.round(value)))
       } else {
-        znum(value, decimal-separator:",", digits: digits)
+        znum(value, decimal-separator: ",", digits: digits)
       }
     }
   }
-  
+
   // Parse eine einzelne Bedingung wie "f(2)=3" oder "f'(-1)=0"
   let parse-bedingung(bedingung-str) = {
     // Entferne Leerzeichen
     let s = bedingung-str.replace(" ", "")
-    
+
     // Bestimme Ableitungsgrad (Anzahl der Apostrophe ')
     let ableitung = 0
     for char in s.clusters() {
@@ -773,12 +773,12 @@
         ableitung += 1
       }
     }
-    
+
     // Extrahiere x-Wert zwischen Klammern
     let x-match = s.match(regex("\(([^)]+)\)"))
     assert(x-match != none, message: "Ungültiges Format: " + bedingung-str)
     let x-str = x-match.captures.at(0)
-    
+
     // Parse x-Wert (kann negativ sein oder Bruch)
     let x-val = if x-str.contains("/") {
       let parts = x-str.split("/")
@@ -786,12 +786,12 @@
     } else {
       float(x-str)
     }
-    
+
     // Extrahiere y-Wert nach =
     let y-match = s.match(regex("=(.+)$"))
     assert(y-match != none, message: "Kein '=' gefunden in: " + bedingung-str)
     let y-str = y-match.captures.at(0)
-    
+
     // Parse y-Wert (kann negativ sein oder Bruch)
     let y-val = if y-str.contains("/") {
       let parts = y-str.split("/")
@@ -799,38 +799,38 @@
     } else {
       float(y-str)
     }
-    
+
     (x: x-val, y: y-val, ableitung: ableitung)
   }
-  
+
   // Parse alle Bedingungen
   let bedingungen-array = bedingungen.pos()
   let parsed = bedingungen-array.map(parse-bedingung)
-  
+
   // Bestimme Grad des Polynoms (Anzahl Bedingungen - 1)
   let grad = parsed.len() - 1
   let n = grad + 1 // Anzahl Koeffizienten
-  
+
   // Erstelle Gleichungssystem: Matrix A und Vektor b
   // Für f(x) = a·x^n + b·x^(n-1) + ... + d
   // Koeffizienten in umgekehrter Reihenfolge: [d, c, b, a] für f(x) = ax³ + bx² + cx + d
-  
+
   let matrix = ()
-  
+
   for bedingung in parsed {
     let row = ()
     let x = bedingung.x
     let abl = bedingung.ableitung
-    
+
     // Erstelle Zeile für diese Bedingung
     // Für f(x): [x^0, x^1, x^2, ..., x^n]
     // Für f'(x): [0, 1, 2x, 3x^2, ..., n·x^(n-1)]
     // Für f''(x): [0, 0, 2, 6x, ..., n(n-1)·x^(n-2)]
-    
+
     for i in range(n) {
       let koeff = 1
       let exponent = i
-      
+
       // Berechne Koeffizient für Ableitung
       for d in range(abl) {
         if exponent == 0 {
@@ -840,7 +840,7 @@
         koeff = koeff * exponent
         exponent = exponent - 1
       }
-      
+
       // Berechne x^exponent
       let wert = if koeff == 0 {
         0
@@ -849,15 +849,15 @@
       } else {
         koeff * calc.pow(x, exponent)
       }
-      
+
       row.push(wert)
     }
-    
+
     // Füge y-Wert als letzte Spalte hinzu
     row.push(bedingung.y)
     matrix.push(row)
   }
-  
+
   // Löse Gleichungssystem mit Gauß-Elimination
   // Vorwärtselimination
   for i in range(n) {
@@ -868,12 +868,12 @@
         max-row = k
       }
     }
-    
+
     // Tausche Zeilen
     if max-row != i {
       (matrix.at(i), matrix.at(max-row)) = (matrix.at(max-row), matrix.at(i))
     }
-    
+
     let pivot = matrix.at(i).at(i)
     if calc.abs(pivot) <= 1e-10 {
       // Matrix ist singulär - keine eindeutige Lösung
@@ -886,12 +886,12 @@
         bedingungen: bedingungen-array,
       )
     }
-    
+
     // Normalisiere Pivot-Zeile
     for j in range(i, n + 1) {
       matrix.at(i).at(j) = matrix.at(i).at(j) / pivot
     }
-    
+
     // Eliminiere Spalte i in allen anderen Zeilen
     for k in range(n) {
       if k != i {
@@ -902,21 +902,21 @@
       }
     }
   }
-  
+
   // Extrahiere Lösung (letzte Spalte)
   let koeffizienten = matrix.map(row => row.last())
-  
+
   // Erstelle Gleichungssystem für Ausgabe
   let gleichungssystem = ()
   for (idx, bedingung) in parsed.enumerate() {
     let x = bedingung.x
     let abl = bedingung.ableitung
     let terms = ()
-    
+
     for i in range(grad, -1, step: -1) {
       let koeff-idx = i
       let exponent = i
-      
+
       // Berechne Koeffizient für Ableitung
       let koeff-faktor = 1
       for d in range(abl) {
@@ -927,7 +927,7 @@
         koeff-faktor = koeff-faktor * exponent
         exponent = exponent - 1
       }
-      
+
       if koeff-faktor != 0 {
         // Berechne x^exponent
         let x-wert = if exponent == 0 {
@@ -935,10 +935,10 @@
         } else {
           koeff-faktor * calc.pow(x, exponent)
         }
-        
+
         // Formatiere Term
         let var-name = ("a", "b", "c", "d", "e", "f", "g", "h").at(grad - i)
-        
+
         if calc.abs(x-wert - 1) < 0.01 {
           terms.push($#var-name$)
         } else if calc.abs(x-wert + 1) < 0.01 {
@@ -949,17 +949,17 @@
         }
       }
     }
-    
+
     let y-str = format-number(bedingung.y)
     let equation = if terms.len() == 0 {
       $0 = #y-str$
     } else {
-      terms.join($" " + " "$) + $ = #y-str$
+      terms.join($" " + " "$) + $= #y-str$
     }
-    
+
     gleichungssystem.push(equation)
   }
-  
+
   // Erstelle Funktionsgleichung
   let format-polynom(koeff, digits: 2) = {
     let terms = ()
@@ -968,7 +968,7 @@
       if calc.abs(k) >= precision {
         let abs-k = calc.abs(k)
         let k-ist-eins = calc.abs(abs-k - 1) < 0.01
-        
+
         let term = if i == 0 {
           // Konstanter Term
           let k-str = format-number(abs-k, digits: digits)
@@ -990,11 +990,11 @@
             $#k-str dot x^#i$
           }
         }
-        
+
         terms.push((term: term, is-negative: k < 0))
       }
     }
-    
+
     if terms.len() == 0 {
       $f(x) = 0$
     } else {
@@ -1003,7 +1003,7 @@
       } else {
         $f(x) = #terms.first().term$
       }
-      
+
       for term in terms.slice(1) {
         eq = if term.is-negative {
           $#eq - #term.term$
@@ -1014,7 +1014,7 @@
       eq
     }
   }
-  
+
   // Erstelle Funktion
   let f(x) = {
     let y = 0
@@ -1023,21 +1023,173 @@
     }
     y
   }
-  
+
   // Erstelle Rückgabewert ähnlich wie bei Regressionen
   let result = (
     math: format-polynom(koeffizienten),
-    math-digits: (digits) => format-polynom(koeffizienten, digits: digits),
+    math-digits: digits => format-polynom(koeffizienten, digits: digits),
     function: f,
     gleichungssystem: gleichungssystem,
   )
-  
+
   // Füge Koeffizienten mit Namen hinzu
   let koeff-namen = ("a", "b", "c", "d", "e", "f", "g", "h")
   for i in range(grad + 1) {
     let name = koeff-namen.at(i)
     result.insert(name, koeffizienten.at(grad - i))
   }
-  
+
   return result
+}
+
+// Funktion für Kreisdiagramme
+#let kreisdiagramm(
+  data,
+  // Legende
+  legend: "r",
+  // Labels
+  show-percentage: true,
+  label-color: black,
+  // Modus: "percent" (relativ mit %) oder "absolute" (absolute Werte)
+  mode: "percent",
+  // Weitere Argumente werden direkt an piechart weitergegeben
+  ..args,
+) = {
+  import "@preview/cetz:0.4.2": canvas
+  import "@preview/cetz-plot:0.1.3": chart
+
+  // Legende: Konfiguration basierend auf Eingabe
+  let final-legend = if legend == false {
+    none
+  } else if type(legend) == str {
+    // Shortcut-Strings: "l", "r", "t", "b"
+    if legend == "r" {
+      (
+        orientation: ttb,
+        position: "east",
+        anchor: "west",
+        padding: 0.5,
+        item: (spacing: .2),
+      )
+    } else if legend == "l" {
+      (
+        orientation: ttb,
+        position: "west",
+        anchor: "east",
+        padding: 0.5,
+        item: (spacing: .2),
+      )
+    } else if legend == "t" {
+      (
+        orientation: ltr,
+        position: "north",
+        anchor: "south",
+        padding: 0.5,
+        item: (spacing: .2),
+      )
+    } else if legend == "b" {
+      (
+        orientation: ltr,
+        position: "south",
+        anchor: "north",
+        padding: 0.5,
+        item: (spacing: .2),
+      )
+    } else {
+      // Fallback auf rechts bei unbekanntem String
+      (
+        orientation: ttb,
+        position: "east",
+        anchor: "west",
+        padding: 0.5,
+        item: (spacing: .2),
+      )
+    }
+  } else if type(legend) == dictionary {
+    // Dictionary wird direkt weitergegeben
+    legend
+  } else {
+    // Default: rechts
+    (
+      orientation: ttb,
+      position: "east",
+      anchor: "west",
+      padding: 0.5,
+      item: (spacing: .2),
+    )
+  }
+
+  // Inner-Label: Standardwerte wenn nicht in args übergeben
+  let final-inner-label = if "inner-label" not in args.named() {
+    if show-percentage {
+      if mode == "percent" {
+        (
+          content: (value, label) => [#text(label-color, str(value) + "%")],
+          radius: 130%,
+        )
+      } else {
+        // mode == "absolute"
+        (
+          content: (value, label) => [#text(label-color, str(value))],
+          radius: 130%,
+        )
+      }
+    } else {
+      (content: none)
+    }
+  } else {
+    args.named().at("inner-label")
+  }
+
+  // Outer-Label: Standardwerte wenn nicht in args übergeben
+  let final-outer-label = if "outer-label" not in args.named() {
+    (content: none)
+  } else {
+    args.named().at("outer-label")
+  }
+
+  // Standardfarben - 10 harmonische Farben für Kreisdiagramme
+  let default-colors = (
+    rgb("#4E9DC1"), // Blau
+    rgb("#E1734D"), // Orange
+    rgb("#90C370"), // Grün
+    rgb("#847DA7"), // Violett
+    rgb("#F5C55A"), // Gelb
+    rgb("#E17D9D"), // Rosa
+    rgb("#5BBFB3"), // Türkis
+    rgb("#D4A574"), // Beige/Sand
+    rgb("#9B9B9B"), // Grau
+    rgb("#B48EAD"), // Lavendel
+  )
+
+  // Farben: slice-style aus args hat Vorrang, sonst colors aus args, sonst default
+  let final-colors = if "slice-style" in args.named() {
+    args.named().at("slice-style")
+  } else if "colors" in args.named() {
+    args.named().at("colors")
+  } else {
+    default-colors
+  }
+
+  // Standardwerte für weitere Parameter
+  let default-stroke = black
+  let default-radius = 2.5
+  let default-gap = 0
+  let default-value-key = 1
+  let default-label-key = 0
+
+  canvas({
+    chart.piechart(
+      data,
+      value-key: if "value-key" in args.named() { args.named().at("value-key") } else { default-value-key },
+      label-key: if "label-key" in args.named() { args.named().at("label-key") } else { default-label-key },
+      legend: final-legend,
+      stroke: if "stroke" in args.named() { args.named().at("stroke") } else { default-stroke },
+      radius: if "radius" in args.named() { args.named().at("radius") } else { default-radius },
+      gap: if "gap" in args.named() { args.named().at("gap") } else { default-gap },
+      slice-style: final-colors,
+      inner-label: final-inner-label,
+      outer-label: final-outer-label,
+    )
+  })
 }
