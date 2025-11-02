@@ -57,6 +57,7 @@
   samples: 200,
   fills: (),
   datensätze: (),
+  marks: (),
   ..plots,
   annotations: {},
 ) = {
@@ -299,6 +300,87 @@
 
       if lower != none and upper != none {
         processed-fills.push((domain: domain, lower: lower, upper: upper, clr: clr))
+      }
+    }
+  }
+
+  // Verarbeite die Marks/Points in ein einheitliches Format
+  let processed-marks = ()
+  
+  if marks != () {
+    // Normalisiere zu Array von Mark-Definitionen
+    let marks-array = if type(marks) == array {
+      marks
+    } else {
+      (marks,)
+    }
+    
+    for mark-def in marks-array {
+      let pos = none
+      let mark-content = none
+      let anchor = "south-west"
+      let padding = 2mm
+      let symbol = "x"
+      let mark-stroke = black
+      let mark-fill = none
+      
+      if type(mark-def) == array and mark-def.len() == 2 {
+        // Prüfe ob es ein Tupel (position, content) ist
+        let first = mark-def.at(0)
+        let second = mark-def.at(1)
+        
+        if type(first) == array and first.len() == 2 and type(second) == content {
+          // Format: ((x, y), [label])
+          pos = first
+          mark-content = second
+        }
+      } else if type(mark-def) == array and mark-def.len() == 2 and type(mark-def.at(0)) in (int, float) {
+        // Format: Einfache Koordinaten (x, y)
+        pos = mark-def
+      } else if type(mark-def) == dictionary {
+        // Dictionary-Form mit allen Optionen
+        // Format: (position: (x, y), content: [label], anchor: "south-west", padding: 2mm, symbol: "x", stroke: black)
+        if "position" in mark-def {
+          pos = mark-def.position
+        } else if "pos" in mark-def {
+          pos = mark-def.pos
+        }
+        
+        if "content" in mark-def {
+          mark-content = mark-def.content
+        } else if "label" in mark-def {
+          mark-content = mark-def.label
+        }
+        
+        if "anchor" in mark-def { anchor = mark-def.anchor }
+        if "padding" in mark-def { padding = mark-def.padding }
+        if "symbol" in mark-def { symbol = mark-def.symbol }
+        if "stroke" in mark-def { mark-stroke = mark-def.stroke }
+        if "fill" in mark-def { mark-fill = mark-def.fill }
+        if "color" in mark-def { 
+          mark-stroke = resolve-color(mark-def.color)
+          if mark-fill == none {
+            mark-fill = resolve-color(mark-def.color)
+          }
+        }
+        if "clr" in mark-def { 
+          mark-stroke = resolve-color(mark-def.clr)
+          if mark-fill == none {
+            mark-fill = resolve-color(mark-def.clr)
+          }
+        }
+      }
+      
+      if pos != none {
+        processed-marks.push((
+          position: pos,
+          content: mark-content,
+          anchor: anchor,
+          padding: padding,
+          symbol: symbol,
+          stroke: mark-stroke,
+          fill: mark-fill,
+        ))
       }
     }
   }
@@ -661,6 +743,7 @@
               let label-size = if "size" in p.label { p.label.size } else { none }
               let label-color = if "color" in p.label { p.label.color } else { p.stroke.paint }
               let label-padding = if "padding" in p.label { p.label.padding } else { 1mm }
+              let label-angle = if "angle" in p.label { p.label.angle } else { 0deg }
 
               // Extrahiere Richtung: t/b für above/below, l/r für anchor
               let label-side = if label-pos.starts-with("t") { "above" } else { "below" }
@@ -688,6 +771,7 @@
               plot.annotate({
                 content(
                   ortho-point,
+                  angle: label-angle,
                   box(
                     width: 0mm,
                     height: 0mm,
@@ -722,6 +806,41 @@
               mark-style: (fill: d.clr, stroke: d.clr + 1.25pt),
             )
           }
+        }
+        // Füge alle Marks/Points hinzu
+        if processed-marks.len() > 0 {
+          plot.annotate({
+            for m in processed-marks {
+              // Zeichne den Punkt-Marker
+              mark(m.position, (rel: (0, 0.00001)), symbol: m.symbol, stroke: m.stroke, fill: if m.fill != none { m.fill } else { m.stroke })
+              
+              // Zeichne das Label wenn vorhanden
+              if m.content != none {
+                // Konvertiere anchor string zu cetz anchor format
+                let cetz-anchor = if m.anchor == "tl" or m.anchor == "top-left" {
+                  "north-east"
+                } else if m.anchor == "tr" or m.anchor == "top-right" {
+                  "north-west"
+                } else if m.anchor == "bl" or m.anchor == "bottom-left" {
+                  "south-east"
+                } else if m.anchor == "br" or m.anchor == "bottom-right" {
+                  "south-west"
+                } else if m.anchor == "t" or m.anchor == "top" {
+                  "north"
+                } else if m.anchor == "b" or m.anchor == "bottom" {
+                  "south"
+                } else if m.anchor == "l" or m.anchor == "left" {
+                  "east"
+                } else if m.anchor == "r" or m.anchor == "right" {
+                  "west"
+                } else {
+                  m.anchor
+                }
+                
+                content(m.position, anchor: cetz-anchor, padding: m.padding, m.content)
+              }
+            }
+          })
         }
       },
     )
