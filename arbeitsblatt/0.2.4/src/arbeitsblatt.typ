@@ -158,7 +158,7 @@
       set text(font: font)
       it2
     }
-    set text(font: math-font, weight: "normal")
+    set text(font: math-font, weight: "regular")
     it
   }
 
