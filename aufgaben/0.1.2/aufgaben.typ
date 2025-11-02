@@ -5,6 +5,7 @@
 #let _state_aufgaben = state("aufgaben", ())
 #let _state_current_material_aufgabe = state("current_material_aufgabe", 0)
 #let _state_current_material_index = state("current_material_index", 0)
+#let _state_in_loesung = state("in_loesung", false)
 #let _state_options = state(
   "options",
   (
@@ -31,6 +32,7 @@
     let opts = _state_options.get()
 
     if teil == false and aufg.loesung.len() > 0 {
+      _state_in_loesung.update(true)
       goal(
         title: [Lösung #{ aufg.nummer } #if (aufg.title != none and aufg.title != []) [-- #{ aufg.title } ]],
         accent-color: gray,
@@ -64,7 +66,9 @@
           }
         },
       )
+      _state_in_loesung.update(false)
     } else if aufg.loesung.filter(l => l.teil == teil).len() > 0 {
+      _state_in_loesung.update(true)
       // Sub-solutions
       let loesung-bodies = aufg.loesung.filter(l => l.teil == teil).map(l => l.body)
       let teil-label = if opts.teilaufgabe-numbering == "a)" {
@@ -77,6 +81,7 @@
         accent-color: gray,
         stack(spacing: 0.5em, ..loesung-bodies),
       )
+      _state_in_loesung.update(false)
     }
   }
 }
@@ -143,7 +148,7 @@
 
         rows.push(table.cell(fill: gray.lighten(70%), strong[#aufg.nummer]))
         rows.push(table.cell(fill: gray.lighten(70%), strong[#if aufg-title != [] [#aufg-title]]))
-        rows.push(table.cell(fill: gray.lighten(70%), strong[#aufg-punkte]))
+        rows.push(table.cell(fill: gray.lighten(70%), strong[$#aufg-punkte$]))
 
         // Zeilen für Teilaufgaben/Erwartungen
         let grouped-erw = (:)
@@ -167,35 +172,35 @@
 
           if grouped {
             // Grouped: Eine Zeile pro Teilaufgabe mit allen Erwartungen zusammengefasst
-            let inhalt = erwartungen.map(e => e.text).join()
+            // Inhalte als Stack mit kleinem Abstand, damit ausreichend vertikaler Raum entsteht
+            let inhalt = stack(spacing: 0.25em, ..erwartungen.map(e => e.text))
             let punkte = erwartungen.fold(0, (sum, e) => sum + e.punkte)
 
-            rows.push(table.cell(align: top, teil-label))
-            rows.push(align(left, inhalt))
-            rows.push(align(center, str(punkte)))
+            // Konsistente Zellformatierung wie im ungrouped-Zweig: überall table.cell verwenden
+            // und ein einheitliches inset setzen, damit die Zeile nicht „zusammengedrückt“ wirkt
+            let inset = 8pt
+            rows.push(table.cell(align: top, inset: inset, teil-label))
+            rows.push(table.cell(align: left, inset: inset, inhalt))
+            rows.push(table.cell(align: center, inset: inset, $str(punkte)$))
           } else {
             // Ungrouped: Eine Zeile pro Erwartung
             for (idx, erw) in erwartungen.enumerate() {
               let show-label = if idx == 0 { teil-label } else { [] }
               let stroke-override = if idx < erwartungen.len() - 1 {
-                // Keine untere Linie zwischen Erwartungen derselben Teilaufgabe
-                (left: 0.5pt, right: 0.5pt, top: 0.5pt, bottom: none)
+                // Keine Linien zwischen Erwartungen derselben Teilaufgabe
+                (left: 0.5pt, right: 0.5pt, top: none, bottom: none)
               } else if idx == erwartungen.len() - 1 {
-                // Keine untere Linie zwischen Erwartungen derselben Teilaufgabe
+                // Abschlusslinie unter der letzten Erwartung der Teilaufgabe
                 (left: 0.5pt, right: 0.5pt, top: none, bottom: 0.5pt)
               } else {
                 0.5pt
               }
-              let inset = if idx < erwartungen.len() - 1 {
-                // Keine untere Linie zwischen Erwartungen derselben Teilaufgabe
-                (bottom: 1pt)
-              } else {
-                8pt
-              }
+              // Einheitlicher, etwas größerer vertikaler Innenabstand für alle Zeilen
+              let inset = (y: 6pt)
 
               rows.push(table.cell(align: top, stroke: stroke-override, inset: inset, show-label))
-              rows.push(table.cell(align: left, stroke: stroke-override, inset: inset, erw.text))
-              rows.push(table.cell(align: center, stroke: stroke-override, inset: inset, str(erw.punkte)))
+              rows.push(table.cell(align: top + left, stroke: stroke-override, inset: inset, erw.text))
+              rows.push(table.cell(align: top + center, stroke: stroke-override, inset: inset, $str(erw.punkte)$))
             }
           }
         }
@@ -268,7 +273,7 @@
       }
 
       // Prüfe, ob es echte Teilaufgaben gibt (basierend auf aufg.teile)
-      let hat-teilaufgaben = aufg.teile > 0
+      let hat-teilaufgaben = aufg.teile > 0 and aufg.teile != none
 
       // Wenn keine Teilaufgaben vorhanden: Erstelle trotzdem eine Spalte für die Hauptaufgabe
       if not hat-teilaufgaben {
@@ -292,38 +297,38 @@
         erreichte-punkte-row.push(table.cell([]))
         columns.push(cell-width)
         continue
-      }
+      } else {
+        // Hat Teilaufgaben: Erstelle Spalten für alle Teilaufgaben (1 bis aufg.teile)
+        header-row1.push(table.cell(colspan: aufg.teile, strong[A#aufg.nummer]))
 
-      // Hat Teilaufgaben: Erstelle Spalten für alle Teilaufgaben (1 bis aufg.teile)
-      header-row1.push(table.cell(colspan: aufg.teile, strong[A#aufg.nummer]))
+        // Iteriere über ALLE Teilaufgaben (nicht nur die mit Erwartungen)
+        for teil-nr in range(1, aufg.teile + 1) {
+          let teil-key = str(teil-nr)
+          let teil-label = if opts.teilaufgabe-numbering == "a)" {
+            numbering("a)", teil-nr)
+          } else {
+            numbering("1.1", aufg.nummer, teil-nr)
+          }
 
-      // Iteriere über ALLE Teilaufgaben (nicht nur die mit Erwartungen)
-      for teil-nr in range(1, aufg.teile + 1) {
-        let teil-key = str(teil-nr)
-        let teil-label = if opts.teilaufgabe-numbering == "a)" {
-          numbering("a)", teil-nr)
-        } else {
-          numbering("1.1", aufg.nummer, teil-nr)
+          // Hole Punkte für diese Teilaufgabe (falls Erwartungen vorhanden)
+          let teil-punkte = if teil-key in grouped-erw.keys() {
+            grouped-erw.at(teil-key).fold(0, (sum, e) => sum + e.punkte)
+          } else {
+            0
+          }
+
+          header-row2.push(strong[#teil-label])
+          // punkte: true => zeige Punkte, false => zeige leer, none => überspringe Zeile
+          if punkte == true and teil-punkte > 0 {
+            moegliche-punkte-row.push(table.cell([$#teil-punkte$]))
+          } else if punkte == false {
+            moegliche-punkte-row.push(table.cell([]))
+          } else if punkte == true {
+            moegliche-punkte-row.push(table.cell([]))
+          }
+          erreichte-punkte-row.push(table.cell([]))
+          columns.push(cell-width)
         }
-
-        // Hole Punkte für diese Teilaufgabe (falls Erwartungen vorhanden)
-        let teil-punkte = if teil-key in grouped-erw.keys() {
-          grouped-erw.at(teil-key).fold(0, (sum, e) => sum + e.punkte)
-        } else {
-          0
-        }
-
-        header-row2.push(strong[#teil-label])
-        // punkte: true => zeige Punkte, false => zeige leer, none => überspringe Zeile
-        if punkte == true and teil-punkte > 0 {
-          moegliche-punkte-row.push(table.cell([#teil-punkte]))
-        } else if punkte == false {
-          moegliche-punkte-row.push(table.cell([]))
-        } else if punkte == true {
-          moegliche-punkte-row.push(table.cell([]))
-        }
-        erreichte-punkte-row.push(table.cell([]))
-        columns.push(cell-width)
       }
     }
 
@@ -452,6 +457,7 @@
   }
 
   _counter_aufgaben.step()
+  _counter_aufgaben.update(n => (n, 0)) // Reset sublevel to 0
   counter(figure.where(kind: "teilaufgabe")).update(0)
 
   // Icon handling
@@ -497,7 +503,7 @@
             #if opts.punkte in ("aufgaben", "alle") {
               let points = get-points(_counter_aufgaben.get().at(0))
               if points > 0 {
-                [#points BE]
+                [$#points$ BE]
               }
             }
           ],
@@ -654,8 +660,15 @@
     body = pos-args.at(0)
   } else if pos-args.len() == 2 {
     // Two arguments: title, body
-    punkte = pos-args.at(0)
-    body = pos-args.at(1)
+    if type(pos-args.at(0)) in (int, float) {
+      punkte = pos-args.at(0)
+      body = pos-args.at(1)
+    } else if type(pos-args.at(1)) in (int, float) {
+      body = pos-args.at(0)
+      punkte = pos-args.at(1)
+    } else {
+      panic("erwartung expects the second positional argument to be points (int or float)")
+    }
   } else {
     panic("aufgabe expects 1 or 2 positional arguments")
   }

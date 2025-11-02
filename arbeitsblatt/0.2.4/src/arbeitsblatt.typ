@@ -5,7 +5,7 @@
 #import "@schule/patterns:0.0.1": *
 #import "@preview/eqalc:0.1.3": *
 #import "@preview/zero:0.5.0": *
-#import "@schule/mathematik:0.0.2": graphen, teilaufgaben, steckbrief
+#import "@schule/mathematik:0.0.2": graphen, teilaufgaben, steckbrief, kreisdiagramm
 #import "@schule/informatik:0.0.2": *
 #import "@schule/physik:0.0.2": (
   // Tabellen und Daten
@@ -380,7 +380,13 @@
       set text(font-size, weight: 700)
       aufgabe(title: it.body, large: true)[]
     } else { it }
-    show enum.item: it => if aufgaben-shortcodes in ("alle", "teilaufgaben") { teilaufgabe(it.body) } else { it }
+    show enum.item: it => context {
+      if aufgaben-shortcodes in ("alle", "teilaufgaben") and not _state_in_loesung.get() {
+        teilaufgabe(it.body)
+      } else {
+        it
+      }
+    }
 
     fancy-units-configure(per-mode: "fraction", decimal-separator: ",")
     add-macros(
