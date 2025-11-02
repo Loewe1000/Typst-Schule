@@ -1327,3 +1327,76 @@
     ..children,
   )
 }
+
+// ------------------------------------------------
+// Visuelle Listen-Darstellung (Monitor wie in Scratch)
+// ------------------------------------------------
+// Kernfunktion (sprachneutral). Lokalisierte Aliase in lang/de.typ (#liste)
+// und lang/en.typ (#list) rufen diese Funktion auf.
+#let list-monitor(name: "List", items: (), width: 4cm, length-label: "Length") = context {
+  let options = scratch-block-options.get()
+  let colors = get-colors-from-options(options)
+  let stroke-thickness = get-stroke-from-options(options)
+
+  // Berechne Länge
+  let len = items.len()
+
+  box(
+    width: width,
+    fill: rgb("#E5F0FF"),
+    stroke: (paint: gray, thickness: 0.5pt),
+    radius: 5pt,
+    clip: true,
+  )[
+    #set text(size: 9pt, font: "Helvetica Neue", weight: 500)
+    // Kopfzeile mit Namen
+    #box(
+      fill: white,
+      width: 100%,
+      inset: 5pt,
+      align(center)[
+        #text(fill: rgb("#4C4C4C"), weight: 600, name)
+      ],
+    )
+    // Listenelemente
+    #box(inset: (x: 2mm))[
+      #grid(
+        columns: (auto, 1fr),
+        column-gutter: 8pt,
+        row-gutter: 2pt,
+        align: left + horizon,
+        ..items
+          .enumerate()
+          .map(((index, item)) => {
+            (
+              grid.cell(str(index + 1)),
+              grid.cell(box(
+                width: 100%,
+                height: 5mm,
+                fill: colors.listen.primary,
+                stroke: colors.listen.tertiary + stroke-thickness,
+                radius: 3pt,
+                inset: 3pt,
+                align(left, item),
+              )),
+            )
+          })
+          .flatten(),
+      )
+    ]
+    // Fußzeile mit Länge
+    #box(
+      fill: white,
+      width: 100%,
+      align(center)[
+        #grid(
+          columns: (auto, 1fr, auto),
+          column-gutter: 5pt,
+          inset: 5pt,
+          align: (left + horizon, center + horizon, right + horizon),
+          text(fill: rgb("#4C4C4C"), size: 8pt, "+"), text(fill: rgb("#4C4C4C"), size: 8pt, weight: 600, [#length-label: #len]), text(fill: rgb("#4C4C4C"), size: 8pt, "="),
+        )
+      ],
+    )
+  ]
+}

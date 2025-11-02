@@ -2,7 +2,7 @@
 // All Scratch blocks with English function names
 
 #import "../core.typ": block
-#import "../scratch.typ": eigener-block as eigener-block-alt, definiere as definiere-alt, parameter
+#import "../scratch.typ": eigener-block as eigener-block-alt, definiere as definiere-alt, parameter, list-monitor
 
 // =====================
 // EVENTS
@@ -754,6 +754,9 @@
   args: (list: list),
   lang-code: "en",
 )
+
+// Visual list monitor (like Scratch list watcher)
+#let list(name: "List", items: (), width: 4cm) = list-monitor(name: name, items: items, width: width, length-label: "Length")
 
 // =====================
 // CUSTOM BLOCKS

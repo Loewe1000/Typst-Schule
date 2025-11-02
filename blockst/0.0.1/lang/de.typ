@@ -2,7 +2,7 @@
 // Nutzt core.typ für schema-basiertes Rendering
 
 #import "../core.typ": block
-#import "../scratch.typ": eigener-block as eigener-block-alt, definiere as definiere-alt, parameter
+#import "../scratch.typ": eigener-block as eigener-block-alt, definiere as definiere-alt, parameter, list-monitor
 
 // =====================
 // EREIGNISSE (Events)
@@ -746,6 +746,9 @@
   args: (list: liste),
   lang-code: "de",
 )
+
+// Visuelle Listen-Darstellung (Monitor)
+#let liste(name: "Liste", items: (), width: 4cm) = list-monitor(name: name, items: items, width: width, length-label: "Länge")
 
 // =====================
 // EIGENE BLÖCKE (Custom Blocks)
