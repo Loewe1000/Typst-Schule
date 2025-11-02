@@ -58,7 +58,7 @@
   fills: (),
   datensätze: (),
   marks: (),
-  ..plots,
+  ..args,
   annotations: {},
 ) = {
   import "@preview/cetz:0.4.2": *
@@ -94,7 +94,8 @@
     }
   }
 
-  let plots = plots.pos()
+  let plots = args.pos()
+  let named = args.named()
 
   // Hilfsfunktion: Konvertiere content (Mathe) oder function zu function
   let to-func(term) = {
@@ -698,6 +699,7 @@
       x-max: if x == auto { auto } else { x.at(1) },
       y-min: if y == auto { auto } else { y.at(0) },
       y-max: if y == auto { auto } else { y.at(1) },
+      ..named,
       {
         plot.add(
           style: (stroke: none),
