@@ -128,12 +128,13 @@
   title: "",
   class: "",
   paper: "a4",
+  teacher: "SLZ",
   print: false,
   duplex: true,
   workspaces: true,
   font-size: 12pt,
-  font: "Myriad Pro",
-  math-font: "Fira Math",
+  font: "New Computer Modern Sans",
+  math-font: "New Computer Modern Sans Math",
   title-font-size: 16pt,
   figure-font-size: 9pt,
   landscape: false,
@@ -148,6 +149,10 @@
   ..args,
   body,
 ) = {
+  if teacher == "SLZ" {
+    font = "Myriad Pro"
+    math-font = "Fira Math"
+  }
   // Set document title and authors in metadata
   // Set font and text properties
   set par(justify: true, leading: 0.65em, linebreaks: "optimized")
