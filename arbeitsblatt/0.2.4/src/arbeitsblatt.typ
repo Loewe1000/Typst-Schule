@@ -128,7 +128,7 @@
   title: "",
   class: "",
   paper: "a4",
-  teacher: "SLZ",
+  teacher: "",
   print: false,
   duplex: true,
   workspaces: true,
