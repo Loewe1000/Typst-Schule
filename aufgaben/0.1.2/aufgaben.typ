@@ -36,6 +36,7 @@
       goal(
         title: [Lösung #{ aufg.nummer } #if (aufg.title != none and aufg.title != []) [-- #{ aufg.title } ]],
         accent-color: gray,
+        breakable: true,
         {
           // Main solutions
           for l in aufg.loesung.filter(l => l.teil == 0) {
@@ -77,6 +78,7 @@
         numbering("1.1", aufg.nummer, teil)
       }
       goal(
+        breakable: true,
         title: [Lösung #if teil == 0 { { aufg.nummer } } else { teil-label }],
         accent-color: gray,
         stack(spacing: 0.5em, ..loesung-bodies),
