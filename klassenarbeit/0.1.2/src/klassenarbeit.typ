@@ -51,7 +51,7 @@
   // Extract font from args for internal use
   let font = args.named().at("font", default: "Myriad Pro")
   let math-font = args.named().at("math-font", default: "Fira Math")
-  font = (font, "New Computer Modern Sans", "Fira Sans", "DejaVu Sans")
+  font = (font, "Fira Sans", "New Computer Modern Sans", "DejaVu Sans")
   math-font = (math-font, "New Computer Modern Sans Math")
 
   set page(
