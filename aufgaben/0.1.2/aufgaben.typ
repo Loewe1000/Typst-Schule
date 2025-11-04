@@ -173,12 +173,12 @@
           if grouped {
             // Grouped: Eine Zeile pro Teilaufgabe mit allen Erwartungen zusammengefasst
             // Inhalte als Stack mit kleinem Abstand, damit ausreichend vertikaler Raum entsteht
-            let inhalt = stack(spacing: 0.25em, ..erwartungen.map(e => e.text))
+            let inhalt = stack(spacing: 2*6pt, ..erwartungen.map(e => e.text))
             let punkte = erwartungen.fold(0, (sum, e) => sum + e.punkte)
 
             // Konsistente Zellformatierung wie im ungrouped-Zweig: überall table.cell verwenden
             // und ein einheitliches inset setzen, damit die Zeile nicht „zusammengedrückt“ wirkt
-            let inset = 8pt
+            let inset = (y: 6pt)
             rows.push(table.cell(align: top, inset: inset, teil-label))
             rows.push(table.cell(align: left, inset: inset, inhalt))
             rows.push(table.cell(align: center, inset: inset, $str(punkte)$))
@@ -186,11 +186,13 @@
             // Ungrouped: Eine Zeile pro Erwartung
             for (idx, erw) in erwartungen.enumerate() {
               let show-label = if idx == 0 { teil-label } else { [] }
-              let stroke-override = if idx < erwartungen.len() - 1 {
-                // Keine Linien zwischen Erwartungen derselben Teilaufgabe
+              let stroke-override = if idx == 0 {
+                (left: 0.5pt, right: 0.5pt, top: 0.5pt, bottom: none)
+              } else if idx < erwartungen.len() - 1 {
+                // Keine untere Linie zwischen Erwartungen derselben Teilaufgabe
                 (left: 0.5pt, right: 0.5pt, top: none, bottom: none)
               } else if idx == erwartungen.len() - 1 {
-                // Abschlusslinie unter der letzten Erwartung der Teilaufgabe
+                // Keine untere Linie zwischen Erwartungen derselben Teilaufgabe
                 (left: 0.5pt, right: 0.5pt, top: none, bottom: 0.5pt)
               } else {
                 0.5pt
