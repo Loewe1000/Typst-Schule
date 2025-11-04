@@ -5,7 +5,7 @@
 #import "@schule/patterns:0.0.1": *
 #import "@preview/eqalc:0.1.3": *
 #import "@preview/zero:0.5.0": *
-#import "@schule/mathematik:0.0.2": graphen, teilaufgaben, steckbrief, kreisdiagramm
+#import "@schule/mathematik:0.0.2": graphen, kreisdiagramm, steckbrief, teilaufgaben
 #import "@schule/informatik:0.0.2": *
 #import "@schule/physik:0.0.2": (
   // Tabellen und Daten
@@ -212,7 +212,7 @@
     h(1fr)
 
     if copyright != none {
-      box(qr-code(copyright, width: 0.9em, dark-color: "#828282"))
+      box(qr-code(copyright, width: 0.9em, dark-color: "#828282", alt: "QR-Code für Copyright-Informationen"))
       h(0.5em)
     }
 
