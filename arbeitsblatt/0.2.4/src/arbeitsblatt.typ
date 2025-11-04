@@ -148,6 +148,8 @@
   ..args,
   body,
 ) = {
+  font = (font, "Fira Sans", "New Computer Modern Sans", "DejaVu Sans")
+  math-font = (math-font, "New Computer Modern Sans Math")
   // Set document title and authors in metadata
   // Set font and text properties
   set par(justify: true, leading: 0.65em, linebreaks: "optimized")
@@ -158,7 +160,7 @@
       set text(font: font)
       it2
     }
-    set text(font: math-font)
+    set text(font: math-font, weight: "regular")
     it
   }
 
