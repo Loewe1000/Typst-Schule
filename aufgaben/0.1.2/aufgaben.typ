@@ -1,4 +1,4 @@
-#import "@preview/fontawesome:0.2.1": *
+#import "@preview/fontawesome:0.6.0": *
 #import "@preview/gentle-clues:1.2.0": *
 
 // States
