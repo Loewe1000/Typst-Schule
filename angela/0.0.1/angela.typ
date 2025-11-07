@@ -4,8 +4,8 @@
 #let brief(
   body,
 ) = {
-  show heading: set block(above:2em, below: 1em)
-    
+  show heading: set block(above: 2em, below: 1em)
+
   set page(
     "a4",
     margin: (top: 4.5cm, bottom: 2cm, left: 2.5cm, right: 2.5cm),
@@ -22,9 +22,11 @@
           [Staatlich anerkanntes Gymnasium der Schulstiftung im Bistum Osnabrück],
         ),
       )
-      #place(top, dx: -2.5cm, dy: 3.1cm, line(stroke: angela-dark, length: 2 * 100%))
-      #place(top + right, dy: 0.5cm, box(width: 4cm, height: 4cm, fill: white))
-      #place(top + right, dy: 0.5cm, image("logo.svg", height: 4cm))
+      #box(width: 100%)[
+        #place(top, dx: -2.5cm, dy: 0cm, line(stroke: angela-dark, length: 2 * 100%))
+        #place(top + right, dx: 1.5mm, dy: -0.5cm, box(width: 3cm, height: 4cm, fill: white))
+        #place(top + right, dx: 1cm, dy: -3cm, image("logo.svg", height: 4cm))
+      ]
     ],
   )
   set text(size: 11pt, font: "Calibri", lang: "de")
