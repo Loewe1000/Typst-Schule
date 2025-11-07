@@ -8,8 +8,8 @@
 
   set page(
     "a4",
-    margin: (top: 4.5cm, bottom: 2cm, left: 2.5cm, right: 2.5cm),
-    header-ascent: 40%,
+    margin: (top: 5cm, bottom: 2cm, left: 2.5cm, right: 2.5cm),
+    header-ascent: 45%,
     header: [
       #stack(
         dir: ttb,
