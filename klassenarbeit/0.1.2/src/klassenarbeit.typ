@@ -18,6 +18,7 @@
 /// - ergebnisse (array): Student results for exam sheets.
 /// - page-settings (dictionary): Additional page settings.
 /// - klausurboegen (dictionary): Settings for exam sheet generation.
+/// - punkte-template (function, dictionary): Template for BE (points) display. Can be a function for both aufgabe and teilaufgabe, or a dictionary with keys "aufgabe" and "teilaufgabe" for individual templates. Example: `punkte => [*#punkte BE*]` or `(aufgabe: punkte => [*#punkte BE*], teilaufgabe: punkte => [_(#punkte BE)_])`.
 /// - ..args (any): Additional arguments passed to arbeitsblatt (e.g. font, math-font, font-size, figure-font-size, teilaufgabe-numbering, punkte, loesungen, materialien, etc.).
 #let _ = counter("klassenarbeit")
 #let klassenarbeit(
@@ -31,6 +32,7 @@
   page-numbering: true,
   klausurboegen: false,
   erwartungen: true,
+  punkte-template: none,
   ..args,
   body,
 ) = context {
@@ -116,6 +118,29 @@
   let final-page-settings = page-settings
   if "margin" not in page-settings.keys() {
     final-page-settings.insert("margin", klassenarbeit-margin)
+  }
+
+  // Handle punkte-template parameter
+  if punkte-template != none {
+    if type(punkte-template) == function {
+      // Beide Templates gleich setzen
+      set-options((
+        punkte-template-aufgabe: punkte-template,
+        punkte-template-teilaufgabe: punkte-template,
+      ))
+    } else if type(punkte-template) == dictionary {
+      // Individuell setzen
+      let opts-update = (:)
+      if "aufgabe" in punkte-template.keys() {
+        opts-update.insert("punkte-template-aufgabe", punkte-template.aufgabe)
+      }
+      if "teilaufgabe" in punkte-template.keys() {
+        opts-update.insert("punkte-template-teilaufgabe", punkte-template.teilaufgabe)
+      }
+      if opts-update.keys().len() > 0 {
+        set-options(opts-update)
+      }
+    }
   }
 
   show: arbeitsblatt.with(

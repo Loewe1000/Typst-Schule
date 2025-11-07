@@ -14,8 +14,21 @@
     workspaces: true,
     teilaufgabe-numbering: "a)",
     punkte: "aufgaben", // "keine", "aufgaben", "teilaufgaben", "alle"
+    punkte-template-aufgabe: punkte => [*#punkte BE*],
+    punkte-template-teilaufgabe: punkte => [*[#punkte BE]*],
   ),
 )
+// Formatierungsfunktion für BE-Anzeige
+#let format-punkte(teil: false, points) = {
+  let opts = _state_options.get()
+  let tpl = if teil == true {
+    opts.punkte-template-teilaufgabe
+  } else {
+    opts.punkte-template-aufgabe
+  }
+  // Call the template function with points
+  tpl(points)
+}
 
 // Counter
 #let _counter_aufgaben = counter("aufgaben")
@@ -507,7 +520,7 @@
             #if opts.punkte in ("aufgaben", "alle") {
               let points = get-points(_counter_aufgaben.get().at(0))
               if points > 0 {
-                [$#points$ BE]
+                format-punkte(teil: false, points)
               }
             }
           ],
@@ -603,7 +616,7 @@
                     box(
                       align(
                         top + right,
-                        text(fill: black, size: 0.88em)[*[#points BE]*],
+                        text(fill: black, size: 0.88em)[#format-punkte(teil: true, points)],
                       ),
                     )
                   }
