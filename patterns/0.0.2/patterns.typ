@@ -41,7 +41,7 @@
     canvas(
       length: grid-size,
       {
-        import draw as draw
+        import draw:
 
         draw.set-style(stroke: line-stroke)
 
