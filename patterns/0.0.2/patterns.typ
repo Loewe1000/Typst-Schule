@@ -10,6 +10,7 @@
   annotations: (),
   line-stroke: (paint: rgb("#AAAAAA").lighten(10%), dash: "solid", thickness: 0.5pt),
   fill-color: white,
+  content: [],
   ..args,
 ) = {
   // Unterstütze positionale Argumente für rows und width
@@ -18,13 +19,13 @@
   } else {
     rows
   }
-  
+
   let effective-width = if args.pos().len() > 1 {
     args.pos().at(1)
   } else {
     width
   }
-  
+
   layout(size => {
     let autoheight
     if items.len() != 0 and effective-rows == 1 {
@@ -40,30 +41,43 @@
     canvas(
       length: grid-size,
       {
-        import draw: *
+        import draw as draw
 
-        set-style(stroke: line-stroke)
+        draw.set-style(stroke: line-stroke)
 
         if effective-width != auto {
-          rect((0, 0), (effective-width, autoheight), ..if fill-color != none { (fill: fill-color) })
-          grid((0, 0), (effective-width, autoheight))
+          draw.rect((0, 0), (effective-width, autoheight), ..if fill-color != none { (fill: fill-color) })
+          draw.grid(
+            (0, 0),
+            (effective-width, autoheight),
+          )
         } else {
-          rect(
+          draw.rect(
             (0, 0),
             (calc.round((size.width / grid-size)), autoheight),
             ..if fill-color != none { (fill: fill-color) },
           )
-          grid((0, 0), (calc.round((size.width / grid-size)), autoheight))
+          draw.grid(
+            (0, 0),
+            (calc.round((size.width / grid-size)), autoheight),
+          )
         }
 
         if items.len() != 0 {
           for (key, item) in items.enumerate() {
-            content(
+            draw.content(
               (0.75, autoheight + grid-size - (key + 1) * items-spacing * grid-size),
               [#box(fill: white, inset: 4pt)[#item]],
               anchor: "west",
             )
           }
+        }
+        if content != [] {
+          draw.content(
+            (grid-size, autoheight),
+            [#box(inset: (y: 2/3 * grid-size), width: if effective-width != auto { effective-width * grid-size } else { calc.round((size.width / grid-size)) * grid-size - 2 * grid-size}, content)],
+            anchor: "north-west",
+          )
         }
         annotations
       },
@@ -90,7 +104,7 @@
   } else {
     width
   }
-  
+
   move(dy: line-height * 0.5)[
     #layout(size => {
       import "@preview/cetz:0.4.2": *
