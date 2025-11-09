@@ -2,7 +2,7 @@
 #import "@schule/random:0.0.1": *
 #import "@schule/insert-a-word:0.0.3": *
 #import "@schule/energy-sketch:0.0.2": *
-#import "@schule/patterns:0.0.1": *
+#import "@schule/patterns:0.0.2": *
 #import "@preview/eqalc:0.1.3": *
 #import "@preview/zero:0.5.0": *
 #import "@schule/mathematik:0.0.2": graphen, kreisdiagramm, steckbrief, teilaufgaben
