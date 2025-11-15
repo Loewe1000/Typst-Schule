@@ -161,9 +161,18 @@
         // Zur Gesamtsumme addieren
         gesamt-punkte += aufg-punkte
 
-        rows.push(table.cell(fill: gray.lighten(70%), strong[#aufg.nummer]))
-        rows.push(table.cell(fill: gray.lighten(70%), strong[#if aufg-title != [] [#aufg-title]]))
-        rows.push(table.cell(fill: gray.lighten(70%), strong[$#aufg-punkte$]))
+        // Prüfe ob Kompaktmodus (kein Titel und keine echten Teilaufgaben)
+        let kompakt = aufg-title == [] and aufg.teile <= 1
+
+        // Nur Kopfzeile hinzufügen wenn NICHT im Kompaktmodus
+        if not kompakt {
+          // Dickere obere Linie für jede neue Aufgabe
+          // Graue erste und letzte Spalte, weiße mittlere Spalte
+          let stroke-aufg = (left: 0.5pt, right: 0.5pt, top: 1pt, bottom: 0.5pt)
+          rows.push(table.cell(fill: gray.lighten(70%), stroke: stroke-aufg, strong[#aufg.nummer]))
+          rows.push(table.cell(stroke: stroke-aufg, strong[#if aufg-title != [] [#aufg-title]]))
+          rows.push(table.cell(fill: gray.lighten(70%), stroke: stroke-aufg, strong[$#aufg-punkte$]))
+        }
 
         // Zeilen für Teilaufgaben/Erwartungen
         let grouped-erw = (:)
@@ -178,7 +187,8 @@
         for (teil-str, erwartungen) in grouped-erw.pairs().sorted(key: pair => int(pair.at(0))) {
           let teil = int(teil-str)
           let teil-label = if teil == 0 {
-            []
+            // Im Kompaktmodus: Aufgabennummer statt leer
+            if kompakt { strong[#aufg.nummer] } else { [] }
           } else if opts.teilaufgabe-numbering == "a)" {
             numbering("a)", teil)
           } else {
@@ -192,15 +202,26 @@
             let punkte = erwartungen.fold(0, (sum, e) => sum + e.punkte)
 
             // Konsistente Zellformatierung wie im ungrouped-Zweig: überall table.cell verwenden
-            // und ein einheitliches inset setzen, damit die Zeile nicht „zusammengedrückt“ wirkt
+            // und ein einheitliches inset setzen, damit die Zeile nicht „zusammengedrückt" wirkt
             let inset = (y: 6pt)
-            rows.push(table.cell(align: top, inset: inset, teil-label))
-            rows.push(table.cell(align: left, inset: inset, inhalt))
-            rows.push(table.cell(align: center, inset: inset, $str(punkte)$))
+            
+            // Im Kompaktmodus (teil == 0): graue erste und letzte Spalte + dickere obere Linie
+            if kompakt and teil == 0 {
+              let stroke-top = (left: 0.5pt, right: 0.5pt, top: 1pt, bottom: 0.5pt)
+              rows.push(table.cell(align: top, inset: inset, stroke: stroke-top, fill: gray.lighten(70%), teil-label))
+              rows.push(table.cell(align: left, inset: inset, stroke: stroke-top, inhalt))
+              rows.push(table.cell(align: center, inset: inset, stroke: stroke-top, fill: gray.lighten(70%), strong[$str(punkte)$]))
+            } else {
+              rows.push(table.cell(align: top, inset: inset, teil-label))
+              rows.push(table.cell(align: left, inset: inset, inhalt))
+              rows.push(table.cell(align: center, inset: inset, $str(punkte)$))
+            }
           } else {
             // Ungrouped: Eine Zeile pro Erwartung
             for (idx, erw) in erwartungen.enumerate() {
               let show-label = if idx == 0 { teil-label } else { [] }
+              
+              // Basis-Stroke
               let stroke-override = if idx == 0 {
                 (left: 0.5pt, right: 0.5pt, top: 0.5pt, bottom: none)
               } else if idx < erwartungen.len() - 1 {
@@ -212,12 +233,27 @@
               } else {
                 0.5pt
               }
+              
               // Einheitlicher, etwas größerer vertikaler Innenabstand für alle Zeilen
               let inset = (y: 6pt)
-
-              rows.push(table.cell(align: top, stroke: stroke-override, inset: inset, show-label))
-              rows.push(table.cell(align: top + left, stroke: stroke-override, inset: inset, erw.text))
-              rows.push(table.cell(align: top + center, stroke: stroke-override, inset: inset, $str(erw.punkte)$))
+              
+              // Im Kompaktmodus (teil == 0 und erste Erwartung): dickere obere Linie + graue erste/letzte Spalte
+              if kompakt and teil == 0 and idx == 0 {
+                stroke-override = (left: 0.5pt, right: 0.5pt, top: 1pt, bottom: none)
+                rows.push(table.cell(align: top, stroke: stroke-override, inset: inset, fill: gray.lighten(70%), show-label))
+                rows.push(table.cell(align: top + left, stroke: stroke-override, inset: inset, erw.text))
+                rows.push(table.cell(align: top + center, stroke: stroke-override, inset: inset, fill: gray.lighten(70%), strong[$str(erw.punkte)$]))
+              } else if kompakt and teil == 0 {
+                // Weitere Erwartungen im Kompaktmodus: nur graue Spalten
+                rows.push(table.cell(align: top, stroke: stroke-override, inset: inset, fill: gray.lighten(70%), show-label))
+                rows.push(table.cell(align: top + left, stroke: stroke-override, inset: inset, erw.text))
+                rows.push(table.cell(align: top + center, stroke: stroke-override, inset: inset, fill: gray.lighten(70%), strong[$str(erw.punkte)$]))
+              } else {
+                // Normal: keine besonderen Formatierungen
+                rows.push(table.cell(align: top, stroke: stroke-override, inset: inset, show-label))
+                rows.push(table.cell(align: top + left, stroke: stroke-override, inset: inset, erw.text))
+                rows.push(table.cell(align: top + center, stroke: stroke-override, inset: inset, $str(erw.punkte)$))
+              }
             }
           }
         }
@@ -226,9 +262,10 @@
 
     // Schlusszeile mit Gesamtsumme der Punkte hinzufügen (nur wenn es überhaupt Zeilen gibt)
     if rows.len() > 0 {
-      rows.push(table.cell(fill: gray.lighten(70%), strong[$Sigma$]))
-      rows.push(table.cell(fill: gray.lighten(70%), strong[Summe]))
-      rows.push(table.cell(fill: gray.lighten(70%), strong[#gesamt-punkte]))
+      let stroke-summe = (left: 0.5pt, right: 0.5pt, top: 1pt, bottom: 0.5pt)
+      rows.push(table.cell(fill: gray.lighten(70%), stroke: stroke-summe, strong[$Sigma$]))
+      rows.push(table.cell(stroke: stroke-summe, strong[Summe]))
+      rows.push(table.cell(fill: gray.lighten(70%), stroke: stroke-summe, strong[#gesamt-punkte]))
     }
 
     if rows.len() > 0 {
