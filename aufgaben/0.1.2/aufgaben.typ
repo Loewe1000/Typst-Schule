@@ -198,13 +198,13 @@
           if grouped {
             // Grouped: Eine Zeile pro Teilaufgabe mit allen Erwartungen zusammengefasst
             // Inhalte als Stack mit kleinem Abstand, damit ausreichend vertikaler Raum entsteht
-            let inhalt = stack(spacing: 2*6pt, ..erwartungen.map(e => e.text))
+            let inhalt = stack(spacing: 2 * 6pt, ..erwartungen.map(e => e.text))
             let punkte = erwartungen.fold(0, (sum, e) => sum + e.punkte)
 
             // Konsistente Zellformatierung wie im ungrouped-Zweig: überall table.cell verwenden
             // und ein einheitliches inset setzen, damit die Zeile nicht „zusammengedrückt" wirkt
             let inset = (y: 6pt)
-            
+
             // Im Kompaktmodus (teil == 0): graue erste und letzte Spalte + dickere obere Linie
             if kompakt and teil == 0 {
               let stroke-top = (left: 0.5pt, right: 0.5pt, top: 1pt, bottom: 0.5pt)
@@ -220,7 +220,7 @@
             // Ungrouped: Eine Zeile pro Erwartung
             for (idx, erw) in erwartungen.enumerate() {
               let show-label = if idx == 0 { teil-label } else { [] }
-              
+
               // Basis-Stroke
               let stroke-override = if idx == 0 {
                 (left: 0.5pt, right: 0.5pt, top: 0.5pt, bottom: none)
@@ -233,10 +233,10 @@
               } else {
                 0.5pt
               }
-              
+
               // Einheitlicher, etwas größerer vertikaler Innenabstand für alle Zeilen
               let inset = (y: 6pt)
-              
+
               // Im Kompaktmodus (teil == 0 und erste Erwartung): dickere obere Linie + graue erste/letzte Spalte
               if kompakt and teil == 0 and idx == 0 {
                 stroke-override = (left: 0.5pt, right: 0.5pt, top: 1pt, bottom: none)
@@ -285,7 +285,7 @@
   }
 }
 
-#let show-bewertung(..args) = {
+#let show-bewertung(..args, compact: false, full: false) = {
   let pos-args = args.pos()
   let punkte = true
   if pos-args.len() == 1 {
@@ -297,15 +297,20 @@
 
     if all.len() == 0 { return }
 
+    // Konfiguration
+    let thick-stroke = 1pt  // Dicker Strich zwischen Spaltengruppen
+    
     // Erstelle Header-Zeilen und Spalten
-    let header-row1 = (table.cell(rowspan: 2, strong[Aufgabe]),)
+    let text-size = if compact { 0.9em } else { 1em }
+    let row-height = if compact { 0.9cm } else { 1cm }
+    let header-row1 = (table.cell(rowspan: 2, fill: gray.lighten(70%), text(if compact { 0.8 * text-size } else { text-size }, strong[Aufgabe])),)
     let header-row2 = ()
     let columns = (auto,)
 
     // Zeile für "mögliche Punkte"
-    let moegliche-punkte-row = (text(0.9em, strong("mögliche Punkte")),)
+    let moegliche-punkte-row = (table.cell(fill: gray.lighten(70%), text(if compact { 0.65em } else { 0.9em }, strong(if compact { "mögl. \nPunkte" } else { "mögliche Punkte" }))),)
     // Zeile für "erreichte Punkte"
-    let erreichte-punkte-row = (text(0.9em, strong("erreichte Punkte")),)
+    let erreichte-punkte-row = (table.cell(fill: gray.lighten(70%), text(if compact { 0.65em } else { 0.9em }, strong(if compact { "Punkte" } else { "erreichte Punkte" }))),)
 
     let gesamt-punkte = 0
     let cell-width = auto
@@ -331,7 +336,8 @@
 
       // Wenn keine Teilaufgaben vorhanden: Erstelle trotzdem eine Spalte für die Hauptaufgabe
       if not hat-teilaufgaben {
-        header-row1.push(table.cell(rowspan: 2, strong[A#aufg.nummer]))
+        let left-stroke = thick-stroke
+        header-row1.push(table.cell(rowspan: 2, stroke: (left: left-stroke), fill: if full { gray.lighten(70%) } else { white }, inset: (x: 12pt, y: 8pt), text(text-size, strong[#aufg.nummer])))
 
         // Hole Punkte für die Hauptaufgabe (teil == 0)
         let teil-punkte = if "0" in grouped-erw.keys() {
@@ -342,18 +348,34 @@
 
         // punkte: true => zeige Punkte, false => zeige leer, none => überspringe Zeile
         if punkte == true and teil-punkte > 0 {
-          moegliche-punkte-row.push(table.cell([#teil-punkte]))
+          moegliche-punkte-row.push(table.cell(stroke: (left: left-stroke), fill: if full { gray.lighten(70%) } else { white }, text(text-size, if full { strong[#teil-punkte] } else { [#teil-punkte] })))
         } else if punkte == false {
-          moegliche-punkte-row.push(table.cell([]))
+          moegliche-punkte-row.push(table.cell(stroke: (left: left-stroke), fill: if full { gray.lighten(70%) } else { white }, []))
         } else if punkte == true {
-          moegliche-punkte-row.push(table.cell([]))
+          moegliche-punkte-row.push(table.cell(stroke: (left: left-stroke), fill: if full { gray.lighten(70%) } else { white }, []))
         }
-        erreichte-punkte-row.push(table.cell([]))
+        erreichte-punkte-row.push(table.cell(stroke: (left: left-stroke), fill: if full { gray.lighten(70%) } else { white }, []))
         columns.push(cell-width)
         continue
       } else {
         // Hat Teilaufgaben: Erstelle Spalten für alle Teilaufgaben (1 bis aufg.teile)
-        header-row1.push(table.cell(colspan: aufg.teile, strong[A#aufg.nummer]))
+        let colspan-value = if full { aufg.teile + 1 } else { aufg.teile }
+        let left-stroke = thick-stroke
+        header-row1.push(table.cell(stroke: (bottom: none, left: left-stroke), fill: if full { gray.lighten(70%) } else { white }, colspan: colspan-value, text(text-size, strong[#aufg.nummer])))
+
+        // Wenn full: true, füge Gesamtpunkte-Spalte vor den Teilaufgaben ein
+        if full {
+          header-row2.push(table.cell(stroke: (top: none, left: left-stroke), fill: gray.lighten(70%), text(text-size, [])))
+          if punkte == true {
+            moegliche-punkte-row.push(table.cell(stroke: (left: left-stroke), fill: gray.lighten(70%), text(text-size, strong[$#aufg-punkte$])))
+          } else if punkte == false {
+            moegliche-punkte-row.push(table.cell(stroke: (left: left-stroke), fill: gray.lighten(70%), []))
+          } else if punkte == true {
+            moegliche-punkte-row.push(table.cell(stroke: (left: left-stroke), fill: gray.lighten(70%), []))
+          }
+          erreichte-punkte-row.push(table.cell(stroke: (left: left-stroke), fill: gray.lighten(70%), []))
+          columns.push(cell-width)
+        }
 
         // Iteriere über ALLE Teilaufgaben (nicht nur die mit Erwartungen)
         for teil-nr in range(1, aufg.teile + 1) {
@@ -371,39 +393,43 @@
             0
           }
 
-          header-row2.push(strong[#teil-label])
+          // Setze linken Strich für die erste Teilaufgabe
+          // Bei full: true nur normaler Strich (weil schon die Summen-Spalte den dicken Strich hat)
+          let teil-left-stroke = if teil-nr == 1 and not full { left-stroke } else { 0.5pt }
+          header-row2.push(table.cell(stroke: (left: teil-left-stroke), text(text-size, strong[#teil-label])))
           // punkte: true => zeige Punkte, false => zeige leer, none => überspringe Zeile
           if punkte == true and teil-punkte > 0 {
-            moegliche-punkte-row.push(table.cell([$#teil-punkte$]))
+            moegliche-punkte-row.push(table.cell(stroke: (left: teil-left-stroke), text(text-size, [$#teil-punkte$])))
           } else if punkte == false {
-            moegliche-punkte-row.push(table.cell([]))
+            moegliche-punkte-row.push(table.cell(stroke: (left: teil-left-stroke), []))
           } else if punkte == true {
-            moegliche-punkte-row.push(table.cell([]))
+            moegliche-punkte-row.push(table.cell(stroke: (left: teil-left-stroke), []))
           }
-          erreichte-punkte-row.push(table.cell([]))
+          erreichte-punkte-row.push(table.cell(stroke: (left: teil-left-stroke), []))
           columns.push(cell-width)
         }
       }
     }
 
     // Summen-Spalte
-    header-row1.push(table.cell(rowspan: 2, fill: gray.lighten(70%), strong[$Sigma$]))
+    header-row1.push(table.cell(rowspan: 2, stroke: (left: thick-stroke), fill: gray.lighten(70%), text(text-size, strong[$Sigma$])))
     columns.push(if cell-width == auto { auto } else { 1.25 * cell-width })
     // punkte: true => zeige Gesamtpunkte, false => zeige leer, none => überspringe Zeile
     if punkte == true {
-      moegliche-punkte-row.push(table.cell(fill: gray.lighten(70%), strong[#if gesamt-punkte > 0 [#gesamt-punkte]]))
+      moegliche-punkte-row.push(table.cell(stroke: (left: thick-stroke), fill: gray.lighten(70%), text(text-size, strong[#if gesamt-punkte > 0 [#gesamt-punkte]])))
     } else if punkte == false {
-      moegliche-punkte-row.push(table.cell(fill: gray.lighten(70%), []))
+      moegliche-punkte-row.push(table.cell(stroke: (left: thick-stroke), fill: gray.lighten(70%), []))
     }
-    erreichte-punkte-row.push(table.cell(fill: gray.lighten(70%), []))
+    erreichte-punkte-row.push(table.cell(stroke: (left: thick-stroke), fill: gray.lighten(70%), []))
 
     // Erstelle Tabelle mit oder ohne "mögliche Punkte" Zeile
+    let table-inset = if compact { 5pt } else { 8pt }
     if punkte != none {
       table(
         columns: columns,
-        rows: (auto, auto, ..if cell-width == auto { (auto, auto) } else { (cell-width, cell-width) }),
+        rows: (auto, auto, row-height, row-height),
         align: center + horizon,
-        inset: 8pt,
+        inset: table-inset,
         stroke: 0.5pt,
         ..header-row1,
         ..header-row2,
@@ -413,9 +439,9 @@
     } else {
       table(
         columns: columns,
-        rows: (auto, auto, if cell-width == auto { auto } else { cell-width }),
+        rows: (auto, auto, row-height, row-height),
         align: center + horizon,
-        inset: 8pt,
+        inset: table-inset,
         stroke: 0.5pt,
         ..header-row1,
         ..header-row2,
