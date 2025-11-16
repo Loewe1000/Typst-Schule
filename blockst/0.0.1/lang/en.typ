@@ -357,6 +357,64 @@
 )
 
 // =====================
+// PEN
+// =====================
+
+#let erase-all() = block(
+  "pen.clear",
+  args: (:),
+  lang-code: "en",
+)
+
+#let stamp() = block(
+  "pen.stamp",
+  args: (:),
+  lang-code: "en",
+)
+
+#let pen-down() = block(
+  "pen.pen_down",
+  args: (:),
+  lang-code: "en",
+)
+
+#let pen-up() = block(
+  "pen.pen_up",
+  args: (:),
+  lang-code: "en",
+)
+
+#let set-pen-color-to(color) = block(
+  "pen.set_pen_color_to_color",
+  args: (color: color),
+  lang-code: "en",
+)
+
+#let change-pen-param-by(param, value: 10) = block(
+  "pen.change_pen_param_by",
+  args: (param: param, value: value),
+  lang-code: "en",
+)
+
+#let set-pen-param-to(param, value: 50) = block(
+  "pen.set_pen_param_to",
+  args: (param: param, value: value),
+  lang-code: "en",
+)
+
+#let change-pen-size-by(size: 1) = block(
+  "pen.change_pen_size_by",
+  args: (size: size),
+  lang-code: "en",
+)
+
+#let set-pen-size-to(size: 1) = block(
+  "pen.set_pen_size_to",
+  args: (size: size),
+  lang-code: "en",
+)
+
+// =====================
 // CONTROL
 // =====================
 

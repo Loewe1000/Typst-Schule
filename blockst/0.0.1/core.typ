@@ -51,6 +51,7 @@
   let flag-icon = box(baseline: 20%, image(icons.green-flag, width: 1em, height: 1em))
   let arrow-right = box(baseline: 20%, image(icons.rotate-right, width: 1.5em, height: 1.5em))
   let arrow-left = box(baseline: 20%, image(icons.rotate-left, width: 1.5em, height: 1.5em))
+  let pen-icon = box(baseline: 20%, image(icons.pen, width: 1.5em, height: 1.5em))
   
   // Einfache Templates ohne Platzhalter
   if not template.contains("{") {
@@ -123,6 +124,8 @@
       parts.push(arrow-right)
     } else if placeholder == "arrow-left" {
       parts.push(arrow-left)
+    } else if placeholder == "pen" {
+      parts.push(pen-icon)
     } else if placeholder in args {
       parts.push(make-pill(placeholder, args.at(placeholder), colors, shape: shape))
     } else {
@@ -195,6 +198,8 @@
     colors.aussehen
   } else if category == "klang" {
     colors.klang
+  } else if category == "malstift" {
+    colors.malstift
   } else if category == "steuerung" {
     colors.steuerung
   } else if category == "fühlen" {
@@ -257,6 +262,8 @@
       aussehen-reporter(content)
     } else if category == "klang" {
       klang-reporter(content)
+    } else if category == "malstift" {
+      malstift-reporter(content)
     } else if category == "fühlen" {
       fühlen-reporter(content)
     } else if category == "operatoren" {
@@ -293,6 +300,8 @@
       aussehen(content)
     } else if category == "klang" {
       klang(content)
+    } else if category == "malstift" {
+      malstift(content)
     } else if category == "steuerung" {
       steuerung(content)
     } else if category == "fühlen" {

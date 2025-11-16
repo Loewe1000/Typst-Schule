@@ -1,4 +1,4 @@
-#import "@schule/blockst:0.0.1": blockst, scratch, set-blockst, set-scratch, 
+#import "@schule/blockst:0.0.1": blockst, blockst-run, scratch, set-blockst, set-scratch, set-blockst-run, executable
 
 // Konvertiert eine Binärzahl (als String oder Zahl) zu Dezimal
 #let bin2dec(zahl) = {

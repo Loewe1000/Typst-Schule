@@ -349,6 +349,64 @@
 )
 
 // =====================
+// MALSTIFT (Pen)
+// =====================
+
+#let loesche-alles() = block(
+  "pen.clear",
+  args: (:),
+  lang-code: "de",
+)
+
+#let hinterlasse-abdruck() = block(
+  "pen.stamp",
+  args: (:),
+  lang-code: "de",
+)
+
+#let schalte-stift-ein() = block(
+  "pen.pen_down",
+  args: (:),
+  lang-code: "de",
+)
+
+#let schalte-stift-aus() = block(
+  "pen.pen_up",
+  args: (:),
+  lang-code: "de",
+)
+
+#let setze-stiftfarbe-auf(farbe) = block(
+  "pen.set_pen_color_to_color",
+  args: (color: farbe),
+  lang-code: "de",
+)
+
+#let aendere-stift-param(param, wert: 10) = block(
+  "pen.change_pen_param_by",
+  args: (param: param, value: wert),
+  lang-code: "de",
+)
+
+#let setze-stift-param(param, wert: 50) = block(
+  "pen.set_pen_param_to",
+  args: (param: param, value: wert),
+  lang-code: "de",
+)
+
+#let aendere-stiftdicke(dicke: 1) = block(
+  "pen.change_pen_size_by",
+  args: (size: dicke),
+  lang-code: "de",
+)
+
+#let setze-stiftdicke(dicke: 1) = block(
+  "pen.set_pen_size_to",
+  args: (size: dicke),
+  lang-code: "de",
+)
+
+// =====================
 // STEUERUNG (Control)
 // =====================
 

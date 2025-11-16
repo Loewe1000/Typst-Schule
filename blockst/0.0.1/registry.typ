@@ -349,6 +349,66 @@
   ),
 
   // =====================
+  // MALSTIFT (Pen)
+  // =====================
+  "pen.clear": (
+    de: "lösche alles",
+    en: "erase all",
+    shape: "stack",
+    category: "malstift",
+  ),
+  "pen.stamp": (
+    de: "hinterlasse Abdruck",
+    en: "stamp",
+    shape: "stack",
+    category: "malstift",
+  ),
+  "pen.pen_down": (
+    de: "{pen} schalte Stift ein",
+    en: "{pen} pen down",
+    shape: "stack",
+    category: "malstift",
+    icon: "pen",
+  ),
+  "pen.pen_up": (
+    de: "{pen} schalte Stift aus",
+    en: "{pen} pen up",
+    shape: "stack",
+    category: "malstift",
+    icon: "pen",
+  ),
+  "pen.set_pen_color_to_color": (
+    de: "setze Stiftfarbe auf {color}",
+    en: "set pen color to {color}",
+    shape: "stack",
+    category: "malstift",
+  ),
+  "pen.change_pen_param_by": (
+    de: "ändere Stift {param} um {value}",
+    en: "change pen {param} by {value}",
+    shape: "stack",
+    category: "malstift",
+  ),
+  "pen.set_pen_param_to": (
+    de: "setze Stift {param} auf {value}",
+    en: "set pen {param} to {value}",
+    shape: "stack",
+    category: "malstift",
+  ),
+  "pen.change_pen_size_by": (
+    de: "ändere Stiftdicke um {size}",
+    en: "change pen size by {size}",
+    shape: "stack",
+    category: "malstift",
+  ),
+  "pen.set_pen_size_to": (
+    de: "setze Stiftdicke auf {size}",
+    en: "set pen size to {size}",
+    shape: "stack",
+    category: "malstift",
+  ),
+
+  // =====================
   // STEUERUNG (Control)
   // =====================
   "control.wait": (
