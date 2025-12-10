@@ -33,7 +33,7 @@
 
     #let header(title: "", subtitle: "", class: "", date: "", teacher: "", logo: []) = {
       set text(font: "Myriad Pro", hyphenate: true, lang: "de")
-      import "@preview/tablex:0.0.9": tablex, rowspanx, cellx,
+      import "@preview/tablex:0.0.9": cellx, rowspanx, tablex
       tablex(
         columns: (2.5cm, 1fr, 2.5cm),
         row: (1fr,) * 2,
@@ -72,7 +72,11 @@
     } else {
       8cm
     }
-    #table(stroke: none, inset: 0cm, rows: 1fr, columns: 2 * (1fr,),
+    #table(
+      stroke: none,
+      inset: 0cm,
+      rows: 1fr,
+      columns: 2 * (1fr,),
       [
         #table(
           stroke: none,
@@ -107,17 +111,22 @@
                 header(title: exam, subtitle: subexam, date: date, class: class, teacher: teacher, logo: image("logo.svg"))
               }
               #box(inset: (top: -1mm))[
-                #table(inset: (top: 0pt, left: 0pt, right: 0pt, bottom: 3mm), stroke: none, columns: (auto, 1fr, auto, 1fr), align: (left, left, left, center),
+                #table(
+                  inset: (top: 0pt, left: 0pt, right: 0pt, bottom: 3mm),
+                  stroke: none,
+                  columns: (auto, 1fr, auto, 1fr),
+                  align: (left, left, left, center),
                   [#if not result [#text(14pt, weight: "semibold")[Name:]]],
                   ..if not result {
                     ([],)
                   },
                   [#text(14pt, weight: "semibold")[
-                      #if not sub [#if not result [Ergebnis:]] else if not vorschlag == false [#if not result [#h(1fr)#vorschlag:]#h(2cm)]
-                    ]],if not result {
+                    #if not sub [#if not result [Ergebnis:]] else if not vorschlag == false [#if not result [#h(1fr)#vorschlag:]#h(2cm)]
+                  ]],
+                  if not result {
                     table.hline(stroke: 0.5pt + gray)
                   },
-                  [#if result and not sub [#note-content] ]
+                  [#if result and not sub [#note-content] ],
                 )
               ]
               #student-table
@@ -127,21 +136,26 @@
             ],
           )
         ]
-        #table(stroke: none /*0.5pt+rgb(129,129,129)*/, inset: 0cm, rows: 1fr, columns: (1fr, rand),
-      [
-        #if not result {place(top+left,kariert(height: 30cm - if sub and result-table {6cm} else if sub {3cm} else {8cm} - 0.5cm, grid-size: scale*0.5cm))}
-      ],
-    )
+        #table(
+          stroke: none /*0.5pt+rgb(129,129,129)*/, inset: 0cm, rows: 1fr, columns: (1fr, rand),
+          [
+            #if not result { place(top + left, kariert(height: 30cm - if sub and result-table { 6cm } else if sub { 3cm } else { 8cm } - 0.5cm, grid-size: scale * 0.5cm)) }
+          ],
+        )
         #if not result and exam != "" {
           place(bottom + right, [#box(inset: insetPageNumber, [#box(fill: white, text(size: 16pt, [*1*]))])])
         }
         #if not weißer-rand and not result {
           place(top + right, line(stroke: line-stroke, start: (-real-rand, 0% + heigth + 5mm), end: (-real-rand, 100%)))
         }
-      ]
+      ],
     )
     #if not result [
-      #table(stroke: none, inset: 0cm, rows: 1fr, columns: 2 * (1fr,),
+      #table(
+        stroke: none,
+        inset: 0cm,
+        rows: 1fr,
+        columns: 2 * (1fr,),
         [
           #table(
             stroke: none,
@@ -161,19 +175,20 @@
           }
         ],
         [
-          #table(stroke: none /*0.5pt+rgb(129,129,129)*/, inset: 0cm, rows: 1fr, columns: (1fr, rand),
-      [
-        #place(top+left, kariert(height: 30cm, grid-size: scale*0.5cm))
-      ],
-      [
+          #table(
+            stroke: none /*0.5pt+rgb(129,129,129)*/, inset: 0cm, rows: 1fr, columns: (1fr, rand),
+            [
+              #place(top + left, kariert(height: 30cm, grid-size: scale * 0.5cm))
+            ],
+            [
 
-      ]
-    )
+            ]
+          )
           #if exam != "" [#place(bottom + right, [#box(inset: insetPageNumber, [#box(fill: white, text(size: 16pt, [*3*]))])])]
           #if not weißer-rand and not result {
             place(top + right, line(stroke: line-stroke, start: (-real-rand, 0%), end: (-real-rand, 100%)))
           }
-        ]
+        ],
       )
     ]
   ]
@@ -234,7 +249,8 @@
             black.lighten(50%)
           } else {
             white
-          } + 2pt,
+          }
+            + 2pt,
         ))
       }
     }
@@ -250,7 +266,8 @@
             print-color
           } else {
             print-color
-          } + 1pt,
+          }
+            + 1pt,
           align: center + horizon,
           ..seperationLines,
           [*Note*],
@@ -265,37 +282,39 @@
   }
 
   #let note-display(percentage: 0.9462, note: 6) = {
-    let finelinerRed = rgb("E90817")
+    if not sub {
+      let finelinerRed = rgb("E90817")
 
-    let grade
-    if (sek1) {
-      let grades = ("sehr gut", "gut", "befriedigend", "ausreichend", "mangelhaft", "ungenügend")
-      grade = grades.at(int(note) - 1)
-    } else {
-      if (int(note) < 10) {
-        grade = note
+      let grade
+      if (sek1) {
+        let grades = ("sehr gut", "gut", "befriedigend", "ausreichend", "mangelhaft", "ungenügend")
+        grade = grades.at(int(note) - 1)
       } else {
-        grade = note
+        if (int(note) < 10) {
+          grade = note
+        } else {
+          grade = note
+        }
+
+        if (int(note) == 1) {
+          grade += [ Punkt]
+        } else {
+          grade += [ Punkte]
+        }
       }
 
-      if (int(note) == 1) {
-        grade += [ Punkt]
+      let gradeInPercent = calc.round(percentage * 100, digits: 2)
+      let stringGradeInPercent = str(gradeInPercent).replace(".", ",")
+      let nachkomma = stringGradeInPercent.split(",")
+      if (nachkomma.len() == 1) {
+        stringGradeInPercent += ",00"
       } else {
-        grade += [ Punkte]
+        if (nachkomma.at(1).len() == 1) {
+          stringGradeInPercent += "0"
+        }
       }
+      move(..mv, text(14pt, finelinerRed, weight: "bold")[#stringGradeInPercent % #h(2mm) $eq.est$ #h(2mm) #grade])
     }
-
-    let gradeInPercent = calc.round(percentage * 100, digits: 2)
-    let stringGradeInPercent = str(gradeInPercent).replace(".", ",")
-    let nachkomma = stringGradeInPercent.split(",")
-    if (nachkomma.len() == 1) {
-      stringGradeInPercent += ",00"
-    } else {
-      if (nachkomma.at(1).len() == 1) {
-        stringGradeInPercent += "0"
-      }
-    }
-    move(..mv, text(14pt, finelinerRed, weight: "bold")[#stringGradeInPercent % #h(2mm) $eq.est$ #h(2mm) #grade])
   }
 
   #let studentHeader(name: "Max Mustermann", percentage: 0.8462, note: 6) = {
@@ -306,12 +325,14 @@
           columns: (auto, 1fr, auto),
           text(12pt)[#exam], [], text(12pt, gray, weight: "semibold")[#date],
         )
-        #place(center, dy: -1em, note-display(percentage: percentage, note: note))]
+        #if not sub [
+          #place(center, dy: -1em, note-display(percentage: percentage, note: note))]
+      ],
     )
   }
 
   #let createTable(cols: none, maxPoints: none, achievedPoints: none, result: false) = {
-    import "@preview/tablex:0.0.9": tablex, colspanx, rowspanx, cellx
+    import "@preview/tablex:0.0.9": cellx, colspanx, rowspanx, tablex
     let headerRow = ()
     let subtaskRow = ()
     let numberOfColumns = 0
@@ -326,13 +347,11 @@
             subtaskRow.push(alphabet-i.at(subtask) + ")")
           } else {
             if numbering == "a)" {
-              subtaskRow.push([#{
-                  alphabet-i.at(subtask)
-                })])
+              subtaskRow.push([#{ alphabet-i.at(subtask) })])
             } else {
               subtaskRow.push([#{
-                  subtask + 1
-                }])
+                subtask + 1
+              }])
             }
           }
         }
@@ -447,17 +466,16 @@
           let n = 2
           while (n < headerRow.len()) {
             let headerCell = headerRow.at(n)
-            
+
             // Erkenne Teilaufgaben durch verschiedene Muster
             let isSubtask = false
             let mainTask = ""
-            
-            // Muster: "A1 a)", "A2 b)", etc.
-            if headerCell.contains(" ") and (headerCell.ends-with("a)") or headerCell.ends-with("b)") or headerCell.ends-with("c)") or headerCell.ends-with("d)") or headerCell.ends-with("e)")) {
+
+            // Muster: "A1 a)", "A2 b)", etc. - alle Buchstaben von a) bis z)
+            if headerCell.contains(" ") and headerCell.match(regex("[a-z]\)$")) != none {
               isSubtask = true
               mainTask = headerCell.split(" ").at(0)
-            }
-            // Muster: "A1.1", "A2.2", etc.
+            } // Muster: "A1.1", "A2.2", etc.
             else if headerCell.contains(".") and headerCell.split(".").len() == 2 {
               let parts = headerCell.split(".")
               if parts.at(1).match(regex("^\d+$")) != none {
@@ -465,7 +483,7 @@
                 mainTask = parts.at(0)
               }
             }
-            
+
             if isSubtask and mainTask != "" {
               // Ist eine Teilaufgabe
               if mainTask not in cols {
@@ -480,7 +498,7 @@
             n = n + 1
           }
         }
-        
+
         for (key, value) in students.enumerate() {
           if (key == 1) {
             // Zweite Zeile: Maximalpunkte - nur für Spalten sammeln, die auch in der Struktur verwendet werden
@@ -489,7 +507,7 @@
             let tempPoints = ()
             while (n < value.len() and n < headerRow.len()) {
               let headerCell = headerRow.at(n)
-              
+
               // Nur Punkte für Spalten sammeln, die keine Hauptaufgaben mit Teilaufgaben sind
               let isMainTaskWithSubtasks = false
               for (taskName, subtaskCount) in cols {
@@ -498,7 +516,7 @@
                   break
                 }
               }
-              
+
               if not isMainTaskWithSubtasks and not value.at(n).contains(" ") {
                 tempPoints.push(float(value.at(n)))
               }
@@ -515,7 +533,7 @@
 
             while (n < value.len() and n < headerRow.len()) {
               let headerCell = headerRow.at(n)
-              
+
               // Nur Punkte für Spalten sammeln, die keine Hauptaufgaben mit Teilaufgaben sind
               let isMainTaskWithSubtasks = false
               for (taskName, subtaskCount) in cols {
@@ -524,7 +542,7 @@
                   break
                 }
               }
-              
+
               if not isMainTaskWithSubtasks and not value.at(n).contains(" ") and value.at(n) != "" {
                 tempPoints.push(float(value.at(n)))
               } else if not isMainTaskWithSubtasks and not value.at(n).contains(" ") {
