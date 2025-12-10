@@ -570,7 +570,7 @@
         supplement: none,
         text(
           weight: "bold",
-          size: if large { 1.25em } else { 1em },
+          size: if large { 1.4em } else { 1.2em },
           [
             #let nums = _counter_aufgaben.get()
             #if ic.len() > 0 { ic.join() }
@@ -578,7 +578,6 @@
             #if number and (actual-title != none and actual-title != []) [ $-$ ]
             #if actual-title != none [#actual-title]
             #h(1fr)
-            // Gesamtpunkte der Aufgabe
             #let opts = _state_options.get()
             #if opts.punkte in ("aufgaben", "alle") {
               let points = get-points(_counter_aufgaben.get().at(0))
@@ -600,12 +599,19 @@
           ],
         )
       ] else [
-        #auf-head
+        #block(
+          width: 100%,
+          below: 0.75em,
+          above: 1.8em,
+          auf-head,
+        )
       ]
     }
   }
-  // Content
-  body
+  // Content - nur wenn body nicht leer ist
+  if body != none and body != [] {
+    block(below: 1cm, body)
+  }
   // Workspace
   context if workspace != none and _state_options.get().workspaces {
     block(width: 100%, inset: (x: 0em, y: 0.5em))[#workspace]

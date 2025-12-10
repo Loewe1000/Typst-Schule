@@ -169,11 +169,6 @@
     it
   }
 
-  set heading(
-    numbering: "1.",
-    supplement: none,
-  )
-
   show ref: it => {
     let el = it.element
     if el != none and el.func() == figure and el.kind == "material" {
@@ -303,18 +298,6 @@
       print
     })
 
-    // font-size for aufgaben, large and small
-    show heading.where(level: 1): it => block[
-      #set text(1.25em, weight: 700)
-      #it.body
-      #v(4pt)
-    ]
-
-    show heading.where(level: 2): it => block[
-      #set text(1em, weight: 700)
-      #it.body
-    ]
-
     // Setting captions and numberings for figures
     set figure(numbering: "1", supplement: none)
 
@@ -381,7 +364,7 @@
     show heading.where(level: 1): it => if aufgaben-shortcodes in ("alle", "aufgaben") {
       set text(font-size, weight: 700)
       aufgabe(title: it.body, large: true)[]
-    } else { it }
+    } else { block(below: 0.75em, it) }
     show enum.item: it => context {
       if aufgaben-shortcodes in ("alle", "teilaufgaben") and not _state_in_loesung.get() {
         teilaufgabe(it.body)
