@@ -437,6 +437,7 @@
             // Extrahiere Optionen aus dem Dictionary
             opts = (
               marker: if "marker" in ds-def { ds-def.marker } else { "x" },
+              mark-style: if "mark-style" in ds-def { ds-def.mark-style } else { none },
               color: if "color" in ds-def { ds-def.color } else if "clr" in ds-def { ds-def.clr } else { index + 1 },
             )
           } else {
@@ -516,12 +517,14 @@
         // Optionen extrahieren mit Standardwerten
         let clr = colors.at(calc.rem(i, colors.len())) // Standard-Farbe
         let marker = "x" // Standard-Marker
+        let mark-style-opts = none // Zusätzliche Mark-Style Optionen
 
         if opts != none {
           if type(opts) == dictionary {
             if "color" in opts { clr = resolve-color(opts.color) }
             if "clr" in opts { clr = resolve-color(opts.clr) }
             if "marker" in opts { marker = opts.marker }
+            if "mark-style" in opts { mark-style-opts = opts.at("mark-style") }
           }
         }
 
@@ -555,7 +558,7 @@
           }
         }
 
-        processed-data.push((points: points, clr: clr, marker: marker))
+        processed-data.push((points: points, clr: clr, marker: marker, mark-style-opts: mark-style-opts))
       }
 
       // Berechne Achsenbereiche mit etwas Padding (10%)
@@ -801,11 +804,40 @@
         // Füge alle Datenpunkte hinzu
         if processed-data.len() > 0 {
           for d in processed-data {
+            // Verarbeite marker: kann String oder Dictionary sein
+            let final-marker = if type(d.marker) == dictionary {
+              // Dictionary-Form: extrahiere "symbol" Key
+              if "symbol" in d.marker { d.marker.symbol } else { "x" }
+            } else {
+              // String-Form
+              d.marker
+            }
+            
+            // Erstelle mark-style: Kombiniere Standard-Werte mit Optionen
+            let base-mark-style = (fill: d.clr, stroke: d.clr + 1.25pt)
+            
+            // Überschreibe mit mark-style-opts falls vorhanden (zuerst!)
+            if d.mark-style-opts != none {
+              for (key, value) in d.mark-style-opts {
+                base-mark-style.insert(key, value)
+              }
+            }
+            
+            // Füge marker-Dictionary-Optionen hinzu (außer "symbol")
+            // Diese überschreiben mark-style-opts wenn beides gesetzt ist
+            if type(d.marker) == dictionary {
+              for (key, value) in d.marker {
+                if key != "symbol" {
+                  base-mark-style.insert(key, value)
+                }
+              }
+            }
+            
             plot.add(
               d.points,
               style: (stroke: none),
-              mark: d.marker,
-              mark-style: (fill: d.clr, stroke: d.clr + 1.25pt),
+              mark: final-marker,
+              mark-style: base-mark-style,
             )
           }
         }
