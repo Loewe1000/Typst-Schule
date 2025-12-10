@@ -301,16 +301,16 @@
     // Setting captions and numberings for figures
     set figure(numbering: "1", supplement: none)
 
-    show figure: it => {
+    show figure.where(kind: image).or(figure.where(kind: table)): it => {
       let type = repr(it.kind)
       let supplement = ("image": "A", "table": "T").at(type, default: "M")
       let number = counter(figure.where(kind: it.kind)).get().first()
+      it.body
       context {
-        align(center)[
-          #it.body
-          #if it.caption != none {
-            v(5pt)
-            align(left, grid(
+        if it.caption != none {
+          align(center)[
+            #v(5pt)
+            #align(left, grid(
               columns: 2,
               column-gutter: 0.5em,
               text(size: figure-font-size, grid(
@@ -320,8 +320,8 @@
                 [*#supplement#number:*], it.caption,
               )),
             ))
-          }
-        ]
+          ]
+        }
       }
     }
 
