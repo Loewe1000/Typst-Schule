@@ -220,7 +220,7 @@
           false
         },
         ..if type(klausurboegen) == dictionary and "ergebnisse" in klausurboegen.keys() and klausurboegen.at("ergebnisse") != none {
-          (students: ergebnisse)
+          (students: klausurboegen.at("ergebnisse"),)
         },
         ..if type(klausurboegen) == dictionary {
           klausurboegen
