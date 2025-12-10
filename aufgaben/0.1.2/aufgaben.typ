@@ -610,7 +610,7 @@
   }
   // Content - nur wenn body nicht leer ist
   if body != none and body != [] {
-    block(below: 1cm, body)
+    block(body)
   }
   // Workspace
   context if workspace != none and _state_options.get().workspaces {
@@ -631,6 +631,8 @@
   context if _state_options.final().loesungen == "folgend" {
     show-loesungen(curr: true)
   }
+  // Abstand nach der Aufgabe (nach allem: Workspace, Materialien, Lösungen)
+  v(1cm, weak: true)
 }
 
 #let teilaufgabe(
