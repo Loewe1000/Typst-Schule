@@ -469,9 +469,42 @@ Das Anzeigen von Punkten kann konfiguriert werden:
 #set-options((punkte: "aufgaben"))     // Nur bei Aufgaben
 #set-options((punkte: "teilaufgaben")) // Nur bei Teilaufgaben
 #set-options((punkte: "alle"))         // Bei Aufgaben und Teilaufgaben
+#set-options((punkte: "keine-summe"))  // Intelligent: bei Aufgaben ohne Teile, sonst bei Teilen
 ```]
 
 Wenn Punkte angezeigt werden, erscheinen sie rechts neben der Aufgabe/Teilaufgabe mit dem Format "X BE" (Bewertungseinheiten).
+
+=== Die "keine-summe" Option
+
+Mit `"keine-summe"` werden Punkte intelligent angezeigt:
+- Bei Aufgaben *ohne* Teilaufgaben: Punkte werden bei der Aufgabe angezeigt
+- Bei Aufgaben *mit* Teilaufgaben: Punkte werden nur bei den Teilaufgaben angezeigt
+
+Dies vermeidet doppelte Punkteanzeigen und Verwirrung bei der Gesamtpunktzahl:
+
+#example[```typ
+#set-options((punkte: "keine-summe"))
+
+// Diese Aufgabe hat keine Teile -> Punkte bei Aufgabe
+#aufgabe[
+  Berechne 5 + 3.
+]
+#erwartung(2)[Richtige Berechnung]
+
+// Diese Aufgabe hat Teile -> Punkte nur bei den Teilen
+#aufgabe("Geometrie")[
+  #teilaufgabe[
+    Berechne Umfang...
+  ]
+  #erwartung(2)[...]
+
+  #teilaufgabe[
+    Berechne Fläche...
+  ]
+  #erwartung(3)[...]
+]
+```]
+
 
 == Punkte abrufen
 
@@ -517,6 +550,16 @@ Mit `grouped: true` werden Erwartungen pro Teilaufgabe zusammengefasst:
 ```]
 
 Dies ist übersichtlicher, wenn viele Erwartungen pro Teilaufgabe vorhanden sind.
+
+=== Erwartungshorizont mit Platz für erreichte Punkte
+
+Mit dem Parameter `erreicht: true` wird in der Punktespalte Platz für das Eintragen der erreichten Punkte geschaffen:
+
+#example[```typ
+#show-erwartungen(erreicht: true)
+```]
+
+Statt `2` wird dann `__________ / 2` angezeigt, wobei die Linie Platz zum Eintragen bietet. Dies ist nützlich für Lösungsschlüssel oder zum Austeilen an Schüler.
 #pagebreak(weak: true)
 == Bewertungstabelle
 
@@ -576,7 +619,7 @@ Optionen können auch einzeln gesetzt werden:
 
   [`teilaufgabe-numbering`], [`"a)"`], [Nummerierungsformat: `"a)"` oder `"1."`],
 
-  [`punkte`], [`"keine"`], [Punkteanzeige: `"keine"`, `"aufgaben"`, `"teilaufgaben"`, `"alle"`],
+  [`punkte`], [`"keine"`], [Punkteanzeige: `"keine"`, `"aufgaben"`, `"teilaufgaben"`, `"alle"`, `"keine-summe"`],
 )
 
 = Funktionsreferenz
@@ -702,7 +745,7 @@ Optionen können auch einzeln gesetzt werden:
   ]
 ]
 
-#command("show-erwartungen", arg(grouped: false), arg(new-page: false))[
+#command("show-erwartungen", arg(grouped: false), arg(new-page: false), arg(erreicht: false))[
   Zeigt den Erwartungshorizont als Tabelle an.
 
   #argument("grouped", types: "boolean", default: false)[
@@ -711,6 +754,10 @@ Optionen können auch einzeln gesetzt werden:
 
   #argument("new-page", types: "boolean", default: false)[
     Wenn `true`, wird der Erwartungshorizont auf einer neuen Seite angezeigt.
+  ]
+
+  #argument("erreicht", types: "boolean", default: false)[
+    Wenn `true`, wird in der Punktespalte das Format `__________ / X` verwendet, um Platz für das Eintragen der erreichten Punkte zu schaffen.
   ]
 ]
 
@@ -737,7 +784,7 @@ Optionen können auch einzeln gesetzt werden:
     - `materialien`: `"keine"`, `"sofort"`, `"folgend"`, `"seiten"`
     - `workspaces`: `true` oder `false`
     - `teilaufgabe-numbering`: `"a)"` oder `"1."`
-    - `punkte`: `"keine"`, `"aufgaben"`, `"teilaufgaben"`, `"alle"`
+    - `punkte`: `"keine"`, `"aufgaben"`, `"teilaufgaben"`, `"alle"`, `"keine-summe"`
   ]
 ]
 
