@@ -13,7 +13,7 @@
     materialien: "seiten", // "keine", "sofort", "folgend", "seiten"
     workspaces: true,
     teilaufgabe-numbering: "a)",
-    punkte: "aufgaben", // "keine", "aufgaben", "teilaufgaben", "alle"
+    punkte: "aufgaben", // "keine", "aufgaben", "teilaufgaben", "alle", "keine-summe"
     punkte-template-aufgabe: punkte => [*#punkte BE*],
     punkte-template-teilaufgabe: punkte => [*[#punkte BE]*],
   ),
@@ -631,6 +631,18 @@
   context if _state_options.final().loesungen == "folgend" {
     show-loesungen(curr: true)
   }
+  // "keine-summe" mode: Zeige Punkte nur bei Aufgaben ohne Teilaufgaben
+  context if _state_options.get().punkte == "keine-summe" {
+    let curr_aufg_nr = _counter_aufgaben.get().at(0)
+    let curr_aufg = _state_aufgaben.get().at(curr_aufg_nr - 1)
+    // Nur anzeigen, wenn es KEINE Teilaufgaben gibt
+    if curr_aufg.teile == 0 {
+      let points = get-points(curr_aufg_nr)
+      if points > 0 {
+        block(text(weight: "bold", size: 1.4em, h(1fr) + format-punkte(teil: false, points)))
+      }
+    }
+  }
   // Abstand nach der Aufgabe (nach allem: Workspace, Materialien, Lösungen)
   v(1cm, weak: true)
 }
@@ -676,7 +688,7 @@
             align(left, {
               body
               let opts = _state_options.get()
-              if opts.punkte in ("teilaufgaben", "alle") {
+              if opts.punkte in ("teilaufgaben", "alle", "keine-summe") {
                 context {
                   let points = get-points(
                     _counter_aufgaben.get().at(0),
