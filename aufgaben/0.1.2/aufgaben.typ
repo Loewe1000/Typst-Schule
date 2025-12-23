@@ -139,7 +139,7 @@
   return erw.fold(0, (sum, e) => sum + e.punkte)
 }
 
-#let show-erwartungen(grouped: false, new-page: false) = {
+#let show-erwartungen(grouped: false, new-page: false, erreicht: false) = {
   context {
     let all = _state_aufgaben.final()
     let opts = _state_options.get()
@@ -171,7 +171,7 @@
           let stroke-aufg = (left: 0.5pt, right: 0.5pt, top: 1pt, bottom: 0.5pt)
           rows.push(table.cell(fill: gray.lighten(70%), stroke: stroke-aufg, strong[#aufg.nummer]))
           rows.push(table.cell(stroke: stroke-aufg, strong[#if aufg-title != [] [#aufg-title]]))
-          rows.push(table.cell(fill: gray.lighten(70%), stroke: stroke-aufg, strong[$#aufg-punkte$]))
+          rows.push(table.cell(fill: gray.lighten(70%), stroke: stroke-aufg, strong[#if erreicht {[#h(1em) / #aufg-punkte]} else {[$#aufg-punkte$]}]))
         }
 
         // Zeilen für Teilaufgaben/Erwartungen
@@ -210,11 +210,11 @@
               let stroke-top = (left: 0.5pt, right: 0.5pt, top: 1pt, bottom: 0.5pt)
               rows.push(table.cell(align: top, inset: inset, stroke: stroke-top, fill: gray.lighten(70%), teil-label))
               rows.push(table.cell(align: left, inset: inset, stroke: stroke-top, inhalt))
-              rows.push(table.cell(align: center, inset: inset, stroke: stroke-top, fill: gray.lighten(70%), strong[$str(punkte)$]))
+              rows.push(table.cell(align: center, inset: inset, stroke: stroke-top, fill: gray.lighten(70%), strong[#if erreicht {[#h(1em) / #punkte]} else {[$str(punkte)$]}]))
             } else {
               rows.push(table.cell(align: top, inset: inset, teil-label))
               rows.push(table.cell(align: left, inset: inset, inhalt))
-              rows.push(table.cell(align: center, inset: inset, $str(punkte)$))
+              rows.push(table.cell(align: center, inset: inset, if erreicht {[#h(1em) / #punkte]} else {[$str(punkte)$]}))
             }
           } else {
             // Ungrouped: Eine Zeile pro Erwartung
@@ -242,17 +242,17 @@
                 stroke-override = (left: 0.5pt, right: 0.5pt, top: 1pt, bottom: none)
                 rows.push(table.cell(align: top, stroke: stroke-override, inset: inset, fill: gray.lighten(70%), show-label))
                 rows.push(table.cell(align: top + left, stroke: stroke-override, inset: inset, erw.text))
-                rows.push(table.cell(align: top + center, stroke: stroke-override, inset: inset, fill: gray.lighten(70%), strong[$str(erw.punkte)$]))
+                rows.push(table.cell(align: top + center, stroke: stroke-override, inset: inset, fill: gray.lighten(70%), strong[#if erreicht {[#h(1em) / #erw.punkte]} else {[$str(erw.punkte)$]}]))
               } else if kompakt and teil == 0 {
                 // Weitere Erwartungen im Kompaktmodus: nur graue Spalten
                 rows.push(table.cell(align: top, stroke: stroke-override, inset: inset, fill: gray.lighten(70%), show-label))
                 rows.push(table.cell(align: top + left, stroke: stroke-override, inset: inset, erw.text))
-                rows.push(table.cell(align: top + center, stroke: stroke-override, inset: inset, fill: gray.lighten(70%), strong[$str(erw.punkte)$]))
+                rows.push(table.cell(align: top + center, stroke: stroke-override, inset: inset, fill: gray.lighten(70%), strong[#if erreicht {[#h(1em) / #erw.punkte]} else {[$str(erw.punkte)$]}]))
               } else {
                 // Normal: keine besonderen Formatierungen
                 rows.push(table.cell(align: top, stroke: stroke-override, inset: inset, show-label))
                 rows.push(table.cell(align: top + left, stroke: stroke-override, inset: inset, erw.text))
-                rows.push(table.cell(align: top + center, stroke: stroke-override, inset: inset, $str(erw.punkte)$))
+                rows.push(table.cell(align: top + center, stroke: stroke-override, inset: inset, if erreicht {[#h(1em) / #erw.punkte]} else {[$str(erw.punkte)$]}))
               }
             }
           }
@@ -265,7 +265,7 @@
       let stroke-summe = (left: 0.5pt, right: 0.5pt, top: 1pt, bottom: 0.5pt)
       rows.push(table.cell(fill: gray.lighten(70%), stroke: stroke-summe, strong[$Sigma$]))
       rows.push(table.cell(stroke: stroke-summe, strong[Summe]))
-      rows.push(table.cell(fill: gray.lighten(70%), stroke: stroke-summe, strong[#gesamt-punkte]))
+      rows.push(table.cell(fill: gray.lighten(70%), stroke: stroke-summe, strong[#if erreicht {[#h(1em) / #gesamt-punkte]} else {[#gesamt-punkte]}]))
     }
 
     if rows.len() > 0 {
