@@ -568,6 +568,7 @@
       let auf-head = figure(
         kind: "aufgabe",
         supplement: none,
+        gap: 0pt,
         text(
           weight: "bold",
           size: if large { 1.4em } else { 1.2em },
@@ -591,8 +592,9 @@
       if label != none [
         #block(
           width: 100%,
-          below: 0.75em,
           above: 1.8em,
+          below: 1em,
+          spacing: 0pt,
           [
             #auf-head
             #if type(label) == std.label { label } else { std.label(label) }
@@ -601,8 +603,9 @@
       ] else [
         #block(
           width: 100%,
-          below: 0.75em,
           above: 1.8em,
+          below: 1em,
+          spacing: 0pt,
           auf-head,
         )
       ]
@@ -610,7 +613,7 @@
   }
   // Content - nur wenn body nicht leer ist
   if body != none and body != [] {
-    block(body)
+    body
   }
   // Workspace
   context if workspace != none and _state_options.get().workspaces {
