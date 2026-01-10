@@ -95,7 +95,7 @@
             },
           )],
           std.table.cell(align: right + horizon)[#text(11pt, weight: "regular")[#date]],
-          std.table.cell(align: right + horizon)[#text(11pt, weight: "regular")[#class - #teacher]],
+          std.table.cell(align: right + horizon)[#text(11pt, weight: "regular")[#if class != "" and teacher != "" [#class - #teacher] else [#class#teacher]]],
         )
       } else {
         (
@@ -103,7 +103,7 @@
           std.table.cell(rowspan: 2)[#text(16pt, weight: "semibold")[#title]],
           std.table.cell(align: right + horizon)[#date],
           [],
-          std.table.cell(align: right + horizon)[#class - #teacher],
+          std.table.cell(align: right + horizon)[#if class != "" and teacher != "" [#class - #teacher] else [#class#teacher]],
         )
       },
     )
