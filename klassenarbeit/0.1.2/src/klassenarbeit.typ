@@ -13,7 +13,10 @@
 /// - stufe (string, boolean): "I" for Sekundarstufe I, "II" for Sekundarstufe II.
 /// - info-table (boolean): Whether to show info table with name.
 /// - erwartungen (boolean): Whether to show expectations/rubric.
-/// - page-numbering (boolean): Whether to show page numbers.
+/// - page-numbering (boolean, string): Page numbering mode:
+///   - `true` or `"reset"`: Show page numbers, reset counter for each klassenarbeit (default).
+///   - `"continuous"`: Show page numbers, continue numbering across multiple klassenarbeiten.
+///   - `false`: No page numbers.
 /// - klausurboegen (boolean): Whether to generate exam sheets.
 /// - ergebnisse (array): Student results for exam sheets.
 /// - page-settings (dictionary): Additional page settings.
@@ -38,7 +41,11 @@
 ) = context {
   // Counter ZUERST erhöhen, damit die ID korrekt ist
   counter("klassenarbeit").step()
-  counter(page).update(1)
+  
+  // Page-Counter nur zurücksetzen wenn page-numbering == true oder "reset"
+  if page-numbering == true or page-numbering == "reset" {
+    counter(page).update(1)
+  }
   
   // Hole die aktuelle Klassenarbeit-ID direkt als Zahl
   let current-ka-id = counter("klassenarbeit").get().first()
@@ -57,11 +64,18 @@
   math-font = (math-font, "New Computer Modern Sans Math")
 
   set page(
-    footer: if page-numbering {
+    footer: if page-numbering != false {
       context [
         #let current-page = counter(page).at(here()).at(0)
         #let end-page = counter(page).at(ka-label).at(0)
-        #let last-page = end-page
+        // Bei "continuous": Hole die letzte Seite der LETZTEN Klassenarbeit im Dokument
+        #let last-page = if page-numbering == "continuous" {
+          let total-ka = counter("klassenarbeit").final().first()
+          let last-ka-label = label("ende-arbeitsblatt-id-" + str(total-ka))
+          counter(page).at(last-ka-label).at(0)
+        } else {
+          end-page
+        }
         #if current-page <= end-page [
           #set text(8pt, font: font)
           #set align(right)
