@@ -13,11 +13,30 @@
     materialien: "seiten", // "keine", "sofort", "folgend", "seiten"
     workspaces: true,
     teilaufgabe-numbering: "a)",
-    punkte: "aufgaben", // "keine", "aufgaben", "teilaufgaben", "alle", "keine-summe"
+    punkte: "aufgaben", // "keine", "aufgaben", "teilaufgaben", "alle", "keine-summe" oder Dictionary
+    punkte-position: "ende", // "ende", "rand" (nur für Teilaufgaben relevant)
     punkte-template-aufgabe: punkte => [*#punkte BE*],
     punkte-template-teilaufgabe: punkte => [*[#punkte BE]*],
   ),
 )
+
+// Hilfsfunktion: Extrahiert punkte-anzeige aus opts.punkte (String oder Dictionary)
+#let get-punkte-anzeige(opts) = {
+  if type(opts.punkte) == dictionary {
+    opts.punkte.at("anzeige", default: "aufgaben")
+  } else {
+    opts.punkte
+  }
+}
+
+// Hilfsfunktion: Extrahiert punkte-position aus opts (aus Dictionary oder separat)
+#let get-punkte-position(opts) = {
+  if type(opts.punkte) == dictionary {
+    opts.punkte.at("position", default: opts.at("punkte-position", default: "ende"))
+  } else {
+    opts.at("punkte-position", default: "ende")
+  }
+}
 // Formatierungsfunktion für BE-Anzeige
 #let format-punkte(teil: false, points) = {
   let opts = _state_options.get()
@@ -580,7 +599,7 @@
             #if actual-title != none [#actual-title]
             #h(1fr)
             #let opts = _state_options.get()
-            #if opts.punkte in ("aufgaben", "alle") {
+            #if get-punkte-anzeige(opts) in ("aufgaben", "alle") {
               let points = get-points(_counter_aufgaben.get().at(0))
               if points > 0 {
                 format-punkte(teil: false, points)
@@ -635,7 +654,7 @@
     show-loesungen(curr: true)
   }
   // "keine-summe" mode: Zeige Punkte nur bei Aufgaben ohne Teilaufgaben
-  context if _state_options.get().punkte == "keine-summe" {
+  context if get-punkte-anzeige(_state_options.get()) == "keine-summe" {
     let curr_aufg_nr = _counter_aufgaben.get().at(0)
     let curr_aufg = _state_aufgaben.get().at(curr_aufg_nr - 1)
     // Nur anzeigen, wenn es KEINE Teilaufgaben gibt
@@ -657,17 +676,34 @@
   body,
 ) = {
   _counter_aufgaben.step(level: 2)
+  
+  // State-Update AUSSERHALB des context-Blocks
   context {
     let curr_aufg = _counter_aufgaben.get().at(0)
-    let curr_teil = _counter_aufgaben.get().at(1, default: 1)
-
-    // Update state
     _state_aufgaben.update(all => {
       all.at(curr_aufg - 1).teile += 1
       all
     })
-    // Render
+  }
+  
+  // Rendering in separatem context-Block
+  context {
+    let curr_aufg = _counter_aufgaben.get().at(0)
+    let curr_teil = _counter_aufgaben.get().at(1, default: 1)
 
+    let opts = _state_options.get()
+    // Inline-Berechnung für bessere Kompatibilität
+    let punkte-anzeige = if type(opts.punkte) == dictionary {
+      opts.punkte.at("anzeige", default: "aufgaben")
+    } else {
+      opts.punkte
+    }
+    let punkte-position = if type(opts.punkte) == dictionary {
+      opts.punkte.at("position", default: opts.at("punkte-position", default: "ende"))
+    } else {
+      opts.at("punkte-position", default: "ende")
+    }
+    
     let ta-enum = enum(
       start: curr_teil,
       numbering: n => context [
@@ -689,9 +725,36 @@
           width: 100%,
           {
             align(left, {
-              body
-              let opts = _state_options.get()
-              if opts.punkte in ("teilaufgaben", "alle", "keine-summe") {
+              // Punkte am Rand (außerhalb des Dokuments, am rechten Seitenrand)
+              if punkte-anzeige in ("teilaufgaben", "alle", "keine-summe") and punkte-position == "rand" {
+                // Punkte werden am Ende des Dokuments berechnet und mit place am Rand platziert
+                context {
+                  let points = get-points(
+                    _counter_aufgaben.get().at(0),
+                    teil: _counter_aufgaben.get().at(1),
+                  )
+                  if points > 0 {
+                    // Platziere Punkte am rechten Rand (außerhalb des Textbereichs), linksbündig
+                    place(
+                      right,
+                      dx: 2mm, // In den rechten Rand hinein
+                      box(
+                        width: 0cm,
+                        align(left, text(fill: black, size: 0.88em, hyphenate: false)[#box(width: 2cm, [#format-punkte(teil: true, points)])])
+                      )
+                    )
+                  }
+                }
+                body
+              } else if punkte-position == "rand" {
+                // position ist "rand", aber keine Teilaufgaben-Punkte aktiviert -> nur body
+                body
+              } else {
+                // position ist "ende" -> body wird hier gerendert
+                body
+              }
+              // Punkte am Ende (Standard-Verhalten)
+              if punkte-anzeige in ("teilaufgaben", "alle", "keine-summe") and punkte-position == "ende" {
                 context {
                   let points = get-points(
                     _counter_aufgaben.get().at(0),
