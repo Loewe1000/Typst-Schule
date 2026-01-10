@@ -1394,8 +1394,7 @@
   show math.equation: it => {
     show text: set text(font: "New Computer Modern Sans Math")
     set text(font: "New Computer Modern Sans Math", weight: "regular")
-    set math.equation(block: true)
-    math.upright(it)
+    math.upright(math.display(it))
   }
   body
 }
