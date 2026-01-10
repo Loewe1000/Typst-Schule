@@ -351,7 +351,12 @@
       }
 
       // Prüfe, ob es echte Teilaufgaben gibt (basierend auf aufg.teile)
+      // Zusätzliche Absicherung: Prüfe, ob es tatsächlich Erwartungen mit teil > 0 gibt
+      // (behebt Timing-Problem bei der letzten Aufgabe)
       let hat-teilaufgaben = aufg.teile > 0 and aufg.teile != none
+      if hat-teilaufgaben and grouped-erw.keys().filter(k => k != "0").len() == 0 {
+        hat-teilaufgaben = false
+      }
 
       // Wenn keine Teilaufgaben vorhanden: Erstelle trotzdem eine Spalte für die Hauptaufgabe
       if not hat-teilaufgaben {
