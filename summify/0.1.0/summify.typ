@@ -20,7 +20,7 @@
       border: rgb("#1e40af"), // Darker blue
     ),
     spacing: (
-      page: (x: 1cm, y: 1cm, top: 2cm),
+      page: (x: 1cm, y: 1cm, top: 1cm),
       topic: 4mm,
       section: 0mm,
       content: 2mm,
@@ -47,7 +47,7 @@
       border: rgb("#b45309"), // Dark orange
     ),
     spacing: (
-      page: (x: 1cm, y: 1cm, top: 2cm),
+      page: (x: 1cm, y: 1cm, top: 1cm),
       topic: 5mm,
       section: 1mm,
       content: 3mm,
@@ -74,7 +74,7 @@
       border: rgb("#71717a"), // Medium gray
     ),
     spacing: (
-      page: (x: 1cm, y: 1cm, top: 2cm),
+      page: (x: 1cm, y: 1cm, top: 1cm),
       topic: 3mm,
       section: 0mm,
       content: 2mm,
@@ -101,7 +101,7 @@
       border: black,
     ),
     spacing: (
-      page: (x: 1cm, y: 1cm, top: 2cm),
+      page: (x: 1cm, y: 1cm, top: 1cm),
       topic: 4mm,
       section: 0mm,
       content: 2mm,
