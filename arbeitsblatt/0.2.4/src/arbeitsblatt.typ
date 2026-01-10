@@ -143,7 +143,7 @@
   loesungen: "false",
   materialien: "seiten",
   punkte: "keine",
-  aufgaben-shortcodes: "alle",
+  aufgaben-shortcodes: "teilaufgaben",
   copyright: none,
   ..args,
   body,
