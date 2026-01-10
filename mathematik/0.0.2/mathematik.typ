@@ -1346,3 +1346,122 @@
     )
   })
 }
+
+// ============================================================================
+// GeoGebra-Style Funktionen
+// ============================================================================
+
+/// GeoGebra Farbpalette
+#let geogebra-colors = (
+  primary: rgb("#6557D2"),
+  stroke: rgb("#DCDCDC"),
+  button: rgb("#808080"),
+)
+
+/// Der Drei-Punkte-Button im GeoGebra-Stil
+#let geogebra-button(size: 1.2em) = image(
+  bytes(
+    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><rect width='24' height='24' fill='none'/><circle cx='12' cy='6' r='1.5' fill='#808080'/><circle cx='12' cy='12' r='1.5' fill='#808080'/><circle cx='12' cy='18' r='1.5' fill='#808080'/></svg>",
+  ),
+  width: size,
+)
+
+/// Der "≈"-Button im GeoGebra-Stil
+#let geogebra-approx-button(size: 1.2em) = box(
+  width: size,
+  height: size,
+  fill: geogebra-colors.primary,
+  radius: 5%,
+  align(center + horizon)[
+    #text(
+      0.8em,
+      top-edge: "bounds",
+      bottom-edge: "bounds",
+      white,
+    )[$approx$]
+  ],
+)
+
+/// Wrapper für GeoGebra-Mathe-Stil (aufrecht, serifenlos, Display-Modus)
+/// 
+/// Verwendung:
+/// ```typst
+/// #geogebra-style[
+///   $g(t) = v + t u$
+/// ]
+/// ```
+#let geogebra-style(body) = {
+  show math.equation: it => {
+    show text: set text(font: "New Computer Modern Sans Math")
+    set text(font: "New Computer Modern Sans Math", weight: "regular")
+    set math.equation(block: true)
+    math.upright(it)
+  }
+  body
+}
+
+/// Eine einzelne Zelle im GeoGebra-Stil mit optionalen Buttons
+///
+/// - content: Der Inhalt der Zelle (typischerweise eine Mathe-Gleichung)
+/// - menu: Ob der Drei-Punkte-Button angezeigt werden soll
+/// - approx: Ob der ≈-Button angezeigt werden soll
+#let geogebra-cell(
+  content,
+  menu: true,
+  approx: false,
+) = [
+  #let button-dx = 1em
+  #let button-dy = -0.4em
+  #if menu {
+    place(right, dx: button-dx, dy: button-dy, geogebra-button())
+  }
+  #if approx {
+    place(bottom + right, dx: button-dx - 0.4em, dy: 0.4em, geogebra-approx-button())
+  }
+  #content
+  #if approx {
+    v(-0.4em)
+  }
+]
+
+/// Eine komplette GeoGebra-Stil Tabelle
+///
+/// - cells: Die Zellinhalte (als positionale Argumente)
+/// - stroke: Rahmenfarbe
+/// - columns: Spaltenbreite(n)
+/// - inset: Innenabstand
+/// - last-has-approx: Ob die letzte Zelle den ≈-Button haben soll
+///
+/// Verwendung:
+/// ```typst
+/// #geogebra-table(
+///   $v = (2, 1, 5)$,
+///   $u = (1, -1, 3)$,
+///   $P = (3, 1, -3)$,
+/// )
+/// ```
+#let geogebra-algebra(
+  ..cells,
+  stroke: geogebra-colors.stroke + 0.5pt,
+  columns: 1,
+  inset: (left: 0.8em, top: 0.8em, bottom: 0.8em, right: 1.2em),
+  last-has-approx: false,
+) = {
+  let cell-list = cells.pos()
+  let processed-cells = ()
+  
+  for (i, cell) in cell-list.enumerate() {
+    let is-last = i == cell-list.len() - 1
+    processed-cells.push(geogebra-cell(cell, menu: true, approx: is-last and last-has-approx))
+  }
+  
+  geogebra-style[
+    #table(
+      stroke: stroke,
+      columns: columns,
+      inset: inset,
+      ..processed-cells,
+    )
+  ]
+}
+

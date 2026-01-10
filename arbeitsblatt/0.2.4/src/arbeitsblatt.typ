@@ -5,7 +5,7 @@
 #import "@schule/patterns:0.0.2": *
 #import "@preview/eqalc:0.1.3": *
 #import "@preview/zero:0.5.0": *
-#import "@schule/mathematik:0.0.2": graphen, kreisdiagramm, steckbrief, teilaufgaben
+#import "@schule/mathematik:0.0.2": graphen, kreisdiagramm, steckbrief, teilaufgaben, geogebra-algebra, geogebra-cell,
 #import "@schule/informatik:0.0.2": *
 #import "@schule/physik:0.0.2": (
   // Tabellen und Daten
@@ -155,14 +155,7 @@
   set par(justify: true, leading: 0.65em, linebreaks: "optimized")
 
   set text(font-size, font: font, hyphenate: true, lang: "de")
-  show math.equation: it => {
-    show text: it2 => {
-      set text(font: font)
-      it2
-    }
-    set text(font: math-font, weight: "regular")
-    it
-  }
+  show math.equation: set text(font: math-font)
 
   show math.equation: it => {
     show regex("\d+\.\d+"): num => num.text.replace(".", ",")
