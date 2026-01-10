@@ -1396,6 +1396,7 @@
     set text(font: "New Computer Modern Sans Math", weight: "regular")
     math.upright(math.display(it))
   }
+  set align(left)
   body
 }
 
