@@ -35,7 +35,7 @@
 )
 #import "@schule/operatoren:0.0.1": operator, operatoren-liste
 #import "@preview/fontawesome:0.6.0": *
-#import "@preview/rustycure:0.1.0": qr-code
+#import "@preview/zebra:0.1.0": qrcode as qr-code-zebra
 #import "@preview/cetz:0.4.2": *
 #import "@preview/cetz-plot:0.1.2": *
 #import "@preview/codly:1.3.0": *
@@ -43,6 +43,10 @@
 #import "@preview/fancy-units:0.1.1": add-macros, fancy-units-configure, num, qty, unit
 
 #let qty_old = qty
+
+#let qr-code(..args, light-color: white.transparentize(100%), dark-color: black, alt: "") = {
+  qr-code-zebra(..args, fill: dark-color, background-fill: light-color)
+}
 
 #let qty(..args) = {
   add-macros(
@@ -487,7 +491,7 @@
 #let qrbox(url, name, width: 3cm, ..args) = {
   stickybox(width: width, ..args)[
     #set align(center)
-    #qr-code(url, width: 0.75 * width, light-color: "#ffffff00", quiet-zone: false, alt: "QR-Code")
+    #qr-code(url, width: 0.75 * width, light-color: white.transparentize(100%), quiet-zone: false, alt: "QR-Code")
     #align(
       center,
       context {
