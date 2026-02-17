@@ -206,7 +206,7 @@
     h(1fr)
 
     if copyright != none {
-      box(qr-code(copyright, width: 0.9em, dark-color: "#828282", alt: "QR-Code für Copyright-Informationen"))
+      box(qr-code(copyright, width: 0.9em, dark-color: rgb("#828282"), alt: "QR-Code für Copyright-Informationen"))
       h(0.5em)
     }
 
