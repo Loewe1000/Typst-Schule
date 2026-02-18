@@ -41,16 +41,16 @@
 ) = context {
   // Counter ZUERST erhöhen, damit die ID korrekt ist
   counter("klassenarbeit").step()
-  
+
   // Page-Counter nur zurücksetzen wenn page-numbering == true oder "reset"
   if page-numbering == true or page-numbering == "reset" {
     counter(page).update(1)
   }
-  
+
   // Hole die aktuelle Klassenarbeit-ID direkt als Zahl
   let current-ka-id = counter("klassenarbeit").get().first()
   let ka-label = label("ende-arbeitsblatt-id-" + str(current-ka-id))
-  
+
   let table = if type(info-table) != bool and type(info-table) == array {
     info-table
   } else { () }
@@ -234,10 +234,14 @@
           false
         },
         ..if type(klausurboegen) == dictionary and "ergebnisse" in klausurboegen.keys() and klausurboegen.at("ergebnisse") != none {
-          (students: klausurboegen.at("ergebnisse"),)
+          (students: klausurboegen.at("ergebnisse"))
         },
         ..if type(klausurboegen) == dictionary {
-          klausurboegen
+          let parameter = klausurboegen
+          if parameter.keys().contains("ergebnisse") {
+            let _ = parameter.remove("ergebnisse")
+          }
+          parameter
         },
       )
     }
