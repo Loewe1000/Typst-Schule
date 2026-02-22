@@ -7,6 +7,9 @@
 // Definiert einen Zähler zur Verfolgung der Wortpositionen
 #let iaword-counter = counter("iaword-counter")
 
+// Definiert einen Zustand für einheitliche Lückengrößen
+#let iaword-uniform = state("iaword-uniform", false)
+
 // Funktion zur Erstellung eines Wort-Elements
 #let iaword(body) = {
   context {
@@ -16,18 +19,31 @@
       words
     })
 
+    // Lückenbreite berechnen (entweder individuell oder so groß wie das längste Wort im aktuellen Block)
+    let is-uniform = iaword-uniform.get()
+    let final-width = if is-uniform {
+      let current-words = iaword-list.final().filter(w => w.at(0) == position.at(0))
+      if current-words.len() > 0 {
+        calc.max(..current-words.map(w => measure(w.at(1)).width)) + 3em
+      } else {
+        measure(body).width + 3em
+      }
+    } else {
+      measure(body).width + 3em
+    }
+
     box()[
       #if iaword-solution.final().at(position.at(0) - 1) [
         // Wenn Lösung angezeigt werden soll, wird das Wort sichtbar gemacht
         #move(dy: 4pt)[
-          // Zeichnet eine Linie unter dem Wort basierend auf der Wortbreite
-          #place(bottom, dy: -4pt, box(height: 0cm, width: measure(body).width + 3em, align(center, text(red, body))))
-          #line(length: measure(body).width + 3em, stroke: 0.5pt + luma(130))
+          // Zeichnet eine Linie unter dem Wort basierend auf der berechneten Breite
+          #place(bottom, dy: -4pt, box(height: 0cm, width: final-width, align(center, text(red, body))))
+          #line(length: final-width, stroke: 0.5pt + luma(130))
         ]
       ] else [
         #move(dy: 4pt)[
-          // Zeichnet eine Linie unter dem Wort basierend auf der Wortbreite
-          #line(length: measure(body).width + 3em, stroke: 0.5pt + luma(130))
+          // Zeichnet eine Linie basierend auf der berechneten Breite
+          #line(length: final-width, stroke: 0.5pt + luma(130))
         ]
       ]
 
@@ -38,7 +54,10 @@
 }
 
 // Funktion zum Einfügen eines Wortes mit Anpassungsoptionen
-#let insert-a-word(hide-words: false, line-spacing: 1.5em, item-spacing: 1em, show-solution: false, body) = {
+#let insert-a-word(hide-words: false, line-spacing: 1.5em, item-spacing: 1em, show-solution: false, uniform-gaps: false, body) = {
+  // Option für einheitliche Lücken speichern
+  iaword-uniform.update(uniform-gaps)
+
   // Definiert eine Farbpalette für die Wort-Boxen
   let colors = (
     rgb("#B3D4EC"), // Hellblau
