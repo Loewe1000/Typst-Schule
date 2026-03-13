@@ -1,0 +1,10 @@
+[package]
+name = "typlace"
+version = "0.0.1"
+entrypoint = "typlace.typ"
+authors = ["Alexander Schulz"]
+description = "Erstellt ein Tischlayout für einen Klassenraum aus einem einfachen String-Muster. Tische, freie Plätze und ein Lehrerpult werden als Rastergrafik dargestellt; Namen können zeilenweise auf die Sitzplätze verteilt werden."
+license = "MIT"
+keywords = ["classroom", "layout", "seating", "schule", "tisch", "sitzplan"]
+categories = ["layout", "visualization"]
+disciplines = ["education"]
