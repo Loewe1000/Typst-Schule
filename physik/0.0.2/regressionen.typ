@@ -5,15 +5,15 @@
   if notation == "sci" {
     let exp = if value == 0 { 0 } else { calc.floor(calc.log(calc.abs(value), base: 10)) }
     let mantissa = value / calc.pow(10, exp)
-    
+
     // Prüfe ob mantissa ganzzahlig ist
     let clean-mantissa = if calc.round(mantissa, digits: 10) == calc.round(mantissa) {
       int(calc.round(mantissa))
     } else {
       mantissa
     }
-    let mantissa_formatted = znum(str(clean-mantissa), decimal-separator:",", digits: digits)
-    
+    let mantissa_formatted = znum(str(clean-mantissa), decimal-separator: ",", digits: digits)
+
     if exp == 0 {
       mantissa_formatted
     } else if exp == 1 {
@@ -28,7 +28,7 @@
       str(int(calc.round(value)))
     } else {
       // Hat Nachkommastellen -> mit znum formatieren
-      znum(value, decimal-separator:",", digits: digits)
+      znum(value, decimal-separator: ",", digits: digits)
     }
   }
 }
@@ -49,7 +49,7 @@
     let x-part = if type(x) == content { x } else { $upright(#x)$ }
     if pow == 1 { $frac(#y-part, #x-part)$ } else { $frac(#y-part, #x-part^#pow)$ }
   }
-  
+
   if type(y_einheit) == str and type(x_einheit) == str and x_einheit.contains("/") {
     let parts = x_einheit.split("/")
     if parts.len() == 2 {
@@ -68,18 +68,18 @@
   }
 }
 
-#let format-equation-term(koeff, koeff-einheit, x-name, x-potenz, is-first, notation, precision) = {
+#let format-equation-term(koeff, koeff-einheit, x-name, x-potenz, is-first, notation, precision, digits: 2) = {
   if calc.abs(koeff) < precision { return (skip: true) }
-  
+
   // Prüfe ob Koeffizient nahe bei 1 oder -1 ist
   let abs-koeff = calc.abs(koeff)
   let koeff-ist-eins = calc.abs(abs-koeff - 1) < 0.01
-  
-  let koeff-str = if koeff-ist-eins { "" } else { format-number(abs-koeff, notation: notation) }
-  
+
+  let koeff-str = if koeff-ist-eins { "" } else { format-number(abs-koeff, notation: notation, digits: digits) }
+
   let term = if x-potenz == 0 {
     // Konstanter Term: immer Koeffizient anzeigen
-    let koeff-str-const = format-number(abs-koeff, notation: notation)
+    let koeff-str-const = format-number(abs-koeff, notation: notation, digits: digits)
     $#koeff-str-const #koeff-einheit$
   } else if x-potenz == 1 {
     // x^1 wird einfach als x geschrieben
@@ -96,28 +96,28 @@
       $#koeff-str #koeff-einheit dot #x-name^#x-potenz$
     }
   }
-  
+
   (skip: false, term: term, is-negative: koeff < 0)
 }
 
 #let build-equation(y-name, terms) = {
   if terms.len() == 0 { return $#y-name = 0$ }
-  
+
   let equation = if terms.first().is-negative {
     $#y-name = -#terms.first().term$
   } else {
     $#y-name = #terms.first().term$
   }
-  
+
   for term in terms.slice(1) {
     equation = if term.is-negative { $#equation - #term.term$ } else { $#equation + #term.term$ }
   }
   equation
 }
 
-#let format-simple-equation(y-name, koeffs, x-name, notation, precision) = {
-  let strs = koeffs.map(k => format-number(calc.abs(k), notation: notation))
-  
+#let format-simple-equation(y-name, koeffs, x-name, notation, precision, digits: 2) = {
+  let strs = koeffs.map(k => format-number(calc.abs(k), notation: notation, digits: digits))
+
   // Erste Term: berücksichtige x^1 -> x
   let first-pow = koeffs.len() - 1
   let eq = if first-pow == 0 {
@@ -127,17 +127,17 @@
   } else {
     $y = #strs.at(0) #x-name^#first-pow$
   }
-  
+
   for (i, k) in koeffs.slice(1).enumerate() {
     let pow = koeffs.len() - 2 - i
     if calc.abs(k) >= precision {
       // x^1 wird als x geschrieben, x^0 nur als Koeffizient
-      let term = if pow == 0 { 
-        strs.at(i + 1) 
-      } else if pow == 1 { 
-        $#strs.at(i + 1) #x-name$ 
-      } else { 
-        $#strs.at(i + 1) #x-name^#pow$ 
+      let term = if pow == 0 {
+        strs.at(i + 1)
+      } else if pow == 1 {
+        $#strs.at(i + 1) #x-name$
+      } else {
+        $#strs.at(i + 1) #x-name^#pow$
       }
       eq = if k >= 0 { $#eq + #term$ } else { $#eq - #term$ }
     }
@@ -153,10 +153,10 @@
       (werte: param, einheit: none, name: none)
     }
   }
-  
+
   let x_data = extract-data(x_param)
   let y_data = extract-data(y_param)
-  
+
   let gueltige_paare = ()
   for i in range(calc.min(x_data.werte.len(), y_data.werte.len())) {
     let x_val = x_data.werte.at(i)
@@ -165,14 +165,21 @@
       gueltige_paare.push((x_val, y_val))
     }
   }
-  
+
   assert(gueltige_paare.len() >= min-punkte, message: "Nicht genug gültige Datenpunkte")
 
   let koeffizienten = algorithmus(gueltige_paare)
-  let math_output = format-function(koeffizienten, x_name: x_data.name, y_name: y_data.name, 
-    x_einheit: x_data.einheit, y_einheit: y_data.einheit, notation: notation, precision: precision)
-  let math_digit_output(digits) = format-function(koeffizienten, x_name: x_data.name, y_name: y_data.name, 
-    x_einheit: x_data.einheit, y_einheit: y_data.einheit, notation: notation, precision: precision, digits: digits)
+  let math_output = format-function(koeffizienten, x_name: x_data.name, y_name: y_data.name, x_einheit: x_data.einheit, y_einheit: y_data.einheit, notation: notation, precision: precision)
+  let math_digit_output(digits) = format-function(
+    koeffizienten,
+    x_name: x_data.name,
+    y_name: y_data.name,
+    x_einheit: x_data.einheit,
+    y_einheit: y_data.einheit,
+    notation: notation,
+    precision: precision,
+    digits: digits,
+  )
 
   let result = (math: math_output, math-digits: math_digit_output)
   for (i, name) in koeffizienten-namen.enumerate() {
@@ -185,7 +192,10 @@
   let algorithmus(paare) = {
     let n = paare.len()
     let (sx, sy) = (0, 0)
-    for p in paare { sx += p.at(0); sy += p.at(1) }
+    for p in paare {
+      sx += p.at(0)
+      sy += p.at(1)
+    }
     let (mx, my) = (sx / n, sy / n)
     let (num, den) = (0, 0)
     for p in paare {
@@ -197,22 +207,21 @@
     let m = num / den
     (m, my - m * mx)
   }
-  
+
   let format-func(koeff, x_name: none, y_name: none, x_einheit: none, y_einheit: none, notation: "dec", precision: 1e-10, digits: 2) = {
     if x_einheit != none and x_einheit != "" and y_einheit != none and y_einheit != "" {
       let terms = (
-        format-equation-term(koeff.at(0), combine-units(y_einheit, x_einheit), x_name, 1, true, notation, 1e-20),
-        format-equation-term(koeff.at(1), format-unit(y_einheit), x_name, 0, false, notation, precision),
+        format-equation-term(koeff.at(0), combine-units(y_einheit, x_einheit), x_name, 1, true, notation, 1e-20, digits: digits),
+        format-equation-term(koeff.at(1), format-unit(y_einheit), x_name, 0, false, notation, precision, digits: digits),
       )
       build-equation(y_name, terms.filter(t => not t.skip))
     } else {
-      format-simple-equation(y_name, koeff, $x$, notation, precision)
+      format-simple-equation(y_name, koeff, $x$, notation, precision, digits: digits)
     }
   }
-  
-  let result = regression(x_param, y_param, algorithmus, format-func, 
-    koeffizienten-namen: ("m", "b"), min-punkte: 2, notation: notation, precision: precision)
-  result.insert("function", (x) => result.m * x + result.b)
+
+  let result = regression(x_param, y_param, algorithmus, format-func, koeffizienten-namen: ("m", "b"), min-punkte: 2, notation: notation, precision: precision)
+  result.insert("function", x => result.m * x + result.b)
   result
 }
 
@@ -222,36 +231,41 @@
     let (sx, sy, sx2, sx3, sx4, sxy, sx2y) = (0, 0, 0, 0, 0, 0, 0)
     for p in paare {
       let (x, y) = (p.at(0), p.at(1))
-      let (x2, x3, x4) = (x*x, x*x*x, x*x*x*x)
-      sx += x; sy += y; sx2 += x2; sx3 += x3; sx4 += x4; sxy += x*y; sx2y += x2*y
+      let (x2, x3, x4) = (x * x, x * x * x, x * x * x * x)
+      sx += x
+      sy += y
+      sx2 += x2
+      sx3 += x3
+      sx4 += x4
+      sxy += x * y
+      sx2y += x2 * y
     }
-    
+
     let det_A = sx4 * (sx2 * n - sx * sx) - sx3 * (sx3 * n - sx * sx2) + sx2 * (sx3 * sx - sx2 * sx2)
     assert(det_A != 0, message: "Determinante ist null")
-    
+
     let det_Ax = sx2y * (sx2 * n - sx * sx) - sx3 * (sxy * n - sx * sy) + sx2 * (sxy * sx - sx2 * sy)
     let det_Ay = sx4 * (sxy * n - sx * sy) - sx2y * (sx3 * n - sx * sx2) + sx2 * (sx3 * sy - sxy * sx2)
     let det_Az = sx4 * (sx2 * sy - sxy * sx) - sx3 * (sx3 * sy - sxy * sx2) + sx2y * (sx3 * sx - sx2 * sx2)
-    
+
     (det_Ax / det_A, det_Ay / det_A, det_Az / det_A)
   }
-  
+
   let format-func(koeff, x_name: none, y_name: none, x_einheit: none, y_einheit: none, notation: "dec", precision: 1e-10, digits: 2) = {
     if x_einheit != none and x_einheit != "" and y_einheit != none and y_einheit != "" {
       let terms = (
-        format-equation-term(koeff.at(0), combine-units(y_einheit, x_einheit, x_potenz: 2), x_name, 2, true, notation, 1e-20),
-        format-equation-term(koeff.at(1), combine-units(y_einheit, x_einheit), x_name, 1, false, notation, precision),
-        format-equation-term(koeff.at(2), format-unit(y_einheit), x_name, 0, false, notation, precision),
+        format-equation-term(koeff.at(0), combine-units(y_einheit, x_einheit, x_potenz: 2), x_name, 2, true, notation, 1e-20, digits: digits),
+        format-equation-term(koeff.at(1), combine-units(y_einheit, x_einheit), x_name, 1, false, notation, precision, digits: digits),
+        format-equation-term(koeff.at(2), format-unit(y_einheit), x_name, 0, false, notation, precision, digits: digits),
       )
       build-equation(y_name, terms.filter(t => not t.skip))
     } else {
-      format-simple-equation(y_name, koeff, $x$, notation, precision)
+      format-simple-equation(y_name, koeff, $x$, notation, precision, digits: digits)
     }
   }
-  
-  let result = regression(x_param, y_param, algorithmus, format-func,
-    koeffizienten-namen: ("a", "b", "c"), min-punkte: 3, notation: notation, precision: precision)
-  result.insert("function", (x) => result.a * x * x + result.b * x + result.c)
+
+  let result = regression(x_param, y_param, algorithmus, format-func, koeffizienten-namen: ("a", "b", "c"), min-punkte: 3, notation: notation, precision: precision)
+  result.insert("function", x => result.a * x * x + result.b * x + result.c)
   result
 }
 
@@ -262,18 +276,21 @@
     let (sz, sy, sz2, szy) = (0, 0, 0, 0)
     for p in paare {
       let z = calc.sqrt(p.at(0))
-      sz += z; sy += p.at(1); sz2 += z * z; szy += z * p.at(1)
+      sz += z
+      sy += p.at(1)
+      sz2 += z * z
+      szy += z * p.at(1)
     }
     let den = n * sz2 - sz * sz
     assert(den != 0, message: "Keine eindeutige Lösung")
     ((n * szy - sz * sy) / den, (sy * sz2 - sz * szy) / den)
   }
-  
+
   let format-func(koeff, x_name: none, y_name: none, x_einheit: none, y_einheit: none, notation: "dec", precision: 1e-10, digits: 2) = {
     let (a, b) = (koeff.at(0), koeff.at(1))
     let a_str = format-number(a, notation: notation, digits: digits)
     let b_str = format-number(calc.abs(b), notation: notation, digits: digits)
-    
+
     if x_einheit != none and x_einheit != "" and y_einheit != none and y_einheit != "" {
       let a_einheit = if type(y_einheit) == content and type(x_einheit) == content {
         $#y_einheit \/ sqrt(#x_einheit)$
@@ -284,7 +301,7 @@
       } else {
         $upright(#y_einheit) / sqrt(upright(#x_einheit))$
       }
-      
+
       let eq = $#y_name = #a_str #a_einheit dot sqrt(#x_name)$
       if calc.abs(b) >= precision {
         let b_einheit = format-unit(y_einheit)
@@ -299,10 +316,9 @@
       eq
     }
   }
-  
-  let result = regression(x_param, y_param, algorithmus, format-func,
-    koeffizienten-namen: ("a", "b"), min-punkte: 2, notation: notation, precision: precision)
-  result.insert("function", (x) => if x < 0 { none } else { result.a * calc.sqrt(x) + result.b })
+
+  let result = regression(x_param, y_param, algorithmus, format-func, koeffizienten-namen: ("a", "b"), min-punkte: 2, notation: notation, precision: precision)
+  result.insert("function", x => if x < 0 { none } else { result.a * calc.sqrt(x) + result.b })
   result
 }
 
@@ -313,7 +329,10 @@
     let (sx, sy_log, sx2, sxy_log) = (0, 0, 0, 0)
     for p in paare {
       let (x, y_log) = (p.at(0), calc.ln(p.at(1)))
-      sx += x; sy_log += y_log; sx2 += x * x; sxy_log += x * y_log
+      sx += x
+      sy_log += y_log
+      sx2 += x * x
+      sxy_log += x * y_log
     }
     let den = n * sx2 - sx * sx
     assert(den != 0, message: "Keine eindeutige Lösung")
@@ -321,18 +340,18 @@
     let B = (sy_log * sx2 - sx * sxy_log) / den
     (a, calc.exp(B))
   }
-  
+
   let format-func(koeff, x_name: none, y_name: none, x_einheit: none, y_einheit: none, notation: "dec", precision: 1e-10, digits: 2) = {
     let (a, b) = (koeff.at(0), koeff.at(1))
-    
+
     // Prüfe ob a nahe bei 1 ist (dann wird nur "x" statt "1·x" angezeigt)
     let a_ist_eins = calc.abs(a - 1) < 0.01
     let a_str = if a_ist_eins { "" } else { format-number(a, notation: notation, digits: digits) }
-    
+
     // Prüfe ob b nahe bei 1 ist (dann wird "e^(...)" statt "1·e^(...)" angezeigt)
     let b_ist_eins = calc.abs(b - 1) < 0.01
     let b_str = if b_ist_eins { "" } else { format-number(b, notation: notation, digits: digits) }
-    
+
     if x_einheit != none and x_einheit != "" and y_einheit != none and y_einheit != "" {
       let a_einheit = if type(x_einheit) == content {
         $1 \/ #x_einheit$
@@ -340,7 +359,7 @@
         unit(per-mode: "fraction")[1/#x_einheit]
       }
       let b_einheit = format-unit(y_einheit)
-      
+
       // Baue Gleichung abhängig davon, ob a und b gleich 1 sind
       if b_ist_eins and a_ist_eins {
         $#y_name = #b_einheit dot e^(#a_einheit dot #x_name)$
@@ -364,16 +383,15 @@
       }
     }
   }
-  
-  let result = regression(x_param, y_param, algorithmus, format-func,
-    koeffizienten-namen: ("a", "b"), min-punkte: 2, notation: notation, precision: precision)
-  result.insert("function", (x) => result.b * calc.exp(result.a * x))
+
+  let result = regression(x_param, y_param, algorithmus, format-func, koeffizienten-namen: ("a", "b"), min-punkte: 2, notation: notation, precision: precision)
+  result.insert("function", x => result.b * calc.exp(result.a * x))
   result
 }
 
 #let potenz_regression(x_param, y_param, notation: "dec", precision: 1e-10) = {
   let algorithmus(paare) = {
-    for p in paare { 
+    for p in paare {
       assert(p.at(0) > 0, message: "x-Werte müssen positiv sein")
       assert(p.at(1) > 0, message: "y-Werte müssen positiv sein")
     }
@@ -381,7 +399,10 @@
     let (sx_log, sy_log, sx_log2, sxy_log) = (0, 0, 0, 0)
     for p in paare {
       let (x_log, y_log) = (calc.ln(p.at(0)), calc.ln(p.at(1)))
-      sx_log += x_log; sy_log += y_log; sx_log2 += x_log * x_log; sxy_log += x_log * y_log
+      sx_log += x_log
+      sy_log += y_log
+      sx_log2 += x_log * x_log
+      sxy_log += x_log * y_log
     }
     let den = n * sx_log2 - sx_log * sx_log
     assert(den != 0, message: "Keine eindeutige Lösung")
@@ -389,12 +410,12 @@
     let B = (sy_log * sx_log2 - sx_log * sxy_log) / den
     (calc.exp(B), m)
   }
-  
+
   let format-func(koeff, x_name: none, y_name: none, x_einheit: none, y_einheit: none, notation: "dec", precision: 1e-10, digits: 2) = {
     let (a, m) = (koeff.at(0), koeff.at(1))
     let a_ist_eins = calc.abs(a - 1) < 0.01
     let m_str = format-number(m, notation: notation, digits: digits)
-    
+
     if x_einheit != none and x_einheit != "" and y_einheit != none and y_einheit != "" {
       let a_einheit = if type(y_einheit) == content and type(x_einheit) == content {
         $frac(#y_einheit, #x_einheit^#m_str)$
@@ -405,7 +426,7 @@
       } else {
         $frac(upright(#y_einheit), upright(#x_einheit)^#m_str)$
       }
-      
+
       if a_ist_eins {
         $#y_name = #a_einheit dot #x_name^#m_str$
       } else {
@@ -421,10 +442,9 @@
       }
     }
   }
-  
-  let result = regression(x_param, y_param, algorithmus, format-func,
-    koeffizienten-namen: ("a", "m"), min-punkte: 2, notation: notation, precision: precision)
-  result.insert("function", (x) => if x <= 0 { none } else { result.a * calc.pow(x, result.m) })
+
+  let result = regression(x_param, y_param, algorithmus, format-func, koeffizienten-namen: ("a", "m"), min-punkte: 2, notation: notation, precision: precision)
+  result.insert("function", x => if x <= 0 { none } else { result.a * calc.pow(x, result.m) })
   result
 }
 
@@ -432,18 +452,18 @@
   let algorithmus(paare) = {
     let n_koeff = grad + 1
     assert(paare.len() >= n_koeff, message: "Benötige mindestens " + str(n_koeff) + " Datenpunkte")
-    
+
     let pow_safe(x, i) = if i == 0 { 1 } else { calc.pow(x, i) }
-    
+
     let x_pow_sums = (2 * grad + 1) * (0,)
     let b_vec = n_koeff * (0,)
-    
+
     for p in paare {
       let x = p.at(0)
       for i in range(x_pow_sums.len()) { x_pow_sums.at(i) += pow_safe(x, i) }
       for i in range(n_koeff) { b_vec.at(i) += p.at(1) * pow_safe(x, i) }
     }
-    
+
     let matrix = ()
     for i in range(n_koeff) {
       let row = (n_koeff + 1) * (0,)
@@ -451,17 +471,17 @@
       row.at(-1) = b_vec.at(i)
       matrix.push(row)
     }
-    
+
     for i in range(n_koeff) {
       let max_row = i
       for k in range(i + 1, n_koeff) {
         if calc.abs(matrix.at(k).at(i)) > calc.abs(matrix.at(max_row).at(i)) { max_row = k }
       }
       (matrix.at(i), matrix.at(max_row)) = (matrix.at(max_row), matrix.at(i))
-      
+
       let pivot = matrix.at(i).at(i)
       assert(pivot != 0, message: "Matrix singulär")
-      
+
       for j in range(i, n_koeff + 1) { matrix.at(i).at(j) /= pivot }
       for k in range(n_koeff) {
         if i != k {
@@ -470,16 +490,16 @@
         }
       }
     }
-    
+
     matrix.map(row => row.last())
   }
-  
+
   let format-func(koeff, x_name: none, y_name: none, x_einheit: none, y_einheit: none, notation: "dec", precision: 1e-10, digits: 2) = {
     if x_einheit != none and x_einheit != "" and y_einheit != none and y_einheit != "" {
       let terms = ()
       for i in range(koeff.len() - 1, -1, step: -1) {
         let einheit = if i == 0 { format-unit(y_einheit) } else { combine-units(y_einheit, x_einheit, x_potenz: i) }
-        terms.push(format-equation-term(koeff.at(i), einheit, x_name, i, terms.len() == 0, notation, precision))
+        terms.push(format-equation-term(koeff.at(i), einheit, x_name, i, terms.len() == 0, notation, precision, digits: digits))
       }
       build-equation(y_name, terms.filter(t => not t.skip))
     } else {
@@ -488,7 +508,7 @@
         if calc.abs(koeff.at(i)) >= precision {
           let abs_koeff = calc.abs(koeff.at(i))
           let koeff_ist_eins = calc.abs(abs_koeff - 1) < 0.01
-          
+
           let term = if i == 0 {
             // Konstanter Term: immer anzeigen
             let c_str = format-number(abs_koeff, notation: notation, digits: digits)
@@ -516,11 +536,10 @@
       if terms.len() == 0 { $y = 0$ } else { build-equation($y$, terms) }
     }
   }
-  
+
   let koeff_namen = range(grad + 1).map(i => "c" + str(i))
-  let result = regression(x_param, y_param, algorithmus, format-func,
-    koeffizienten-namen: koeff_namen, min-punkte: grad + 1, notation: notation, precision: precision)
-  result.insert("function", (x) => {
+  let result = regression(x_param, y_param, algorithmus, format-func, koeffizienten-namen: koeff_namen, min-punkte: grad + 1, notation: notation, precision: precision)
+  result.insert("function", x => {
     let y = 0
     for i in range(grad + 1) {
       y += result.at("c" + str(i)) * if i == 0 { 1 } else { calc.pow(x, i) }
