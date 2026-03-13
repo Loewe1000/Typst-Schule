@@ -2,7 +2,7 @@
 // Nutzt core.typ für schema-basiertes Rendering
 
 #import "../core.typ": block
-#import "../scratch.typ": eigener-block as eigener-block-alt, definiere as definiere-alt, parameter, list-monitor
+#import "../scratch.typ": eigener-block as eigener-block-alt, definiere as definiere-alt, parameter, list-monitor, variable-monitor
 
 // =====================
 // EREIGNISSE (Events)
@@ -805,8 +805,11 @@
   lang-code: "de",
 )
 
+// Visuelle Variablen-Darstellung (Monitor)
+#let variable(name: "Variable", wert: 0) = variable-monitor(name: name, value: wert)
+
 // Visuelle Listen-Darstellung (Monitor)
-#let liste(name: "Liste", items: (), width: 4cm) = list-monitor(name: name, items: items, width: width, length-label: "Länge")
+#let liste(name: "Liste", items: (), width: 4cm, height: auto) = list-monitor(name: name, items: items, width: width, height: height, length-label: "Länge")
 
 // =====================
 // EIGENE BLÖCKE (Custom Blocks)

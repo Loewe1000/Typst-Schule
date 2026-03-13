@@ -1377,11 +1377,46 @@
 }
 
 // ------------------------------------------------
+// Visuelle Variablen-Darstellung (Monitor wie in Scratch)
+// ------------------------------------------------
+// Kernfunktion (sprachneutral). Lokalisierte Aliase in lang/de.typ (#variable)
+// und lang/en.typ (#variable-display) rufen diese Funktion auf.
+#let variable-monitor(name: "Variable", value: 0) = context {
+  let options = scratch-block-options.get()
+  let colors = get-colors-from-options(options)
+  let stroke-thickness = get-stroke-from-options(options)
+
+  box(
+    fill: rgb("#E5F0FF"),
+    stroke: (paint: gray, thickness: 0.5pt),
+    radius: 5pt,
+    inset: (x: 5pt, y: 3pt),
+  )[
+    #set text(size: 9pt, font: "Helvetica Neue", weight: 500)
+    #grid(
+      columns: (auto, auto),
+      column-gutter: 4pt,
+      align: left + horizon,
+      // Variablenname
+      text(fill: rgb("#4C4C4C"), weight: 600, name),
+      // Wert in oranger Pill (wie Variablen-Reporter / Variablen-Farbe)
+      box(
+        fill: colors.variablen.primary,
+        stroke: colors.variablen.tertiary + stroke-thickness,
+        radius: 4pt,
+        inset: (x: 5pt, y: 2pt),
+        text(fill: colors.text-color, str(value)),
+      ),
+    )
+  ]
+}
+
+// ------------------------------------------------
 // Visuelle Listen-Darstellung (Monitor wie in Scratch)
 // ------------------------------------------------
 // Kernfunktion (sprachneutral). Lokalisierte Aliase in lang/de.typ (#liste)
 // und lang/en.typ (#list) rufen diese Funktion auf.
-#let list-monitor(name: "List", items: (), width: 4cm, length-label: "Length") = context {
+#let list-monitor(name: "List", items: (), width: 4cm, height: auto, length-label: "Length") = context {
   let options = scratch-block-options.get()
   let colors = get-colors-from-options(options)
   let stroke-thickness = get-stroke-from-options(options)
@@ -1407,7 +1442,7 @@
       ],
     )
     // Listenelemente
-    #box(inset: (x: 2mm))[
+    #box(height: height, clip: true, inset: (x: 2mm))[
       #grid(
         columns: (auto, 1fr),
         column-gutter: 8pt,
@@ -1425,7 +1460,7 @@
                 stroke: colors.listen.tertiary + stroke-thickness,
                 radius: 3pt,
                 inset: 3pt,
-                align(left, item),
+                align(left, text(fill: colors.text-color, item)),
               )),
             )
           })
