@@ -29,7 +29,7 @@
   layout(size => {
     let autoheight
     if items.len() != 0 and effective-rows == 1 {
-      autoheight = items.len() * 1.5cm - grid-size
+      autoheight = (items.len() * items-spacing) * grid-size
     } else {
       if height != none {
         autoheight = height
@@ -66,7 +66,7 @@
         if items.len() != 0 {
           for (key, item) in items.enumerate() {
             draw.content(
-              (0.75, autoheight + grid-size - (key + 1) * items-spacing * grid-size),
+              (0.75, autoheight - (key * items-spacing + 1) * grid-size),
               [#box(fill: white, inset: 4pt)[#item]],
               anchor: "west",
             )
@@ -75,7 +75,7 @@
         if content != [] {
           draw.content(
             (grid-size, autoheight),
-            [#box(inset: (y: 2/3 * grid-size), width: if effective-width != auto { effective-width * grid-size } else { calc.round((size.width / grid-size)) * grid-size - 2 * grid-size}, content)],
+            [#box(inset: (y: 2 / 3 * grid-size), width: if effective-width != auto { effective-width * grid-size } else { calc.round((size.width / grid-size)) * grid-size - 2 * grid-size }, content)],
             anchor: "north-west",
           )
         }
@@ -88,6 +88,8 @@
 #let liniert(
   rows: 1,
   width: auto,
+  items: (),
+  items-spacing: 1,
   line-height: 1cm,
   line-stroke: (paint: black.lighten(50%), thickness: 0.5pt),
   ..args,
@@ -105,6 +107,11 @@
     width
   }
 
+  // Wenn items übergeben werden, Zeilenanzahl aus items und spacing berechnen
+  if items.len() != 0 {
+    effective-rows = items.len() * items-spacing
+  }
+
   move(dy: line-height * 0.5)[
     #layout(size => {
       import "@preview/cetz:0.4.2": *
@@ -120,6 +127,17 @@
           } else {
             for row in range(effective-rows) {
               line((0, row), (size.width, row))
+            }
+          }
+
+          // Items auf den Linien platzieren
+          if items.len() != 0 {
+            for (key, item) in items.enumerate() {
+              content(
+                (0.1, (effective-rows - 1) - key * items-spacing),
+                [#item],
+                anchor: "south-west",
+              )
             }
           }
         },
