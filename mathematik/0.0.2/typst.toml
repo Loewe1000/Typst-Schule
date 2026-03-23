@@ -4,5 +4,6 @@ version = "0.0.2"
 entrypoint = "mathematik.typ"
 
 
-description = "Package for mathematik"
+description = "Ein Paket für mathematische Visualisierungen: Funktionsgraphen, Koordinatensysteme, Füllbereiche und Datensatz-Plots für den Mathematikunterricht."
 license = "MIT"
+repository = "https://github.com/Loewe1000/Typst-Schule"

@@ -5,10 +5,11 @@
 #import "@schule/energy-sketch:0.0.1": *
 #import "@schule/mathematik:0.0.1": *
 
-#import "@preview/cades:0.3.0": qr-code
-#import "@preview/cetz:0.1.2": *
+#import "@preview/cades:0.3.1": qr-code
+#import "@preview/cetz:0.4.2": *
+#import "@preview/cetz-plot:0.1.3": *
 #import "@preview/colorful-boxes:1.2.0": *
-#import "@preview/tablex:0.0.7": *
+#import "@preview/tablex:0.0.9": *
 #import "@preview/unify:0.4.3": *
 
 #let header(title: none, class: none, font-size: 16pt) = {

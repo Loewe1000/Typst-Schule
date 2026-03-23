@@ -5,7 +5,7 @@ entrypoint = "src/arbeitsblatt.typ"
 authors = ["Lukas Köhl", "Alexander Schulz"]
 description = "Ein umfassendes Typst-Paket zur Erstellung professioneller Arbeitsblätter für den Schulunterricht. Bietet vorgefertigte Funktionen und viele Einstellungsmöglichkeiten für Lehrer zur effizienten Gestaltung von Unterrichtsmaterialien."
 license = "MIT"
-repository = "https://material.mathemensch.de/files/typst/arbeitsblatt-manual.pdf"
+repository = "https://github.com/Loewe1000/Typst-Schule"
 exclude = ["docs"]
 keywords = [
     "ab",
