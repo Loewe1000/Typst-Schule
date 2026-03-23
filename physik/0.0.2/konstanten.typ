@@ -1,5 +1,20 @@
 #import "@preview/fancy-units:0.1.1": qty, unit
 
+/// Erstellt eine physikalische Konstante als Dictionary.
+///
+/// Das zurückgegebene Dictionary enthält:
+/// - `name`: Vollständiger Name der Konstante
+/// - `wert`: Zahlenwert als `float`
+/// - `symbol`: Formelzeichen als `content` (optional)
+/// - `einheit`: Einheit als `content` (via `fancy-units`)
+/// - `mit-einheit`: Wert mit Einheit als `content`
+///
+/// - name (string): Vollständiger Name (z. B. `"Lichtgeschwindigkeit"`)
+/// - wert (string): Zahlenwert als String (für Genauigkeit, z. B. `"2.99792458e8"`)
+/// - einheit (string, content): Physikalische Einheit (z. B. `[m/s]`)
+/// - symbol (content, none): Formelzeichen (z. B. `$c$`)
+/// - beschreibung (string, none): Optionale Beschreibung (wird nicht gespeichert)
+/// -> dictionary
 #let konstante(name, wert, einheit, symbol: none, beschreibung: none) = (
   name: name,
   wert: float(wert),
@@ -8,7 +23,28 @@
   mit-einheit: qty(per-mode: "fraction")[#wert][#einheit],
 )
 
-// Vordefinierte Konstanten
+/// Sammlung vordefinierter physikalischer Konstanten.
+///
+/// Zugriff über Schlüssel:
+/// ```typ
+/// pk.c          // Lichtgeschwindigkeit
+/// pk.h          // Planck-Konstante
+/// pk.e          // Elementarladung
+/// pk.g          // Erdbeschleunigung
+/// pk.G          // Gravitationskonstante
+/// pk.k_B        // Boltzmann-Konstante
+/// pk.N_A        // Avogadro-Konstante
+/// pk.R          // Allgemeine Gaskonstante
+/// pk.epsilon_0  // Elektrische Feldkonstante
+/// pk.mu_0       // Magnetische Feldkonstante
+/// pk.m.elektron // Elektronenmasse
+/// pk.m.proton   // Protonenmasse
+/// pk.m.neutron  // Neutronenmasse
+/// pk.m.u        // Atomare Masseneinheit
+/// pk.v.schall   // Schallgeschwindigkeit in Luft
+/// ```
+///
+/// Jede Konstante hat die Felder `wert`, `einheit`, `symbol` und `mit-einheit`.
 #let pk = (
   // Häufig verwendete Konstanten (direkt zugänglich)
   h: konstante("Planck-Konstante", "6.62607015e-34", [J s], symbol: $h$),

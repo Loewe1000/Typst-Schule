@@ -1,6 +1,17 @@
+/// Re-exportierte Symbole aus `@schule/blockst:0.0.1`:
+/// `blockst`, `blockst-run`, `scratch`, `set-blockst`, `set-scratch`,
+/// `set-blockst-run`, `executable`.
+// tidy-ignore
 #import "@schule/blockst:0.0.1": blockst, blockst-run, scratch, set-blockst, set-scratch, set-blockst-run, executable
 
-// Konvertiert eine Binärzahl (als String oder Zahl) zu Dezimal
+/// Konvertiert eine Binärzahl (als String oder Integer) in eine Dezimalzahl.
+///
+/// ```typ
+/// #str(bin2dec("1010")) // → 10
+/// ```
+///
+/// - zahl (string, integer): Die Binärzahl (z.B. `"1010"` oder `1010`).
+/// -> integer
 #let bin2dec(zahl) = {
   let binary = str(zahl)
   let ergebnis = 0
@@ -14,7 +25,14 @@
   ergebnis
 }
 
-// Konvertiert eine Dezimalzahl zu Binär
+/// Konvertiert eine Dezimalzahl in einen Binärstring.
+///
+/// ```typ
+/// #dec2bin(42) // → "101010"
+/// ```
+///
+/// - zahl (integer): Die Dezimalzahl (≥ 0).
+/// -> string
 #let dec2bin(zahl) = {
   let zahl = int(zahl)
   if zahl == 0 { return "0" }
@@ -28,13 +46,22 @@
   ergebnis
 }
 
-// Führt eine Häufigkeitsanalyse durch
-// Verwendung:
-//   let hf = häufigkeitsanalyse("Beispieltext")
-//   hf.absolut      // Dictionary mit absoluten Häufigkeiten
-//   hf.relativ      // Dictionary mit relativen Häufigkeiten (%)
-//   hf.diagramm     // Säulendiagramm (CeTZ)
-//   hf.data         // Array für CeTZ: (([Label], Wert), ...)
+/// Führt eine Häufigkeitsanalyse der Großbuchstaben (A–Z) im Text durch.
+///
+/// Gibt ein Dictionary zurück:
+/// - `absolut` -- Dictionary mit absoluten Häufigkeiten pro Buchstabe
+/// - `relativ` -- Dictionary mit relativen Häufigkeiten in Prozent
+/// - `diagramm` -- Säulendiagramm als Content (via CeTZ)
+/// - `data` -- Array für CeTZ: `(([Label], Wert), ...)`
+/// - `text` -- Der ursprüngliche Eingabetext
+///
+/// ```typ
+/// #let hf = häufigkeitsanalyse("Hallo Welt")
+/// #hf.diagramm
+/// ```
+///
+/// - text (string): Der zu analysierende Text.
+/// -> dictionary
 #let häufigkeitsanalyse(text) = {
   let alphabet = (:)
   for char in "ABCDEFGHIJKLMNOPQRSTUVWXYZ".codepoints() {
@@ -104,7 +131,12 @@
   )
 }
 
-// Legacy: Alte Funktionssignatur für Kompatibilität
+/// Legacy-Wrapper für `häufigkeitsanalyse` mit alter Signatur (Kompatibilität).
+///
+/// - text (string): Der zu analysierende Text.
+/// - rel (boolean): Gibt relative statt absolute Häufigkeiten zurück (nur bei `cetz: false`).
+/// - cetz (boolean): Gibt CeTZ-Daten-Array zurück wenn `true`, sonst das Häufigkeits-Dictionary.
+/// -> array, dictionary
 #let häufigkeitsanalyse-alt(text, rel: false, cetz: true) = {
   let hf = häufigkeitsanalyse(text)
   if not cetz {
@@ -114,17 +146,26 @@
   }
 }
 
-// Caesar-Chiffre - erstellt ein Objekt mit Methoden
-// Verwendung (advanced: false):
-//   let c = caesar(key: 3)
-//   c("Klartext")           => Kodiert
-//   c("Geheimtext", true)   => Dekodiert
-//   c()                     => Gibt die Tabelle aus
-// Verwendung (advanced: true):
-//   let c = caesar(key: 3, advanced: true)
-//   (c.encode)("KLARTEXT")
-//   (c.decode)("GEHEIMTEXT")
-//   c.table
+/// Erstellt eine Caesar-Chiffre-Funktion.
+///
+/// Im einfachen Modus (`advanced: false`) wird eine Funktion zurückgegeben,
+/// die `(text)` enkodiert, `(text, true)` dekodiert oder ohne Argumente die
+/// Schlüsseltabelle als Content zurückgibt.
+///
+/// Im erweiterten Modus (`advanced: true`) wird ein Dictionary zurückgegeben:
+/// `(encode: function, decode: function, table: content, key: any, keyword: any,
+/// alphabet: string, geheimtext-alphabet: string)`
+///
+/// ```typ
+/// #caesar(key: 3)("HALLO")        // → "KDOOR"
+/// #caesar(key: 3)("KDOOR", true)  // → "HALLO"
+/// #caesar(key: 3)()               // → Schlüsseltabelle
+/// ```
+///
+/// - key (integer, none): Verschiebung (0–25). Entweder `key` oder `keyword` muss gesetzt sein.
+/// - keyword (string, none): Schlüsselwort für alphabetbasierte Verschlüsselung.
+/// - advanced (boolean): Gibt erweiterten Dictionary-Modus zurück wenn `true`.
+/// -> function
 #let caesar(key: none, keyword: none, advanced: false) = {
   let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
   let geheimtext-alphabet = ""
@@ -266,19 +307,27 @@
   )
 }
 
-#set par(leading: 1.1em)
+/// Setzt Text in SF Mono (Monospace-Schrift).
+///
+/// - body (content): Der darzustellende Inhalt.
+/// -> content
 #let mono(body) = text(font: "SF Mono", body)
 
-// Vigenère-Chiffre
-// Verwendung (advanced: false):
-//   let v = vigenere("SCHLUESSEL")
-//   v("Klartext")           => Kodiert
-//   v("Geheimtext", true)   => Dekodiert
-// Verwendung (advanced: true):
-//   let v = vigenere("SCHLUESSEL", advanced: true)
-//   (v.encode)("KLARTEXT")
-//   (v.decode)("GEHEIMTEXT")
-//   v.keyword
+/// Erstellt eine Vigenère-Chiffre-Funktion.
+///
+/// Im einfachen Modus (`advanced: false`) wird eine Funktion zurückgegeben,
+/// die `(text)` enkodiert oder `(text, true)` dekodiert.
+///
+/// Im erweiterten Modus (`advanced: true`) wird ein Dictionary zurückgegeben:
+/// `(encode: function, decode: function, keyword: string)`
+///
+/// ```typ
+/// #vigenere("SCHLUESSEL")("HALLO") // → enkodierter Text
+/// ```
+///
+/// - keyword (string): Das Schlüsselwort (nur Buchstaben A–Z).
+/// - advanced (boolean): Gibt erweiterten Dictionary-Modus zurück wenn `true`.
+/// -> function
 #let vigenere(keyword, advanced: false) = {
   let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
   let clean-keyword = upper(keyword).codepoints().filter(c => c.match(regex("[A-Z]")) != none).join("")
@@ -357,10 +406,32 @@
   )
 }
 
-// ROT13 - Spezialfall von Caesar
+/// Vorkonfigurierter Caesar-Chiffre mit Verschiebung 13 (ROT13).
+///
+/// Da ROT13 selbst-invers ist, kann dieselbe Funktion zum En- und Dekodieren
+/// verwendet werden.
+///
+/// ```typ
+/// #rot13("Hallo") // → "Uryyb"
+/// #rot13("Uryyb") // → "Hallo"
+/// ```
+///
+/// -> function
 #let rot13 = caesar(key: 13)
 
-// Hilfsfunktion: Text in Blöcke aufteilen
+/// Teilt einen Text in Blöcke fester Größe auf (nur Buchstaben, leerzeichen-getrennt).
+///
+/// Nicht-alphabetische Zeichen werden ignoriert. Nützlich für
+/// Kryptographie-Aufgaben auf Arbeitsblättern.
+///
+/// ```typ
+/// #text-to-blocks("HALLO WELT")     // → "HALLO WELT"
+/// #text-to-blocks("HALLO", block-size: 3) // → "HAL LO"
+/// ```
+///
+/// - text (string): Der zu zerlegende Text.
+/// - block-size (integer): Anzahl der Zeichen pro Block (Standard: `5`).
+/// -> content
 #let text-to-blocks(text, block-size: 5) = {
   let clean = text.codepoints().filter(c => c.match(regex("[A-Za-z]")) != none).join("")
   let blocks = ()
@@ -381,14 +452,23 @@
   blocks.join(" ")
 }
 
-// Atbash-Chiffre (A↔Z, B↔Y, etc.)
-// Verwendung (advanced: false):
-//   let a = atbash()
-//   a("Klartext")           => Kodiert/Dekodiert (identisch)
-// Verwendung (advanced: true):
-//   let a = atbash(advanced: true)
-//   (a.encode)("KLARTEXT")
-//   (a.decode)("GEHEIMTEXT")
+/// Erstellt eine Atbash-Chiffre-Funktion (A↔Z, B↔Y, …).
+///
+/// Da Atbash symmetrisch ist, sind Enkodierung und Dekodierung identisch.
+///
+/// Im einfachen Modus (`advanced: false`) wird eine Funktion zurückgegeben,
+/// die `(text)` transformiert.
+///
+/// Im erweiterten Modus (`advanced: true`) wird ein Dictionary zurückgegeben:
+/// `(encode: function, decode: function)`
+///
+/// ```typ
+/// #atbash()("HALLO") // → "SVOOL"
+/// #atbash()("SVOOL") // → "HALLO"
+/// ```
+///
+/// - advanced (boolean): Gibt erweiterten Dictionary-Modus zurück wenn `true`.
+/// -> function
 #let atbash(advanced: false) = {
   let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
   let reversed = alphabet.codepoints().rev().join("")
@@ -430,7 +510,17 @@
   )
 }
 
-// Hexadezimal zu Dezimal
+/// Konvertiert einen Hexadezimalstring in eine Dezimalzahl.
+///
+/// Groß- und Kleinschreibung wird ignoriert.
+///
+/// ```typ
+/// #str(hex2dec("FF"))  // → "255"
+/// #str(hex2dec("ff"))  // → "255"
+/// ```
+///
+/// - hex (string): Der Hexadezimalstring (z.B. `"FF"` oder `"ff"`).
+/// -> integer
 #let hex2dec(hex) = {
   let hex-str = upper(str(hex))
   let result = 0
@@ -446,7 +536,15 @@
   result
 }
 
-// Dezimal zu Hexadezimal
+/// Konvertiert eine Dezimalzahl in einen Hexadezimalstring (Großbuchstaben).
+///
+/// ```typ
+/// #dec2hex(255) // → "FF"
+/// #dec2hex(42)  // → "2A"
+/// ```
+///
+/// - num (integer): Die Dezimalzahl (≥ 0).
+/// -> string
 #let dec2hex(num) = {
   let num = int(num)
   if num == 0 { return "0" }
@@ -462,13 +560,22 @@
   result
 }
 
-// ASCII-Tabelle generieren
-// Bereiche: Array von Tupeln (start, end) oder einzelnen Zeichen
-// Varianten: "char" (Zeichen), "dec" (Dezimal), "bin" (Binär), "hex" (Hexadezimal)
-// Beispiele:
-//   ascii-table(ranges: ((("a", "z"),)), variants: ("char", "dec"))
-//   ascii-table(ranges: ((("A", "Z"),)), variants: ("char", "dec", "bin"))
-//   ascii-table(ranges: ((("0", "9"),)), variants: ("char", "dec", "hex"))
+/// Rendert eine ASCII-Tabelle für die angegebenen Zeichenbereiche.
+///
+/// Jeder Bereich in `ranges` ist entweder ein einzelner String oder ein
+/// Tupel `(start, end)` aus zwei Zeichen.
+///
+/// ```typ
+/// #ascii-table()                         // a–z, Zeichen + Dezimal
+/// #ascii-table(ranges: (("A", "Z"),))    // A–Z
+/// #ascii-table(variants: ("char", "dec", "hex", "bin"))
+/// ```
+///
+/// - ranges (array): Zeichenbereiche als `(start, end)`-Tupel oder Strings (Standard: `(("a", "z"),)`).
+/// - height (integer): Anzahl der Zeilen pro Spaltenblock (Standard: `5`).
+/// - variants (array): Anzuzeigende Spalten: `"char"`, `"dec"`, `"bin"`, `"hex"` (Standard: `("char", "dec")`).
+/// - colored (boolean): Farbige Spalten-Hintergründe (Standard: `true`).
+/// -> content
 #let ascii-table(ranges: (("a", "z"),), height: 5, variants: ("char", "dec"), colored: true) = {
   // Sammle alle Zeichen aus den Bereichen
   let chars = ()

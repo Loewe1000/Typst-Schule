@@ -44,10 +44,34 @@
 
 #let qty_old = qty
 
+/// Erstellt einen QR-Code mit schulfreundlichen Standardwerten.
+///
+/// Dünne Wrapper-Funktion um `zebra`'s `qrcode`. Der Hintergrund ist
+/// standardmäßig transparent, damit sich der QR-Code in farbige Boxen
+/// einfügt. Wird intern u. a. von `qrbox()` und `arbeitsblatt()` verwendet.
+///
+/// - ..args (any): Positionargumente an `qrcode` weitergereicht (z. B. URL).
+/// - light-color (color): Hintergrundfarbe der hellen QR-Felder. Standard: vollständig transparent.
+/// - dark-color (color): Vordergrundfarbe der dunklen QR-Felder. Standard: `black`.
+/// - alt (string): Alternativtext für Barrierefreiheit.
+/// -> content
 #let qr-code(..args, light-color: white.transparentize(100%), dark-color: black, alt: "") = {
   qr-code-zebra(..args, fill: dark-color, background-fill: light-color)
 }
 
+/// Wrapper um `fancy-units`' `qty` mit deutschen Makros vorinstalliert.
+///
+/// Registriert `µ` (`u`) und `Ω` (`ohm`) als Makros und leitet dann an
+/// `fancy-units`' `qty` weiter. Unterstützt Kurzschreibweise mit zwei
+/// Positionsargumenten:
+///
+/// ```typ
+/// #qty[9.81][m/s^2]   // fancy-units-Syntax
+/// #qty("9.81", "m/s^2") // Kurzschreibweise
+/// ```
+///
+/// - ..args (any): Weitergegeben an `fancy-units.qty`.
+/// -> content
 #let qty(..args) = {
   add-macros(
     u: sym.mu,
@@ -67,6 +91,17 @@
 
 #let num_old = num
 
+/// Wrapper um `fancy-units`' `num` mit deutschen Makros vorinstalliert.
+///
+/// Wie `qty`, aber für reine Zahlen ohne Einheit. Unterstützt Kurzschreibweise:
+///
+/// ```typ
+/// #num[3.14]          // fancy-units-Syntax
+/// #num("3.14")        // Kurzschreibweise
+/// ```
+///
+/// - ..args (any): Weitergegeben an `fancy-units.num`.
+/// -> content
 #let num(..args) = {
   add-macros(
     u: sym.mu,
@@ -86,6 +121,17 @@
 
 #let unit_old = unit
 
+/// Wrapper um `fancy-units`' `unit` mit deutschen Makros vorinstalliert.
+///
+/// Wie `qty`, aber für reine Einheiten ohne Zahlenwert. Unterstützt Kurzschreibweise:
+///
+/// ```typ
+/// #unit[N/m^2]        // fancy-units-Syntax
+/// #unit("N/m^2")      // Kurzschreibweise
+/// ```
+///
+/// - ..args (any): Weitergegeben an `fancy-units.unit`.
+/// -> content
 #let unit(..args) = {
   add-macros(
     u: sym.mu,
@@ -105,29 +151,50 @@
 
 #let print-state = state("print", false)
 
-/// Creates a new arbeitsblatt
+/// Erstellt ein Arbeitsblatt – die zentrale Show-Rule des Pakets.
 ///
-/// - title (string): Title of the document.
-/// - class (string): Desired class ex. IF-11.
-/// - paper (string): Page size.
-/// - print (boolean): Difffernt margins for printing.
-/// - equal-margins (boolean): A document for used in printing but not intended for attaching in a physical folder
-/// - font-size (length): Document font size.
-/// - title-font-size (length): title font size.
-/// - landscape (boolean): Page orientation.
-/// - custom-header (module): Set a custom header
-/// - header-ascent (percentage): Raise or lower the header
-/// - teilaufgabe-numbering (string): Numbering of sub-tasks, either "a)" or "1."
-/// - workspaces (boolean): Whether to include workspaces for tasks.
-/// - font (string): Main document font.
-/// - math-font (string): Math font.
-/// - figure-font-size (length): Font size for figure captions.
-/// - materialien (string): To show materials, use "seiten", "folgend", "sofort"
-/// - punkte (string): To show points, use "keine", "aufgaben", "teilaufgaben", "alle"
-/// - aufgaben-shortcode (string): To show tasks and sub-tasks as shortcodes, use "false", "aufgaben", "teilaufgaben", "alle"
-/// - page-settings (dicitonary): Optional arguments passed to page
-/// - loesungen (string): To show solutions, use "seite", "folgend", "sofort"
-/// - ..args (any): Optional arguments.
+/// Wird via `#show: arbeitsblatt.with(...)` angewendet und richtet Schrift,
+/// Seitenformat, Kopfzeile, Aufgaben-Shortcodes, Lösungs- und Materialmodus
+/// sowie die Bewertungsfunktionen ein.
+///
+/// ```typ
+/// #import "@schule/arbeitsblatt:0.2.4": *
+///
+/// #show: arbeitsblatt.with(
+///   title: "Quadratische Funktionen",
+///   class: "9a",
+///   print: true,
+///   punkte: "alle",
+///   loesungen: "seiten",
+/// )
+///
+/// = Grundlagen
+/// + Bestimme die Nullstellen von $f(x) = x^2 - 4x + 3$.
+///   #loesung[$x_1 = 1$, $x_2 = 3$]
+/// ```
+///
+/// - title (string): Titel des Dokuments, erscheint in der Kopfzeile.
+/// - class (string): Klassenbezeichnung (z. B. `"9a"` oder `"IF-11"`), rechts in der Kopfzeile.
+/// - paper (string): Papierformat (z. B. `"a4"`, `"a5"`). Standard: `"a4"`.
+/// - print (boolean): Druckmodus – aktiviert DIN-A4-Begrenzung und breitere Heftungsränder.
+/// - duplex (boolean): Abwechselnde Seitenränder für beidseitigen Druck (wirkt nur mit `print: true`).
+/// - workspaces (boolean): Ob Arbeitsbereiche (`workspace()`) angezeigt werden. Standard: `true`.
+/// - font-size (length): Grundschriftgröße. Standard: `12pt`.
+/// - font (string): Primäre Textschrift. Standard: `"Myriad Pro"`.
+/// - math-font (string): Schriftart für Formeln. Standard: `"Fira Math"`.
+/// - title-font-size (length): Schriftgröße des Titels in der Kopfzeile. Standard: `16pt`.
+/// - figure-font-size (length): Schriftgröße für Abbildungsbeschriftungen. Standard: `9pt`.
+/// - landscape (boolean): Querformat. Standard: `false`.
+/// - custom-header (content, none): Eigene Kopfzeile; ersetzt den Standardkopf vollständig.
+/// - teilaufgabe-numbering (string): Nummerierungsschema: `"a)"` (a, b, c…) oder `"1."` (1.1, 1.2…).
+/// - page-settings (dictionary): Zusätzliche Argumente an `page` (z. B. `margin`, `columns`).
+/// - loesungen (string): Lösungsmodus: `"keine"` | `"sofort"` | `"folgend"` | `"seite"` | `"seiten"`.
+/// - materialien (string): Materialmodus: `"sofort"` | `"seiten"` | `"reinquetschen"`.
+/// - punkte (string): Punkteanzeige: `"keine"` | `"aufgaben"` | `"teilaufgaben"` | `"alle"`.
+/// - aufgaben-shortcodes (string): Automatische Umwandlung: `"keine"` | `"aufgaben"` | `"teilaufgaben"` | `"alle"`.
+/// - copyright (string, none): URL für Copyright-QR-Code in der Kopfzeile. Standard: `none`.
+/// - ..args (any): Weitere benannte Argumente (z. B. `header-ascent`).
+/// -> function
 #let arbeitsblatt(
   title: "",
   class: "",
@@ -389,6 +456,19 @@
   }
 }
 
+/// Erzeugt eine Lücke für Lückentexte.
+///
+/// Zeigt `body` unsichtbar an und unterstreicht ihn, sodass eine ausgefüllte
+/// Leerstelle entsteht. Ideal für Einsetzübungen.
+///
+/// ```typ
+/// Die Hauptstadt ist #lücke[Berlin].
+/// Der Wert ist #lücke(tight: true)[42].
+/// ```
+///
+/// - body (content): Text, der die Lücke ausfüllt (bestimmt die Breite).
+/// - tight (boolean): Kompaktmodus ohne seitlichen Einzug. Standard: `false`.
+/// -> content
 #let lücke(body, tight: false) = {
   box(
     move(
@@ -406,9 +486,23 @@
   )
 }
 
-// In CeTZ-Diagrammen keine gestrichelten Linien mehr haben
-// + Position der Achsenbeschriftungen innen statt außen
-
+/// Wrapper um CeTZ's `canvas` mit druckfreundlichen Achsenstilen.
+///
+/// Setzt schulfreundliche Standardstile: Achsenmarkierungen zeigen nach innen,
+/// Gitternetzlinien sind solid (nicht gestrichelt), Achsenpfeile sind gerade.
+/// Alle CeTZ-`canvas`-Parameter werden durchgereicht.
+///
+/// ```typ
+/// #canvas({
+///   import draw: *
+///   line((0, 0), (6, 1))
+///   circle((2, 2), radius: 1)
+/// })
+/// ```
+///
+/// - ..args (any): Optionale benannte Argumente an `cetz.canvas`.
+/// - body (content): CeTZ-Zeichenbefehle (wird in `draw:`-Scope ausgeführt).
+/// -> content
 #let c_canvas = canvas
 #let canvas(..args, body) = {
   c_canvas(
@@ -437,6 +531,15 @@
   )
 }
 
+/// Fügt einen Seitenumbruch ein, der nur im Druckmodus wirkt.
+///
+/// Nützlich, um Seitenumbrüche gezielt nur für die gedruckte Version
+/// einzufügen, ohne die Web-/Bildschirmansicht zu beeinflussen.
+///
+/// ```typ
+/// #print-pagebreak()
+/// ```
+/// -> content
 #let print-pagebreak() = {
   context {
     let print = print-state.get()
@@ -446,6 +549,15 @@
   }
 }
 
+/// Fügt einen Seitenumbruch ein, der nur außerhalb des Druckmodus wirkt.
+///
+/// Nützlich, um Inhalte in der Web-/Bildschirmansicht zu trennen, ohne
+/// den Druck-Seitenfluss zu stören.
+///
+/// ```typ
+/// #non-print-pagebreak()
+/// ```
+/// -> content
 #let non-print-pagebreak() = {
   context {
     let print = print-state.get()
@@ -455,11 +567,28 @@
   }
 }
 
-/// Splits text into multiple columns
+/// Mehrspalten-Layout-Helfer (Minipage).
 ///
-/// - columns (array): Definitions of columns.
-/// - align (???): Alignment inside the column.
-/// - ..args (any): Optional arguments.
+/// Verteilt beliebig viele Inhaltsblöcke horizontal in Spalten. Spaltenbreiten
+/// können explizit angegeben oder automatisch (gleichmäßig) berechnet werden.
+///
+/// ```typ
+/// // Explizite Spaltenbreiten:
+/// #minipage(columns: (1fr, 2fr), spacing: 1cm)[
+///   Linke Spalte
+/// ][
+///   Rechte Spalte (doppelt so breit)
+/// ]
+///
+/// // Automatische Gleichverteilung:
+/// #minipage[Spalte 1][Spalte 2][Spalte 3]
+/// ```
+///
+/// - columns (array, auto): Spaltenbreiten-Array (z. B. `(1fr, 2fr)`). `auto` → gleichmäßig.
+/// - align (alignment): Vertikale Ausrichtung innerhalb der Spalten. Standard: `horizon`.
+/// - spacing (length): Abstand zwischen den Spalten. Standard: `5mm`.
+/// - ..args (any): Positionsargumente = Inhaltsblöcke; benannte Argumente an `table` weitergereicht.
+/// -> content
 #let minipage(columns: auto, align: horizon, spacing: 5mm, ..args) = {
   // Sammle alle Body-Argumente
   let bodies = args.pos()
@@ -483,11 +612,41 @@
   )
 }
 
+/// Erstellt einen anklickbaren Icon+Text-Hyperlink.
+///
+/// Kombiniert ein Icon (Emoji oder beliebigen Content) mit einem farbigen
+/// Linknamen zu einem klickbaren Element.
+///
+/// ```typ
+/// #icon-link("https://example.com", "Zur Website")
+/// #icon-link("https://example.com", "GitHub", icon: "🐙", color: black)
+/// ```
+///
+/// - url (string): Ziel-URL des Links.
+/// - name (string): Angezeigter Linktext.
+/// - icon (content): Icon vor dem Linktext. Standard: `emoji.chain` (🔗).
+/// - color (color): Textfarbe des Linknamens. Standard: `blue`.
+/// -> content
 #let icon-link(url, name, icon: emoji.chain, color: blue) = {
   //fa-external-link(fill: blue)
   link(url)[#icon #text(fill: color, [#name])]
 }
 
+/// Erstellt eine QR-Code-Box mit Linktext.
+///
+/// Kombiniert einen QR-Code mit einem klickbaren `icon-link` in einer
+/// `stickybox`. Die Schriftgröße des Links wird automatisch an die Boxbreite
+/// angepasst.
+///
+/// ```typ
+/// #qrbox("https://example.com", "Zur Website", width: 3cm)
+/// ```
+///
+/// - url (string): URL für QR-Code und Hyperlink.
+/// - name (string): Angezeigter Linktext unter dem QR-Code.
+/// - width (length): Gesamtbreite der Box. Standard: `3cm`.
+/// - ..args (any): Weitere benannte Argumente an `stickybox` weitergereicht.
+/// -> content
 #let qrbox(url, name, width: 3cm, ..args) = {
   stickybox(width: width, ..args)[
     #set align(center)
@@ -524,8 +683,34 @@
   ]
 }
 
+/// Setzt Text in Monospace-Schrift (SF Mono).
+///
+/// Nützlich für Code-Snippets, Dateinamen oder andere technische Inhalte
+/// im Fließtext.
+///
+/// ```typ
+/// Öffne die Datei #mono[ab.typ] im Editor.
+/// ```
+///
+/// - body (content): Inhalt, der in Monospace gesetzt wird.
+/// -> content
 #let mono(body) = text(font: "SF Mono", body)
 
+/// Zeigt einen Arbeitsbereich für Schülerantworten (nur wenn `workspaces: true`).
+///
+/// Der Inhalt wird nur gerendert, wenn in `arbeitsblatt()` der Parameter
+/// `workspaces: true` gesetzt ist. Damit kann derselbe Quelltext mit und
+/// ohne Arbeitsbereiche kompiliert werden.
+///
+/// ```typ
+/// #workspace(height: 5cm)[
+///   #kariert(2)  // 2 mm-Karos als Zeichenfläche
+/// ]
+/// ```
+///
+/// - height (length): Standardhöhe des Arbeitsbereichs (wird an `body` übergeben). Standard: `5cm`.
+/// - body (content): Inhalt des Arbeitsbereichs (z. B. kariertes Papier).
+/// -> content
 #let workspace(height: 5cm, body) = {
   context {
     let options = _state_options.get()
