@@ -1,0 +1,11 @@
+[package]
+name = "schuldocs"
+version = "0.1.0"
+entrypoint = "lib.typ"
+authors = ["Lukas Köhl", "Alexander Schulz"]
+description = "Eine Dokumentations-Brücke für das Schule-Paket-Ökosystem: Kombiniert tidy (API-Extraktion), mantys (PDF-Manual) und manifesto (Web-Dokumentation) in einem universellen Single-Source-of-Truth-System."
+license = "MIT"
+repository = "https://github.com/Loewe1000/Typst-Schule"
+keywords = ["docs", "documentation", "manual", "tidy", "mantys", "manifesto"]
+categories = ["utility"]
+disciplines = ["education"]
