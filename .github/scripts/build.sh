@@ -2,8 +2,8 @@
 # =============================================================================
 # build.sh — Baut alle Typst-Paket-Dokumentationen und generiert Pagefind-Index
 # =============================================================================
-# Verwendung:
-#   chmod +x build.sh && ./build.sh
+# Verwendung (aus dem Repo-Root):
+#   bash .github/scripts/build.sh
 #
 # Anforderungen:
 #   - typst >= 0.14.0 (mit HTML-Export-Unterstützung)
@@ -13,8 +13,9 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SITE_DIR="$SCRIPT_DIR/docs-site"
-PACKAGES_DIR="$SCRIPT_DIR"
+# Repo-Root ist zwei Ebenen über .github/scripts/
+PACKAGES_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+SITE_DIR="$PACKAGES_DIR/.docs-site"
 
 echo "=== Schule-Typst Dokumentations-Build ==="
 echo "Pakete-Verzeichnis: $PACKAGES_DIR"
@@ -55,7 +56,7 @@ for pkg_path in "${PACKAGES[@]}"; do
     typst compile \
       --format html \
       --features html \
-      --root . \
+      --root "$PACKAGES_DIR" \
       docs/web.typ \
       docs/web.html \
       2>&1 | grep -v "^warning: html export" | grep -v "= hint:" || true

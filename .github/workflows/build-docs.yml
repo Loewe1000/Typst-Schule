@@ -1,0 +1,52 @@
+name: Build & Deploy Dokumentation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Typst HTML-Docs bauen
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Typst installieren
+        uses: typst-community/setup-typst@v4
+        with:
+          typst-version: latest
+
+      - name: Node.js installieren (für Pagefind)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Dokumentation bauen
+        run: bash .github/scripts/build.sh
+
+      - name: Build-Artefakt hochladen
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-site
+          path: .docs-site/
+          if-no-files-found: error
+
+      - name: Auf Netlify deployen
+        # Nur bei Push auf main (nicht bei PRs)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: nwtgck/actions-netlify@v3
+        with:
+          publish-dir: ".docs-site"
+          production-deploy: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: "Deploy von Commit ${{ github.sha }}"
+          enable-pull-request-comment: false
+          enable-commit-comment: false
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}

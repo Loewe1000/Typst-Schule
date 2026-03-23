@@ -3,3 +3,7 @@
 .DS_Store
 cheatsheets/.vscode/settings.json
 summify/.vscode/settings.json
+# Lokaler Docs-Build-Output (wird in CI nach .docs-site/ gebaut)
+.docs-site/
+# Generierte web.html Dateien (Build-Artefakt, nicht einchecken)
+**/docs/web.html
