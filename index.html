@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Schule – Typst-Pakete</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .card:hover { transform: translateY(-2px); }
+    .card { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+  </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-white border-b border-slate-200">
+    <div class="max-w-5xl mx-auto px-6 py-8">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl">📚</span>
+        <h1 class="text-3xl font-bold text-slate-900">Schule</h1>
+        <span class="text-sm font-medium bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">Typst-Pakete</span>
+      </div>
+      <p class="text-slate-600 text-lg mt-1">
+        Eine Sammlung von Typst-Paketen für den Schulunterricht – Arbeitsblätter, Klassenarbeiten, Physik, Mathematik und Informatik.
+      </p>
+      <div class="mt-4 flex flex-wrap gap-3">
+        <a href="https://github.com/Loewe1000/Typst-Schule" target="_blank"
+           class="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 transition-colors">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
+          GitHub
+        </a>
+        <a href="https://typst.app/universe" target="_blank"
+           class="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 transition-colors">
+          🌐 Typst Universe
+        </a>
+      </div>
+
+      <!-- Suchfeld (Pagefind) -->
+      <div id="search" class="mt-5"></div>
+    </div>
+  </header>
+
+  <!-- Pakete -->
+  <main class="max-w-5xl mx-auto px-6 py-10">
+    <h2 class="text-lg font-semibold text-slate-700 mb-6">Alle Pakete</h2>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+
+      <!-- aufgaben -->
+      <a href="aufgaben/" class="card bg-white rounded-xl border border-slate-200 shadow-sm p-5 hover:shadow-md no-underline">
+        <div class="flex items-start gap-3">
+          <span class="text-2xl">📝</span>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="font-semibold text-slate-900">aufgaben</h3>
+              <span class="text-xs text-slate-500 font-mono">0.1.2</span>
+            </div>
+            <p class="text-sm text-slate-600 mt-1">
+              Grundlegende Aufgabenverwaltung: Nummerierung, Teilaufgaben, Lösungen, Materialien und Bewertung.
+            </p>
+            <div class="mt-3 flex flex-wrap gap-1">
+              <span class="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded">Aufgaben</span>
+              <span class="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded">Lösungen</span>
+              <span class="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded">Bewertung</span>
+            </div>
+          </div>
+        </div>
+      </a>
+
+      <!-- arbeitsblatt -->
+      <a href="arbeitsblatt/" class="card bg-white rounded-xl border border-slate-200 shadow-sm p-5 hover:shadow-md no-underline">
+        <div class="flex items-start gap-3">
+          <span class="text-2xl">📄</span>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="font-semibold text-slate-900">arbeitsblatt</h3>
+              <span class="text-xs text-slate-500 font-mono">0.2.4</span>
+            </div>
+            <p class="text-sm text-slate-600 mt-1">
+              Vollständiges Arbeitsblatt-Template mit Shortcodes, Minipage, QR-Codes und Druck-Optimierung.
+            </p>
+            <div class="mt-3 flex flex-wrap gap-1">
+              <span class="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded">Template</span>
+              <span class="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded">Druck</span>
+              <span class="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded">Layout</span>
+            </div>
+          </div>
+        </div>
+      </a>
+
+      <!-- klassenarbeit -->
+      <a href="klassenarbeit/" class="card bg-white rounded-xl border border-slate-200 shadow-sm p-5 hover:shadow-md no-underline">
+        <div class="flex items-start gap-3">
+          <span class="text-2xl">📋</span>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="font-semibold text-slate-900">klassenarbeit</h3>
+              <span class="text-xs text-slate-500 font-mono">0.1.2</span>
+            </div>
+            <p class="text-sm text-slate-600 mt-1">
+              Klassenarbeiten und Klausuren mit Erwartungshorizont, Info-Tabelle und Schülerschreibbögen.
+            </p>
+            <div class="mt-3 flex flex-wrap gap-1">
+              <span class="text-xs bg-amber-50 text-amber-700 px-2 py-0.5 rounded">Prüfungen</span>
+              <span class="text-xs bg-amber-50 text-amber-700 px-2 py-0.5 rounded">Klausurbögen</span>
+            </div>
+          </div>
+        </div>
+      </a>
+
+      <!-- mathematik -->
+      <a href="mathematik/" class="card bg-white rounded-xl border border-slate-200 shadow-sm p-5 hover:shadow-md no-underline">
+        <div class="flex items-start gap-3">
+          <span class="text-2xl">📐</span>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="font-semibold text-slate-900">mathematik</h3>
+              <span class="text-xs text-slate-500 font-mono">0.0.2</span>
+            </div>
+            <p class="text-sm text-slate-600 mt-1">
+              Koordinatensysteme, Funktionsgraphen, Füllbereiche, Datensatz-Plots und Teilaufgaben-Raster.
+            </p>
+            <div class="mt-3 flex flex-wrap gap-1">
+              <span class="text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded">Graphen</span>
+              <span class="text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded">CeTZ</span>
+              <span class="text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded">Koordinaten</span>
+            </div>
+          </div>
+        </div>
+      </a>
+
+      <!-- physik -->
+      <a href="physik/" class="card bg-white rounded-xl border border-slate-200 shadow-sm p-5 hover:shadow-md no-underline">
+        <div class="flex items-start gap-3">
+          <span class="text-2xl">⚡</span>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="font-semibold text-slate-900">physik</h3>
+              <span class="text-xs text-slate-500 font-mono">0.0.2</span>
+            </div>
+            <p class="text-sm text-slate-600 mt-1">
+              Messwerttabellen, Regressionen, Schaltkreise und physikalische Konstanten für den Physikunterricht.
+            </p>
+            <div class="mt-3 flex flex-wrap gap-1">
+              <span class="text-xs bg-red-50 text-red-700 px-2 py-0.5 rounded">Messung</span>
+              <span class="text-xs bg-red-50 text-red-700 px-2 py-0.5 rounded">Regression</span>
+              <span class="text-xs bg-red-50 text-red-700 px-2 py-0.5 rounded">Schaltkreis</span>
+            </div>
+          </div>
+        </div>
+      </a>
+
+      <!-- informatik -->
+      <a href="informatik/" class="card bg-white rounded-xl border border-slate-200 shadow-sm p-5 hover:shadow-md no-underline">
+        <div class="flex items-start gap-3">
+          <span class="text-2xl">💻</span>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="font-semibold text-slate-900">informatik</h3>
+              <span class="text-xs text-slate-500 font-mono">0.0.2</span>
+            </div>
+            <p class="text-sm text-slate-600 mt-1">
+              Kryptographie, Zahlensysteme, Häufigkeitsanalysen und Scratch-Blockdiagramme.
+            </p>
+            <div class="mt-3 flex flex-wrap gap-1">
+              <span class="text-xs bg-cyan-50 text-cyan-700 px-2 py-0.5 rounded">Krypto</span>
+              <span class="text-xs bg-cyan-50 text-cyan-700 px-2 py-0.5 rounded">Scratch</span>
+              <span class="text-xs bg-cyan-50 text-cyan-700 px-2 py-0.5 rounded">Binär</span>
+            </div>
+          </div>
+        </div>
+      </a>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-14 pt-8 border-t border-slate-200 text-center text-sm text-slate-400">
+      <p>
+        Erstellt mit <a href="https://typst.app" target="_blank" class="hover:text-slate-600">Typst</a>
+        und <a href="https://github.com/typst/packages" target="_blank" class="hover:text-slate-600">Typst Universe</a>
+        · <a href="https://github.com/Loewe1000/Typst-Schule" target="_blank" class="hover:text-slate-600">GitHub</a>
+      </p>
+    </footer>
+  </main>
+
+  <!-- Pagefind -->
+  <link href="pagefind/pagefind-ui.css" rel="stylesheet" />
+  <script src="pagefind/pagefind-ui.js"></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const searchEl = document.getElementById('search');
+      if (window.PagefindUI) {
+        new PagefindUI({
+          element: '#search',
+          showSubResults: true,
+          placeholder: 'Dokumentation durchsuchen…',
+        });
+      }
+    });
+  </script>
+</body>
+</html>

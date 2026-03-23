@@ -1,0 +1,11 @@
+[build]
+  command = "bash build.sh"
+  publish = "docs-site"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[[redirects]]
+  from = "/"
+  to = "/index.html"
+  status = 200
