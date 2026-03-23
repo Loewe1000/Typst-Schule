@@ -53,6 +53,18 @@
 #let _counter_aufgaben = counter("aufgaben")
 
 // Options management
+/// Aktualisiert die globalen Optionen des Pakets.
+///
+/// Einzelne oder mehrere Optionen können als Dictionary übergeben werden.
+/// Bereits gesetzte Optionen bleiben erhalten.
+///
+/// ```typ
+/// #set-options((loesungen: "sofort"))
+/// #set-options((punkte: "alle", workspaces: false))
+/// ```
+///
+/// - options (dictionary): Dictionary mit zu ändernden Optionspaaren
+/// -> none
 #let set-options(options) = {
   _state_options.update(curr => {
     curr + options
@@ -120,6 +132,14 @@
   }
 }
 
+/// Gibt Lösungen aus, die zuvor mit `loesung()` registriert wurden.
+///
+/// Wird automatisch aufgerufen, wenn `loesungen` auf `"folgend"`, `"seite"` oder
+/// `"seiten"` gesetzt ist. Kann auch manuell aufgerufen werden.
+///
+/// - curr (boolean): Wenn `true`, wird nur die Lösung der zuletzt erstellten Aufgabe angezeigt. Default: `false`
+/// - teil (boolean): Wenn eine Zahl, werden nur Lösungen der angegebenen Teilaufgabe angezeigt. Default: `false`
+/// -> content
 #let show-loesungen(curr: false, teil: false) = {
   context {
     let all = _state_aufgaben.get()
@@ -143,6 +163,19 @@
 }
 
 // Helper functions
+/// Gibt die Gesamtpunktzahl einer Aufgabe oder Teilaufgabe zurück.
+///
+/// Muss in einem `context`-Block aufgerufen werden, da es auf den finalen
+/// Dokumentzustand zugreift.
+///
+/// ```typ
+/// #context [Aufgabe 1 hat #get-points(1) Punkte.]
+/// #context [Teilaufgabe 2a hat #get-points(2, teil: 1) Punkte.]
+/// ```
+///
+/// - aufg (integer): Aufgabennummer (1-basiert)
+/// - teil (integer): Teilaufgabennummer (1-basiert); `none` für Gesamtpunkte der Aufgabe. Default: `none`
+/// -> integer
 #let get-points(aufg, teil: none) = {
   let all = _state_aufgaben.final()
   if aufg == none or aufg > all.len() { return 0 }
@@ -158,6 +191,15 @@
   return erw.fold(0, (sum, e) => sum + e.punkte)
 }
 
+/// Zeigt den Erwartungshorizont als formatierte Tabelle an.
+///
+/// Listet alle Erwartungen mit Teilaufgabenzuordnung und Punktzahlen auf.
+/// Am Ende wird eine Zeile mit der Gesamtpunktzahl angezeigt.
+///
+/// - grouped (boolean): Wenn `true`, werden alle Erwartungen einer Teilaufgabe in einer Zeile zusammengefasst. Default: `false`
+/// - new-page (boolean): Wenn `true`, wird der Erwartungshorizont auf einer neuen Seite gestartet. Default: `false`
+/// - erreicht (boolean): Wenn `true`, wird `__ / X` statt `X` angezeigt (für eintragbare Punktzahlen). Default: `false`
+/// -> content
 #let show-erwartungen(grouped: false, new-page: false, erreicht: false) = {
   context {
     let all = _state_aufgaben.final()
@@ -304,6 +346,15 @@
   }
 }
 
+/// Zeigt eine Bewertungstabelle mit Aufgaben- und Teilaufgabenspalten an.
+///
+/// Das erste Positionsargument steuert die Anzeige der möglichen Punkte:
+/// `true` = mit möglichen Punkten (Standard), `false` = leere Felder, `none` = nur erreichte-Punkte-Zeile.
+///
+/// - ..args (any): Optionales erstes Positionsargument: `true`, `false` oder `none` für Punkte-Anzeige
+/// - compact (boolean): Kompaktere Darstellung mit kleinerem Text und schmaleren Zeilen. Default: `false`
+/// - full (boolean): Zeigt zusätzliche Gesamtspalte pro Aufgabe bei Aufgaben mit Teilaufgaben. Default: `false`
+/// -> content
 #let show-bewertung(..args, compact: false, full: false) = {
   let pos-args = args.pos()
   let punkte = true
@@ -489,6 +540,13 @@
   }
 }
 
+/// Gibt Materialien aus, die zuvor mit `material()` registriert wurden.
+///
+/// Wird automatisch aufgerufen, wenn `materialien` auf `"sofort"` oder `"seiten"` gesetzt ist.
+/// Kann auch manuell aufgerufen werden.
+///
+/// - curr (boolean): Wenn `true`, wird nur das Material der zuletzt erstellten Aufgabe angezeigt. Default: `false`
+/// -> content
 #let show-materialien(curr: false) = {
   context {
     let all = _state_aufgaben.get()
@@ -508,6 +566,15 @@
   }
 }
 
+/// Registriert ein Material und ordnet es der aktuellen Aufgabe zu.
+///
+/// Materialien werden automatisch mit M{Nr}-{Buchstabe} beschriftet (z. B. M1-A).
+/// Der Anzeigemodus wird über `set-options((materialien: ...))` gesteuert.
+///
+/// - body (content): Inhalt des Materials
+/// - caption (content): Beschriftung des Materials. Default: `none`
+/// - label (label): Label zur Referenzierung mit `@`. Default: `none`
+/// -> none
 #let material(body, caption: none, label: none) = {
   let mat = [#figure(
       align(left, body),
@@ -534,6 +601,26 @@
 }
 
 // Main components
+/// Erstellt eine nummerierte Aufgabe.
+///
+/// Die Aufgabe erhält automatisch eine fortlaufende Nummer. Als Positionsargumente
+/// werden entweder nur der Rumpf (`body`) oder erst Titel dann Rumpf erwartet.
+///
+/// ```typ
+/// #aufgabe[Berechne die Summe von 15 und 27.]
+/// #aufgabe[Mein Titel][Aufgabentext hier]
+/// #aufgabe(title: "Addition")[Berechne ...]
+/// ```
+///
+/// - title (content): Titel der Aufgabe. Default: `none`
+/// - method (string): Sozialform: `"EA"` (Einzelarbeit), `"PA"` (Partnerarbeit), `"GA"` (Gruppenarbeit). Default: `""`
+/// - icons (array): Array mit zusätzlichen Icons (z. B. `(emoji.lightbulb,)`). Default: `()`
+/// - large (boolean): Größere Überschrift (1.4em statt 1.2em). Default: `true`
+/// - number (boolean): Aufgabennummer anzeigen. Default: `true`
+/// - workspace (content): Optionaler Arbeitsbereich für Schülerantworten (z. B. `v(3cm)`). Default: `none`
+/// - label (label): Label zur Referenzierung mit `@`. Default: `none`
+/// - ..args (content): Pflicht-Positionsargumente: entweder `body` oder `title, body`
+/// -> content
 #let aufgabe(
   title: none,
   method: "",
@@ -674,6 +761,16 @@
   v(1cm, weak: true)
 }
 
+/// Erstellt eine Teilaufgabe innerhalb einer `aufgabe()`.
+///
+/// Teilaufgaben werden automatisch nach dem in `set-options((teilaufgabe-numbering: ...))` 
+/// konfigurierten Schema nummeriert (Standard: `"a)"`).
+///
+/// - item-label (content): Benutzerdefinierte Beschriftung statt automatischer Nummerierung. Default: `none`
+/// - label (label): Label zur Referenzierung mit `@`. Default: `none`
+/// - workspace (content): Optionaler Arbeitsbereich für diese Teilaufgabe. Default: `none`
+/// - body (content): Inhalt der Teilaufgabe
+/// -> content
 #let teilaufgabe(
   item-label: none,
   label: none,
@@ -800,6 +897,13 @@
   }
 }
 
+/// Registriert eine Lösung für die aktuelle Aufgabe oder Teilaufgabe.
+///
+/// Die Lösung wird automatisch der zuletzt erstellten Aufgabe oder Teilaufgabe
+/// zugeordnet. Der Anzeigemodus wird über `set-options((loesungen: ...))` gesteuert.
+///
+/// - body (content): Inhalt der Lösung
+/// -> none
 #let loesung(body) = {
   context {
     let curr_aufg = _counter_aufgaben.get().at(0)
@@ -821,6 +925,18 @@
   }
 }
 
+/// Registriert eine Erwartung mit optionaler Punktzahl für die aktuelle Aufgabe oder Teilaufgabe.
+///
+/// Als Positionsargumente werden entweder nur der Beschreibungstext oder
+/// erst die Punktzahl (int/float) dann der Beschreibungstext erwartet.
+///
+/// ```typ
+/// #erwartung[Antwort ist nachvollziehbar begründet]
+/// #erwartung(2)[Ergebnis korrekt berechnet]
+/// ```
+///
+/// - ..args (any): Positionsargumente: optionale Punktzahl (integer oder float) + Beschreibungstext (content)
+/// -> none
 #let erwartung(..args) = {
   let pos-args = args.pos()
   let body = none

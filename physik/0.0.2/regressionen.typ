@@ -188,6 +188,20 @@
   return result
 }
 
+/// Berechnet eine lineare Regression der Form $y = m x + b$.
+///
+/// Gibt ein Dictionary zurück mit:
+/// - `math`: Formeldarstellung als `content`
+/// - `math-digits`: Funktion `digits => content` für variable Nachkommastellen
+/// - `m`: Steigung
+/// - `b`: y-Achsenabschnitt
+/// - `function`: Typst-Funktion `x => y`
+///
+/// - x_param (dictionary, array): x-Datensatz (von `datensatz()`) oder reines Werte-Array
+/// - y_param (dictionary, array): y-Datensatz (von `datensatz()`) oder reines Werte-Array
+/// - notation (string): Zahlennotation: `"dec"` (Dezimal) oder `"sci"` (Wissenschaftlich)
+/// - precision (float): Schwellenwert, unterhalb dessen Terme als null behandelt werden
+/// -> dictionary
 #let lineare_regression(x_param, y_param, notation: "dec", precision: 1e-10) = {
   let algorithmus(paare) = {
     let n = paare.len()
@@ -225,6 +239,15 @@
   result
 }
 
+/// Berechnet eine quadratische Regression der Form $y = a x^2 + b x + c$.
+///
+/// Gibt ein Dictionary zurück mit `math`, `math-digits`, `function` sowie den Koeffizienten `a`, `b`, `c`.
+///
+/// - x_param (dictionary, array): x-Datensatz oder Werte-Array
+/// - y_param (dictionary, array): y-Datensatz oder Werte-Array
+/// - notation (string): Zahlennotation: `"dec"` oder `"sci"`
+/// - precision (float): Schwellenwert für das Unterdrücken von Termen
+/// -> dictionary
 #let quadratische_regression(x_param, y_param, notation: "dec", precision: 1e-10) = {
   let algorithmus(paare) = {
     let n = paare.len()
@@ -269,6 +292,16 @@
   result
 }
 
+/// Berechnet eine Wurzel-Regression der Form $y = a sqrt(x) + b$.
+///
+/// Alle x-Werte müssen nicht-negativ sein.
+/// Gibt ein Dictionary zurück mit `math`, `math-digits`, `function` sowie den Koeffizienten `a`, `b`.
+///
+/// - x_param (dictionary, array): x-Datensatz oder Werte-Array (alle Werte ≥ 0)
+/// - y_param (dictionary, array): y-Datensatz oder Werte-Array
+/// - notation (string): Zahlennotation: `"dec"` oder `"sci"`
+/// - precision (float): Schwellenwert für das Unterdrücken von Termen
+/// -> dictionary
 #let wurzel_regression(x_param, y_param, notation: "dec", precision: 1e-10) = {
   let algorithmus(paare) = {
     for p in paare { assert(p.at(0) >= 0, message: "x-Werte müssen nicht-negativ sein") }
@@ -322,6 +355,16 @@
   result
 }
 
+/// Berechnet eine exponentielle Regression der Form $y = b dot e^(a x)$.
+///
+/// Alle y-Werte müssen positiv sein.
+/// Gibt ein Dictionary zurück mit `math`, `math-digits`, `function` sowie den Koeffizienten `a`, `b`.
+///
+/// - x_param (dictionary, array): x-Datensatz oder Werte-Array
+/// - y_param (dictionary, array): y-Datensatz oder Werte-Array (alle Werte > 0)
+/// - notation (string): Zahlennotation: `"dec"` oder `"sci"`
+/// - precision (float): Schwellenwert für das Unterdrücken von Termen
+/// -> dictionary
 #let exponentielle_regression(x_param, y_param, notation: "dec", precision: 1e-10) = {
   let algorithmus(paare) = {
     for p in paare { assert(p.at(1) > 0, message: "y-Werte müssen positiv sein") }
@@ -389,6 +432,16 @@
   result
 }
 
+/// Berechnet eine Potenz-Regression der Form $y = a dot x^m$.
+///
+/// Alle x- und y-Werte müssen positiv sein.
+/// Gibt ein Dictionary zurück mit `math`, `math-digits`, `function` sowie den Koeffizienten `a`, `m`.
+///
+/// - x_param (dictionary, array): x-Datensatz oder Werte-Array (alle Werte > 0)
+/// - y_param (dictionary, array): y-Datensatz oder Werte-Array (alle Werte > 0)
+/// - notation (string): Zahlennotation: `"dec"` oder `"sci"`
+/// - precision (float): Schwellenwert für das Unterdrücken von Termen
+/// -> dictionary
 #let potenz_regression(x_param, y_param, notation: "dec", precision: 1e-10) = {
   let algorithmus(paare) = {
     for p in paare {
@@ -448,6 +501,19 @@
   result
 }
 
+/// Berechnet eine Polynom-Regression beliebigen Grades.
+///
+/// Bestimmt die Koeffizienten $c_0, c_1, ..., c_n$ für $y = c_0 + c_1 x + ... + c_n x^n$.
+/// Benötigt mindestens `grad + 1` gültige Datenpunkte.
+/// Gibt ein Dictionary zurück mit `math`, `math-digits`, `function` sowie den Koeffizienten
+/// `c0`, `c1`, ..., `c{grad}`.
+///
+/// - x_param (dictionary, array): x-Datensatz oder Werte-Array
+/// - y_param (dictionary, array): y-Datensatz oder Werte-Array
+/// - grad (int): Polynomgrad (z. B. `2` für quadratisch, `3` für kubisch)
+/// - notation (string): Zahlennotation: `"dec"` oder `"sci"`
+/// - precision (float): Schwellenwert für das Unterdrücken von Termen
+/// -> dictionary
 #let polynom_regression(x_param, y_param, grad, notation: "dec", precision: 1e-10) = {
   let algorithmus(paare) = {
     let n_koeff = grad + 1

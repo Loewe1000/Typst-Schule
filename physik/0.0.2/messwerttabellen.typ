@@ -7,7 +7,15 @@
   ohm: sym.Omega,
 )
 
-// Definition der Datensatz-Struktur (ohne auto-einheit, kommt später)
+/// Definiert eine Datenreihe mit Messwerten für die Messwerttabelle.
+///
+/// - name (string): Bezeichnung der Datenreihe (erscheint im Tabellenkopf)
+/// - einheit (string, content): Physikalische Einheit (z. B. `"m/s"` oder `$Omega$`)
+/// - werte (array): Array von Messwerten als Zahlen
+/// - prefix (string): SI-Präfix-Bezeichner (Standard `"1"` = kein Präfix, z. B. `"k"`, `"m"`)
+/// - max-digits (int, none): Maximale Nachkommastellen; `none` übernimmt globalen Wert
+/// - auto-einheit (bool): Automatische Einheitenskalierung aktivieren
+/// -> dictionary
 #let datensatz(name, einheit, werte, prefix: "1", max-digits: none, auto-einheit: false) = {
   // Wenn ein expliziter prefix gesetzt ist, deaktiviere auto-einheit
   if prefix != "1" {
@@ -27,7 +35,13 @@
   result
 }
 
-// Definition der Datensatz-Struktur
+/// Definiert eine leere Datenreihe für Schüler-Eintragungen.
+///
+/// - name (string): Bezeichnung der Datenreihe (erscheint im Tabellenkopf)
+/// - einheit (string, content): Physikalische Einheit
+/// - anzahl-messwerte (int): Anzahl der leeren Zeilen für Schülereintragungen
+/// - prefix (string): SI-Präfix-Bezeichner (Standard `"1"` = kein Präfix)
+/// -> dictionary
 #let messdaten(name, einheit, anzahl-messwerte, prefix: "1") = (
   name: name,
   einheit: einheit,
@@ -175,7 +189,20 @@
   }
 }
 
-// Funktion zur Berechnung von Werten basierend auf einem oder mehreren Datensätzen
+/// Definiert eine berechnete Datenreihe aus einem oder mehreren Eingabe-Datensätzen.
+///
+/// Die `formel` wird mit den Rohwerten (in Basiseinheiten) aufgerufen und das Ergebnis
+/// wird anschließend in die Zieleinheit umgerechnet. Unterstützt bis zu fünf Eingabe-Datensätze.
+///
+/// - name (string): Bezeichnung der Datenreihe
+/// - einheit (string, content): Zieleinheit der berechneten Werte
+/// - datensaetze (array, dictionary): Ein Datensatz oder ein Array von Datensätzen als Eingabe
+/// - formel (function): Berechnungsfunktion `(wert1, ...) => ergebnis`
+/// - prefix (string): SI-Präfix für die Zieleinheit (Standard `"1"` = kein Präfix)
+/// - auto-einheit (bool): Automatische Einheitenskalierung des Ergebnisses
+/// - fehler (ratio): Zufälliger relativer Fehler für Simulationszwecke (z. B. `5%`)
+/// - max-digits (int, none): Maximale Nachkommastellen; `none` übernimmt globalen Wert
+/// -> dictionary
 #let berechnung(name, einheit, datensaetze, formel, prefix: "1", auto-einheit: true, fehler: 0, max-digits: none) = {
   // Prüfe, ob die Einheit zusammengesetzt ist (enthält /, ·, ^, ², ³)
   let ist_zusammengesetzt = type(einheit) == str and (
@@ -433,7 +460,24 @@
     },
   )]
 
-// Funktion zur Erstellung der Tabellen
+/// Rendert eine Messwerttabelle aus einem oder mehreren Datensätzen.
+///
+/// Akzeptiert beliebig viele Datensätze als Positionsargumente.
+/// Überschreitet die Anzahl der Werte `amount`, wird die Tabelle automatisch aufgeteilt.
+///
+/// ```typ
+/// #let t = datensatz("Zeit", "s", (0, 1, 2, 3))
+/// #let s = datensatz("Weg", "m", (0, 1.2, 4.8, 10.8))
+/// #messwerttabelle(t, s)
+/// ```
+///
+/// - ..args (array): Datensätze (erzeugt mit `datensatz()`, `messdaten()` oder `berechnung()`)
+/// - amount (auto, int): Maximale Spaltenanzahl pro Teil-Tabelle
+/// - row-height (auto, length): Zeilenhöhe (Standard `auto`)
+/// - header (none, array): Manuelle Kopfzeilenbeschriftungen; `none` = keine extra Kopfzeile
+/// - width (length, ratio): Gesamtbreite der Tabelle
+/// - max-digits (int): Maximale Nachkommastellen für Zahlenwerte
+/// -> content
 #let messwerttabelle(..args, amount: auto, row-height: auto, header: none, width: 100%, max-digits: 2) = {
   // Extrahiere positionale Argumente
   let datensatze = args.pos()

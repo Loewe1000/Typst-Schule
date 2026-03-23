@@ -1,6 +1,25 @@
 #import "@schule/random:0.0.1": *
 #import "@schule/physik:0.0.2": umrechnungseinheit
 
+/// Rendert Teilaufgaben in einem mehrspaltigen Raster.
+///
+/// Akzeptiert Aufgaben entweder als `tasks`-Array oder als Enum-Body (positionales Argument).
+/// Lösungen werden optional über `loesungen` oder direkt per `#loesung[]` im Body übergeben.
+///
+/// ```typ
+/// #teilaufgaben(columns: 2)[
+///   + $2 + 3$
+///   + $5 times 7$
+/// ]
+/// ```
+///
+/// - tasks (array): Array von Content-Items (Aufgaben). Kann leer sein, wenn ein Enum-Body übergeben wird.
+/// - columns (auto, int): Anzahl der Spalten. Bei `auto` wird die Aufgabenanzahl verwendet.
+/// - numbering (string): Nummerierungsschema (z. B. `"a)"`, `"1."`).
+/// - gutter (length): Abstände zwischen den Zellen (horizontal und vertikal).
+/// - loesungen (array): Optionale Lösungen, die den Aufgaben in gleicher Reihenfolge zugeordnet werden.
+/// - ..args (arguments): Weitere benannte Argumente werden an `table()` weitergegeben.
+/// -> content
 #let teilaufgaben(
   tasks: (),
   columns: auto,
@@ -38,8 +57,43 @@
   )
 }
 
+/// `tasks` ist ein Alias für `teilaufgaben`.
 #let tasks = teilaufgaben
 
+/// Zeichnet Funktionsgraphen in einem Koordinatensystem.
+///
+/// Positionale Argumente (`..args`) sind die darzustellenden Funktionen – entweder als
+/// Mathe-Content (`$x^2$`), als Typst-Closure (`x => x * x`) oder als Dictionary mit
+/// erweiterter Konfiguration (Keys: `term`, `domain`, `color`/`clr`, `label`).
+///
+/// ```typ
+/// #graphen($x^2$, $2 dot x - 1$, x: (-3, 3), y: (-2, 10))
+/// ```
+///
+/// - size (none, length, array): Größe des Koordinatensystems. `none` = aus Achsenbereichen. Array `(breite, höhe)` für nicht-quadratisch.
+/// - scale (float): Gesamtskalierungsfaktor.
+/// - x (array, auto): x-Achsenbereich `(min, max)`. `auto` erkennt Bereich aus Datensätzen.
+/// - y (array, auto): y-Achsenbereich `(min, max)`. `auto` erkennt Bereich aus Datensätzen.
+/// - step (int, float, array): Schrittweite für Gitterlinien (beide Achsen). Array `(major, minor)` für verschiedene Schrittweiten.
+/// - x-step (none, int, float, array): Schrittweite nur für die x-Achse (überschreibt `step`).
+/// - y-step (none, int, float, array): Schrittweite nur für die y-Achse (überschreibt `step`).
+/// - x-label (content): Beschriftung der x-Achse.
+/// - y-label (content): Beschriftung der y-Achse.
+/// - grid (string): Gittermodus für beide Achsen: `"both"`, `"major"`, `"minor"` oder `"none"`.
+/// - x-grid (none, string): Gittermodus nur für die x-Achse (überschreibt `grid`).
+/// - y-grid (none, string): Gittermodus nur für die y-Achse (überschreibt `grid`).
+/// - line-width (length): Linienbreite der Funktionsgraphen.
+/// - samples (int): Anzahl Stützstellen für Funktionsgraphen. Mehr = glattere Kurve.
+/// - fills (array): Füllbereiche als Array von Dictionaries. Jedes Dictionary enthält
+///   entweder `term` (Fläche zur x-Achse) oder `between` (Array zweier Funktionen),
+///   sowie optional `domain` (`(x1, x2)` oder `"auto"`) und `color`/`clr`.
+/// - datensätze (array, dictionary): Diskrete Datenpunkte. Akzeptiert einfache Arrays `(x-werte, y-werte)`,
+///   ein Dictionary `(x: ds, y: ds, marker: ..., color: ...)` oder ein Array von Dictionaries für mehrere Datensätze.
+/// - marks (array): Beschriftete Punkte als Array. Jeder Eintrag ist ein Dictionary mit
+///   `position`/`pos`, optional `content`/`label`, `anchor`, `padding`, `symbol`, `stroke`, `fill`, `color`.
+/// - annotations (content): Zusätzlicher CeTZ-Draw-Inhalt, der nach dem Plot platziert wird.
+/// - ..args (arguments): Positionale Argumente = darzustellende Funktionen. Benannte Argumente werden an `plot.plot()` weitergegeben.
+/// -> content
 #let graphen(
   size: none,
   scale: 1,
@@ -881,6 +935,25 @@
   })
 }
 
+/// Berechnet eine Polynomfunktion aus einem System von Bedingungen und zeigt sie als Steckbrief.
+///
+/// Aus den übergebenen Bedingungen (z. B. `"f(2)=3"`, `"f'(0)=0"`) wird per Gauß-Elimination
+/// das eindeutige Polynom bestimmt. Der Grad ergibt sich automatisch aus der Bedingungsanzahl
+/// (Grad = Anzahl − 1).
+///
+/// Rückgabe: Dictionary mit Keys `math`, `math-digits`, `function`, `gleichungssystem`
+/// sowie benannte Koeffizienten `a`, `b`, `c`, … (höchster Grad zuerst).
+///
+/// ```typ
+/// #let sb = steckbrief("f(0)=1", "f'(0)=0", "f(1)=0")
+/// #sb.math   // zeigt f(x) = ...
+/// ```
+///
+/// - ..bedingungen (arguments): Bedingungsstrings wie `"f(2)=3"`, `"f'(-1)=0"`, `"f(3)=0"`.
+///   Ableitungen werden durch Apostrophe markiert (`f'`, `f''`, …).
+/// - notation (string): Zahlenformat der Koeffizienten: `"dec"` (Dezimal) oder `"sci"` (wissenschaftlich).
+/// - precision (float): Schwellenwert, unterhalb dessen ein Koeffizient als null gilt.
+/// -> dictionary
 // Steckbriefaufgaben: Bestimme Polynomfunktion aus gegebenen Bedingungen
 #let steckbrief(..bedingungen, notation: "dec", precision: 1e-10) = {
   import "@preview/zero:0.5.0": num as znum
@@ -1195,6 +1268,25 @@
   return result
 }
 
+/// Rendert ein Kreisdiagramm (Tortendiagramm).
+///
+/// ```typ
+/// #kreisdiagramm(
+///   (("Äpfel", 30), ("Birnen", 45), ("Kirschen", 25)),
+///   legend: "r",
+/// )
+/// ```
+///
+/// - data (array): Array von `(label, wert)`-Paaren, z. B. `(("Äpfel", 30), ("Birnen", 45))`.
+/// - legend (string, bool, dictionary): Position der Legende: `"r"` (rechts), `"l"` (links),
+///   `"t"` (oben), `"b"` (unten) oder `false` (keine Legende).
+///   Ein Dictionary wird direkt an cetz-plot weitergegeben.
+/// - show-percentage (bool): Ob der Prozentwert/Absolutwert auf den Segmenten angezeigt wird.
+/// - label-color (color): Textfarbe der Segment-Beschriftungen.
+/// - mode (string): `"percent"` zeigt relative Prozentwerte, `"absolute"` zeigt Absolutwerte.
+/// - ..args (arguments): Weitere Argumente werden direkt an `chart.piechart()` weitergegeben
+///   (z. B. `radius`, `gap`, `stroke`, `value-key`, `label-key`, `inner-label`, `outer-label`).
+/// -> content
 // Funktion für Kreisdiagramme
 #let kreisdiagramm(
   data,
@@ -1351,14 +1443,22 @@
 // GeoGebra-Style Funktionen
 // ============================================================================
 
-/// GeoGebra Farbpalette
+/// GeoGebra-Farbpalette (Dictionary, keine Funktion).
+///
+/// Enthält die Standardfarben aus der GeoGebra-Benutzeroberfläche:
+/// - `primary`: Akzentfarbe (Lila, `#6557D2`)
+/// - `stroke`: Rahmenfarbe (Hellgrau, `#DCDCDC`)
+/// - `button`: Button-Farbe (Grau, `#808080`)
 #let geogebra-colors = (
   primary: rgb("#6557D2"),
   stroke: rgb("#DCDCDC"),
   button: rgb("#808080"),
 )
 
-/// Der Drei-Punkte-Button im GeoGebra-Stil
+/// Erzeugt den vertikalen Drei-Punkte-Button im GeoGebra-Stil (als SVG-Icon).
+///
+/// - size (length): Breite des Icons (Standard: `1.2em`).
+/// -> content
 #let geogebra-button(size: 1.2em) = image(
   bytes(
     "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><rect width='24' height='24' fill='none'/><circle cx='12' cy='6' r='1.5' fill='#808080'/><circle cx='12' cy='12' r='1.5' fill='#808080'/><circle cx='12' cy='18' r='1.5' fill='#808080'/></svg>",
@@ -1366,7 +1466,10 @@
   width: size,
 )
 
-/// Der "≈"-Button im GeoGebra-Stil
+/// Erzeugt den lila „≈"-Button im GeoGebra-Stil (für Näherungswert-Berechnung).
+///
+/// - size (length): Breite und Höhe des Buttons (Standard: `1.2em`).
+/// -> content
 #let geogebra-approx-button(size: 1.2em) = box(
   width: size,
   height: size,
@@ -1382,14 +1485,19 @@
   ],
 )
 
-/// Wrapper für GeoGebra-Mathe-Stil (aufrecht, serifenlos, Display-Modus)
-/// 
-/// Verwendung:
-/// ```typst
+/// Wrapper für den GeoGebra-Mathe-Stil (aufrecht, serifenlos, Display-Modus).
+///
+/// Wendet auf alle Mathe-Gleichungen im `body` die Schriftart „New Computer Modern Sans Math"
+/// im aufrechten Display-Modus an.
+///
+/// ```typ
 /// #geogebra-style[
 ///   $g(t) = v + t u$
 /// ]
 /// ```
+///
+/// - body (content): Der Inhalt, auf den der GeoGebra-Stil angewendet wird.
+/// -> content
 #let geogebra-style(body) = {
   show math.equation: it => {
     show text: set text(font: "New Computer Modern Sans Math")
@@ -1400,11 +1508,12 @@
   body
 }
 
-/// Eine einzelne Zelle im GeoGebra-Stil mit optionalen Buttons
+/// Eine einzelne Zelle im GeoGebra-Algebra-Stil mit optionalen Buttons.
 ///
-/// - content: Der Inhalt der Zelle (typischerweise eine Mathe-Gleichung)
-/// - menu: Ob der Drei-Punkte-Button angezeigt werden soll
-/// - approx: Ob der ≈-Button angezeigt werden soll
+/// - content (content): Der Zellinhalt (typischerweise eine Mathe-Gleichung).
+/// - menu (bool): Ob der vertikale Drei-Punkte-Button rechts angezeigt wird.
+/// - approx (bool): Ob der lila „≈"-Button (Näherungswert) angezeigt wird.
+/// -> content
 #let geogebra-cell(
   content,
   menu: true,
@@ -1424,22 +1533,26 @@
   }
 ]
 
-/// Eine komplette GeoGebra-Stil Tabelle
+/// Erzeugt eine vollständige GeoGebra-Algebra-Ansicht (Tabelle im GeoGebra-Stil).
 ///
-/// - cells: Die Zellinhalte (als positionale Argumente)
-/// - stroke: Rahmenfarbe
-/// - columns: Spaltenbreite(n)
-/// - inset: Innenabstand
-/// - last-has-approx: Ob die letzte Zelle den ≈-Button haben soll
+/// Jede Zelle erhält automatisch den Drei-Punkte-Button; die letzte Zelle kann optional
+/// den „≈"-Button für Näherungswert-Ausgabe erhalten.
 ///
-/// Verwendung:
-/// ```typst
-/// #geogebra-table(
+/// ```typ
+/// #geogebra-algebra(
 ///   $v = (2, 1, 5)$,
 ///   $u = (1, -1, 3)$,
 ///   $P = (3, 1, -3)$,
+///   last-has-approx: true,
 /// )
 /// ```
+///
+/// - ..cells (arguments): Zellinhalte als positionale Argumente (Content oder Mathe-Gleichungen).
+/// - stroke (stroke): Rahmenfarbe und -stärke der Tabelle.
+/// - columns (int, array): Anzahl der Spalten oder Array von Spaltenbreiten.
+/// - inset (dictionary, length): Innenabstand der Zellen.
+/// - last-has-approx (bool): Ob die letzte Zelle den „≈"-Button anzeigen soll.
+/// -> content
 #let geogebra-algebra(
   ..cells,
   stroke: geogebra-colors.stroke + 0.5pt,

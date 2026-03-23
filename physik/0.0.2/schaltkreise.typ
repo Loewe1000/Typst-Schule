@@ -1,7 +1,29 @@
 #import "@preview/zap:0.4.0" as zap
 
+/// Rendert einen Schaltkreis mit dem `zap`-Paket.
+///
+/// `schaltkreis` ist ein direkter Alias für `zap.circuit`. Alle `zap`-Komponenten
+/// (Widerstände, Kondensatoren, Dioden, …) können innerhalb des Blocks verwendet werden.
+///
+/// ```typ
+/// #schaltkreis[
+///   #source("U", (0,0)--(0,2))
+///   #lamp("L", (0,2)--(2,2))
+/// ]
+/// ```
+///
+/// -> content
 #let schaltkreis = zap.circuit
 
+/// Zeichnet eine Spannungs- oder Stromquelle im Schaltkreis.
+///
+/// - name (string): Bezeichnung der Komponente (für Verdrahtung)
+/// - node (any): Knotenverbindung (zap-Syntax)
+/// - current (string): Stromtyp: `"dc"` (Gleichstrom) oder `"ac"` (Wechselstrom)
+/// - variant (string): Darstellungsstil: `"symbol"` (Kreis mit ±) oder `"lines"` (Striche)
+/// - flipped (bool): Polarität umkehren
+/// - ..params (any): Weitere zap-Komponentenparameter
+/// -> content
 #let source(name, node, current: "dc", variant: "symbol", flipped: false, ..params) = {
   assert(current in ("dc", "ac"), message: "current must be ac or dc")
   assert(variant in ("symbol", "lines"), message: "variant must be 'symbol' or 'lines'")
@@ -58,6 +80,12 @@
   zap.component("source", name, node, draw: draw, style: style, ..params)
 }
 
+/// Zeichnet ein Multimeter (Kreis mit Zeiger) im Schaltkreis.
+///
+/// - name (string): Bezeichnung der Komponente
+/// - node (any): Knotenverbindung (zap-Syntax)
+/// - ..params (any): Weitere zap-Komponentenparameter
+/// -> content
 #let multimeter(name, node, ..params) = {
   // New component style
   let style = (
@@ -77,6 +105,12 @@
   zap.component("multimeter", name, node, draw: draw, style: style, ..params)
 }
 
+/// Zeichnet eine Glühlampe (Kreis mit X) im Schaltkreis.
+///
+/// - name (string): Bezeichnung der Komponente
+/// - node (any): Knotenverbindung (zap-Syntax)
+/// - ..params (any): Weitere zap-Komponentenparameter
+/// -> content
 #let lamp(name, node, ..params) = {
   // New component style
   let style = (
@@ -100,6 +134,12 @@
   zap.component("lamp", name, node, draw: draw, style: style, ..params)
 }
 
+/// Zeichnet ein Amperemeter (Kreis mit „A") im Schaltkreis.
+///
+/// - name (string): Bezeichnung der Komponente
+/// - node (any): Knotenverbindung (zap-Syntax)
+/// - ..params (any): Weitere zap-Komponentenparameter
+/// -> content
 #let amperemeter(name, node, ..params) = {
   // New component style
   let style = (
@@ -122,6 +162,12 @@
   zap.component("amperemeter", name, node, draw: draw, style: style, ..params)
 }
 
+/// Zeichnet ein Voltmeter (Kreis mit „V") im Schaltkreis.
+///
+/// - name (string): Bezeichnung der Komponente
+/// - node (any): Knotenverbindung (zap-Syntax)
+/// - ..params (any): Weitere zap-Komponentenparameter
+/// -> content
 #let voltmeter(name, node, ..params) = {
   // New component style
   let style = (
@@ -144,6 +190,12 @@
   zap.component("voltmeter", name, node, draw: draw, style: style, ..params)
 }
 
+/// Zeichnet einen Motor (Kreis mit „M") im Schaltkreis.
+///
+/// - name (string): Bezeichnung der Komponente
+/// - node (any): Knotenverbindung (zap-Syntax)
+/// - ..params (any): Weitere zap-Komponentenparameter
+/// -> content
 #let motor(name, node, ..params) = {
   // New component style
   let style = (
@@ -166,6 +218,12 @@
   zap.component("motor", name, node, draw: draw, style: style, ..params)
 }
 
+/// Zeichnet einen Generator (Kreis mit „G") im Schaltkreis.
+///
+/// - name (string): Bezeichnung der Komponente
+/// - node (any): Knotenverbindung (zap-Syntax)
+/// - ..params (any): Weitere zap-Komponentenparameter
+/// -> content
 #let generator(name, node, ..params) = {
   // New component style
   let style = (
