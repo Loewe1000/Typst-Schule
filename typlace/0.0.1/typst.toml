@@ -8,3 +8,4 @@ license = "MIT"
 keywords = ["classroom", "layout", "seating", "schule", "tisch", "sitzplan"]
 categories = ["layout", "visualization"]
 disciplines = ["education"]
+repository = "https://github.com/Loewe1000/Typst-Schule"
