@@ -16,10 +16,21 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Repo-Root ist zwei Ebenen über .github/scripts/
 PACKAGES_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 SITE_DIR="$PACKAGES_DIR/.docs-site"
+TYPST_PACKAGE_ROOT="$(mktemp -d)"
+
+cleanup() {
+  rm -rf "$TYPST_PACKAGE_ROOT"
+}
+
+trap cleanup EXIT
+
+mkdir -p "$TYPST_PACKAGE_ROOT"
+ln -s "$PACKAGES_DIR" "$TYPST_PACKAGE_ROOT/schule"
 
 echo "=== Schule-Typst Dokumentations-Build ==="
 echo "Pakete-Verzeichnis: $PACKAGES_DIR"
 echo "Ausgabe-Verzeichnis: $SITE_DIR"
+echo "Typst-Paketpfad: $TYPST_PACKAGE_ROOT"
 echo ""
 
 # Pakete mit Pfad (PAKET/VERSION)
@@ -68,10 +79,11 @@ for pkg_path in "${PACKAGES[@]}"; do
     typst compile \
       --format html \
       --features html \
+      --package-path "$TYPST_PACKAGE_ROOT" \
       --root "$PACKAGES_DIR" \
       docs/web.typ \
       docs/web.html \
-      2>&1 | grep -v "^warning: html export" | grep -v "= hint:" || true
+      2>&1 | awk '!/^warning: html export/ && !/^= hint:/ { print }'
   )
 
   # HTML ins docs-site-Verzeichnis kopieren
