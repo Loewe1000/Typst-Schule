@@ -1,5 +1,22 @@
 #import "@preview/unify:0.7.0": *
 
+/// Setzt globale Gutachten-Metadaten (Fach, Niveau, Lehrkraft-Kürzel usw.).
+///
+/// Speichert die Metadaten in einem Typst-State, der von den Gutachten-Funktionen
+/// ausgelesen wird. Muss vor dem ersten `#gutachten`-Aufruf gesetzt werden.
+///
+/// ```typ
+/// #set-gutachten-infos(fach: "Mathematik", niveau: "E", kürzel: "SLZ")
+/// ```
+///
+/// - fach (string): Fachname der Prüfung. Standard: `""`.
+/// - niveau (string): Kursniveau, z. B. `"E"` (erhöht) oder `"G"` (grundlegend). Standard: `""`.
+/// - kürzel (string): Kürzel der Lehrkraft. Standard: `""`.
+/// - print (bool): Druckmodus (reduzierte Farben). Standard: `false`.
+/// - be (int): Maximale Bewertungseinheiten. Standard: `1`.
+/// - font (string): Hauptschriftart. Standard: `"New Computer Modern Sans"`.
+/// - math-font (string): Schriftart für mathematische Formeln. Standard: `"Fira Math"`.
+/// -> none
 #let set-gutachten-infos(
   fach: "",
   niveau: "",
@@ -20,8 +37,28 @@
 
 #let name = context state("schüler").get().vorname
 
+/// Definiert die Aufgaben mit ihren maximalen Bewertungseinheiten.
+///
+/// Speichert das Aufgaben-Dictionary im State für spätere Auswertung.
+///
+/// ```typ
+/// #set-aufgaben(("Aufgabe 1": (be: 30), "Aufgabe 2": (be: 20)))
+/// ```
+///
+/// - aufgaben (dictionary): Dictionary der Form `("Aufgabe 1": (be: 30), ...)`.
+/// -> none
 #let set-aufgaben(aufgaben) = state("aufgaben").update(aufgaben)
 
+/// Berechnet die Notenstufe anhand des erreichten Prozentsatzes (NRW-Abiturskala).
+///
+/// Gibt eine lesbare Zeichenkette mit Note und Punktzahl zurück.
+///
+/// ```typ
+/// #bewertungsskala(0.75)  // "gut (11 Punkte)"
+/// ```
+///
+/// - prozent (float): Erreichter Prozentsatz (0.0 bis 1.0).
+/// -> string
 #let bewertungsskala(
   prozent,
 ) = {
@@ -52,6 +89,19 @@
   }
 }
 
+/// Rendert eine Aufgabe mit automatischem Punktetracking.
+///
+/// Gibt eine Aufgabenüberschrift aus und verfolgt die erreichten Punkte
+/// des Schülers im internen State.
+///
+/// ```typ
+/// #aufgabe("Aufgabe 1", 24)[Kommentar zur Aufgabe]
+/// ```
+///
+/// - name (string): Aufgabenname (muss mit einem Schlüssel in `set-aufgaben` übereinstimmen).
+/// - punkte (int): Erreichte Punkte des Schülers.
+/// - body (content): Inhalt der Aufgabe (Korrekturen, Anmerkungen).
+/// -> content
 #let aufgabe(name, punkte, body) = [
   = #name
 
@@ -65,6 +115,22 @@
   ]
 ]
 
+/// Erstellt ein vollständiges Gutachten für einen Schüler.
+///
+/// Richtet Seitenlayout, Kopfzeile mit Logo und Unterschriftszeile ein.
+/// Wertet die Punkte aus allen `#aufgabe`-Aufrufen automatisch aus.
+///
+/// ```typ
+/// #gutachten(vorname: "Max", nachname: "Mustermann")[
+///   #aufgabe("Aufgabe 1", 24)[...]
+/// ]
+/// ```
+///
+/// - vorname (string): Vorname des Schülers. Standard: `"Max"`.
+/// - nachname (string): Nachname des Schülers. Standard: `"Mustermann"`.
+/// - wahl (array): Themenwahl (optional, z. B. `("A1", "B2")`). Standard: `()`.
+/// - body (content): Aufgaben-Inhalte (`aufgabe()`-Aufrufe).
+/// -> content
 #let gutachten(
   vorname: "Max",
   nachname: "Mustermann",

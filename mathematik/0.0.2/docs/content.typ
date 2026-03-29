@@ -212,6 +212,7 @@ Diskrete Messpunkte aus dem Physik-Paket oder als einfache Arrays können direkt
       datensätze: (x: t, y: s),
       x: auto,
       y: auto,
+      size: (10, 6),
     )
   },
   source: ```typ
@@ -349,13 +350,21 @@ Der Polynomgrad ergibt sich automatisch aus der Anzahl der Bedingungen (Grad = A
 
 == Beispiel: Kubische Funktion
 
-#show-code(```typ
+#show-example(
+  rendered: {
+    import "/mathematik/0.0.2/mathematik.typ": steckbrief, graphen
+    let sb = steckbrief("f(0)=2", "f'(0)=0", "f(2)=0", "f'(2)=0")
+    [Die Funktion lautet: #sb.math]
+    graphen(sb.function, x: (-1, 3), y: (-1, 3))
+  },
+  source: ```typ
 #let sb = steckbrief("f(0)=2", "f'(0)=0", "f(2)=0", "f'(2)=0")
 
 Die Funktion lautet: #sb.math
 
 #graphen(sb.function, x: (-1, 3), y: (-1, 3))
-```)
+  ```,
+)
 
 Die Rückgabe ist ein Dictionary mit:
 - `math`: Formatierte Gleichung als Content
@@ -429,7 +438,6 @@ Das Paket enthält Hilfsfunktionen, um die GeoGebra-Algebra-Ansicht in Typst nac
       $v = vec(2, 1, 5)$,
       $u = vec(1, -1, 3)$,
       $P = (3, 1, -3)$,
-      last-has-approx: true,
     )
   },
   source: ```typ
@@ -437,7 +445,6 @@ Das Paket enthält Hilfsfunktionen, um die GeoGebra-Algebra-Ansicht in Typst nac
     $v = vec(2, 1, 5)$,
     $u = vec(1, -1, 3)$,
     $P = (3, 1, -3)$,
-    last-has-approx: true,
   )
   ```,
   width: 14cm,

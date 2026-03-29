@@ -1,5 +1,18 @@
 #import "@preview/cetz:0.3.1": canvas, draw
 
+/// Erstellt ein Energieniveau-Diagramm mit beschrifteten Spalten.
+///
+/// Jede Energieform erhält eine karierte Spalte mit Basislinie und Beschriftung.
+/// Das Diagramm basiert auf CeTZ und ist ideal für Energiebetrachtungen im Physikunterricht.
+///
+/// ```typ
+/// #energy-sketch(("$E_kin$", "$E_pot$", "$E_ges$"), height: 5cm)
+/// ```
+///
+/// - energy-name (array): Array mit Beschriftungen der Energiespalten (Typst-Content oder Strings).
+/// - hide-letters (bool): Blendet die Beschriftungen aus. Nützlich für Lückentext-Aufgaben. Standard: `false`.
+/// - height (length): Gesamthöhe jedes Balkens. Das Raster umfasst immer 10 Zeilen. Standard: `3cm`.
+/// -> content
 #let energy-sketch(
   energy-name,
   hide-letters: false,

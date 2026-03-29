@@ -1,6 +1,18 @@
 #let angela-dark = rgb(40, 80, 155)
 #let angela-light = rgb(150, 180, 221)
 
+/// Brief-Template für die Angelaschule Osnabrück.
+///
+/// Richtet eine A4-Seite mit dem Briefkopf der Angelaschule ein (Logo, blaue Linien).
+/// Verwendet „Lucida Grande" für den Schulnamen und „Calibri" 11pt für den Brieftext.
+/// Wird mit `#show: brief` eingebunden.
+///
+/// ```typ
+/// #show: brief
+/// ```
+///
+/// - body (content): Der Briefinhalt.
+/// -> content
 #let brief(
   body,
 ) = {

@@ -30,6 +30,18 @@ PACKAGES=(
   "mathematik/0.0.2"
   "physik/0.0.2"
   "informatik/0.0.2"
+  "abbozza/0.0.1"
+  "angela/0.0.1"
+  "blockst/0.1.0"
+  "energy-sketch/0.0.2"
+  "flashcards/0.0.1"
+  "gutachten/0.0.2"
+  "insert-a-word/0.0.3"
+  "klausurboegen/0.0.3"
+  "operatoren/0.0.1"
+  "patterns/0.0.2"
+  "summify/0.1.0"
+  "typlace/0.0.1"
 )
 
 # Ausgabe-Verzeichnis vorbereiten (existierende HTML-Dateien löschen, Pagefind-Index behalten)
@@ -79,7 +91,7 @@ fi
 echo ""
 echo "--- Generiere Pagefind-Index ---"
 if command -v npx &>/dev/null; then
-  npx pagefind --site "$SITE_DIR" --output-path "$SITE_DIR/pagefind"
+  npx pagefind --site "$SITE_DIR" --output-path "$SITE_DIR/pagefind" --force-language de
   echo "    → Pagefind-Index in $SITE_DIR/pagefind/"
 else
   echo "WARNUNG: npx nicht gefunden. Pagefind wird übersprungen."

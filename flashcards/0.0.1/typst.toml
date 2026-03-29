@@ -6,3 +6,4 @@ entrypoint = "flashcards.typ"
 
 description = "Package for flashcards"
 license = "MIT"
+repository = "https://github.com/Loewe1000/Typst-Schule"

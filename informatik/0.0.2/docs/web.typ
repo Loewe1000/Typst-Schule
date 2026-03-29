@@ -6,8 +6,8 @@
 
 #show: with-web(
   template-fn: template,
+  universe: none,
   toml: pkg,
-  universe: "https://typst.app/universe/package/" + pkg.package.name,
   notices: ([Entwickelt für das Schule-Typst-Ökosystem],),
   links: ((name: "GitHub", url: "https://github.com/Loewe1000/Typst-Schule"),),
 )

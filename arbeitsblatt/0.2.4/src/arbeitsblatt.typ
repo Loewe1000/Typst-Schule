@@ -486,23 +486,6 @@
   )
 }
 
-/// Wrapper um CeTZ's `canvas` mit druckfreundlichen Achsenstilen.
-///
-/// Setzt schulfreundliche Standardstile: Achsenmarkierungen zeigen nach innen,
-/// Gitternetzlinien sind solid (nicht gestrichelt), Achsenpfeile sind gerade.
-/// Alle CeTZ-`canvas`-Parameter werden durchgereicht.
-///
-/// ```typ
-/// #canvas({
-///   import draw: *
-///   line((0, 0), (6, 1))
-///   circle((2, 2), radius: 1)
-/// })
-/// ```
-///
-/// - ..args (any): Optionale benannte Argumente an `cetz.canvas`.
-/// - body (content): CeTZ-Zeichenbefehle (wird in `draw:`-Scope ausgeführt).
-/// -> content
 #let c_canvas = canvas
 #let canvas(..args, body) = {
   c_canvas(

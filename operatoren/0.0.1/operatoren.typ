@@ -1,5 +1,17 @@
 #let operatoren-state = state("operatoren", ())
 
+/// Markiert einen Operator im Text und verlinkt ihn mit der Operatorenliste.
+///
+/// Der Operator wird automatisch zur internen Liste hinzugefügt und
+/// am Dokumentende in der Operatorenliste angezeigt.
+///
+/// ```typ
+/// #operator[Berechne] die Geschwindigkeit.
+/// ```
+///
+/// - name (content): Der Operator-Name (z. B. `[Berechne]`).
+/// - text (string): Alternativer Linktext (optional). Standard: `""` (= `name` wird verwendet).
+/// -> content
 #let operator(name, text: "") = {
   context operatoren-state.update(s => {
     s.push(str(name))
@@ -8,6 +20,18 @@
   [#if text == "" [#link(label("-def"), name)] else [#link(label("-def"), text)]]
 }
 
+/// Rendert eine alphabetisch sortierte Operatorenliste für das angegebene Fach.
+///
+/// Liest Operator-Definitionen aus einer CSV-Datei im Dokumentverzeichnis
+/// (`Mathe.csv` oder `Physik.csv`). Nur die im Dokument verwendeten Operatoren
+/// werden aufgelistet.
+///
+/// ```typ
+/// #operatoren-liste(fach: "Physik")
+/// ```
+///
+/// - fach (string): Fachname. Bestimmt die CSV-Datei. Verfügbar: `"Mathe"`, `"Physik"`. Standard: `"Mathe"`.
+/// -> content
 #let operatoren-liste(fach: "Mathe") = [
   #import "@preview/tablex:0.0.9": *
   #context {

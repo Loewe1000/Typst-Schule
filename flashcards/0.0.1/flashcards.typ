@@ -4,6 +4,20 @@
 #let cardquestion = state("question", "init")
 #let cardanswer   = state("answer",   "init")
 
+/// Definiert eine Lernkarte mit Kopfzeile, Fußzeile, Frage und Antwort.
+///
+/// Registriert die Karte für das Rendering mit `#letter8up`.
+/// Muss vor dem Aufruf von `#letter8up` verwendet werden.
+///
+/// ```typ
+/// #card[Physik][Klasse 10][Was ist Energie?][Die Fähigkeit, Arbeit zu verrichten.]
+/// ```
+///
+/// - header (content): Kopfzeile der Karte (z. B. Fach oder Thema).
+/// - footer (content): Fußzeile der Karte (z. B. Quelle oder Seitenzahl).
+/// - question (content): Die Frage auf der Vorderseite.
+/// - answer (content): Die Antwort auf der Rückseite.
+/// -> content
 #let card(header, footer, question, answer) = [
   #cardnumber.step()
   #cardheader.update(header)

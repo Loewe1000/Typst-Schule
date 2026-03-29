@@ -2,6 +2,21 @@
 
 
 
+/// Rendert ein Hathi-Spiellevel als Hex-Kachel-Diagramm.
+///
+/// Liest die Level-Daten aus einem geparsten XML-Array und zeichnet alle Kacheln
+/// als isometrisches Hex-Diagramm mit CeTZ.
+///
+/// ```typ
+/// #render-hathi-level(xml("level.xml"), scale: 0.8)
+/// ```
+///
+/// - level (array): Geparste XML-Daten des Levels (z. B. via `xml("level.xml")`).
+/// - extra-tiles (array): Zusätzliche Kacheln als Dictionaries mit `type`, `pos` und optional `capacity`. Standard: `()`.
+/// - scale (float): Skalierungsfaktor für das Diagramm. Standard: `1`.
+/// - print (bool): Druckmodus (schwarz-weiß). Standard: `false`.
+/// - replace (dictionary): Ersetzungstabelle für Kacheltypen, z. B. `("W": "grass")`. Standard: `(:)`.
+/// -> content
 #let render-hathi-level(level, extra-tiles:(), scale: 1, print: false, replace: (:)) = {
   let _scale = scale
 

@@ -11,6 +11,17 @@
 #let iaword-uniform = state("iaword-uniform", false)
 
 // Funktion zur Erstellung eines Wort-Elements
+/// Markiert ein Wort für die Lückentext-Aufgabe.
+///
+/// Ersetzt das Wort durch eine Linie und registriert es für die Wortliste.
+/// Muss innerhalb eines `#insert-a-word`-Blocks verwendet werden.
+///
+/// ```typ
+/// Der #iaword[Hund] bellt.
+/// ```
+///
+/// - body (content): Das einzusetzende Wort (beliebiger Typst-Content).
+/// -> content
 #let iaword(body) = {
   context {
     let position = iaword-counter.get() // Aktuelle Position abrufen
@@ -54,6 +65,24 @@
 }
 
 // Funktion zum Einfügen eines Wortes mit Anpassungsoptionen
+/// Erstellt eine Lückentext-Aufgabe mit gemischten Wortboxen.
+///
+/// Über dem Text erscheinen farbige Wortboxen in zufälliger Reihenfolge.
+/// Im Text ersetzen Lückenlinien die mit `#iaword` markierten Wörter.
+///
+/// ```typ
+/// #insert-a-word[
+///   Der #iaword[Hund] bellt. Die #iaword[Katze] miaut.
+/// ]
+/// ```
+///
+/// - hide-words (bool): Blendet die Wortboxen aus. Standard: `false`.
+/// - line-spacing (length): Zeilenabstand im Text. Standard: `1.5em`.
+/// - item-spacing (length): Abstand zwischen den Wortboxen. Standard: `1em`.
+/// - show-solution (bool): Zeigt die Lösung im Text an. Standard: `false`.
+/// - uniform-gaps (bool): Einheitliche Lückenbreite für alle Wörter. Standard: `false`.
+/// - body (content): Der Lückentext mit `#iaword`-Markierungen.
+/// -> content
 #let insert-a-word(hide-words: false, line-spacing: 1.5em, item-spacing: 1em, show-solution: false, uniform-gaps: false, body) = {
   // Option für einheitliche Lücken speichern
   iaword-uniform.update(uniform-gaps)

@@ -6,6 +6,7 @@
 #let _state_current_material_aufgabe = state("current_material_aufgabe", 0)
 #let _state_current_material_index = state("current_material_index", 0)
 #let _state_in_loesung = state("in_loesung", false)
+#let _state_current_aufgabe_index = state("current_aufgabe_index", -1)
 #let _state_options = state(
   "options",
   (
@@ -176,11 +177,15 @@
 /// - aufg (integer): Aufgabennummer (1-basiert)
 /// - teil (integer): Teilaufgabennummer (1-basiert); `none` für Gesamtpunkte der Aufgabe. Default: `none`
 /// -> integer
-#let get-points(aufg, teil: none) = {
+#let get-points(aufg, teil: none, idx: none) = {
   let all = _state_aufgaben.final()
-  if aufg == none or aufg > all.len() { return 0 }
-
-  let current = all.at(aufg - 1)
+  let current = if idx != none {
+    if idx < 0 or idx >= all.len() { return 0 }
+    all.at(idx)
+  } else {
+    if aufg == none or aufg > all.len() { return 0 }
+    all.at(aufg - 1)
+  }
   if not "erwartungen" in current { return 0 }
 
   let erw = current.erwartungen
@@ -218,7 +223,7 @@
         } else {
           []
         }
-        let aufg-punkte = get-points(aufg.nummer)
+        let aufg-punkte = aufg.erwartungen.fold(0, (sum, e) => sum + e.punkte)
         // Zur Gesamtsumme addieren
         gesamt-punkte += aufg-punkte
 
@@ -386,7 +391,7 @@
     let cell-width = auto
 
     for aufg in all {
-      let aufg-punkte = get-points(aufg.nummer)
+      let aufg-punkte = if "erwartungen" in aufg { aufg.erwartungen.fold(0, (sum, e) => sum + e.punkte) } else { 0 }
       gesamt-punkte += aufg-punkte
 
       // Gruppiere Erwartungen nach Teilaufgaben
@@ -586,11 +591,11 @@
     #line(length: 100%, stroke: 0.5pt)
   ]
   context {
-    let curr_aufg = _counter_aufgaben.get().at(0)
+    let curr_idx = _state_current_aufgabe_index.get()
 
     _state_aufgaben.update(all => {
       all
-        .at(curr_aufg - 1)
+        .at(curr_idx)
         .materialien
         .push((
           body: mat,
@@ -672,6 +677,7 @@
       ))
       all
     })
+    _state_current_aufgabe_index.update(i => i + 1)
   }
 
   if (actual-title != none and actual-title != []) or number {
@@ -692,7 +698,7 @@
             #h(1fr)
             #let opts = _state_options.get()
             #if get-punkte-anzeige(opts) in ("aufgaben", "alle") {
-              let points = get-points(_counter_aufgaben.get().at(0))
+              let points = get-points(none, idx: _state_current_aufgabe_index.get())
               if points > 0 {
                 format-punkte(teil: false, points)
               }
@@ -747,11 +753,11 @@
   }
   // "keine-summe" mode: Zeige Punkte nur bei Aufgaben ohne Teilaufgaben
   context if get-punkte-anzeige(_state_options.get()) == "keine-summe" {
-    let curr_aufg_nr = _counter_aufgaben.get().at(0)
-    let curr_aufg = _state_aufgaben.get().at(curr_aufg_nr - 1)
+    let curr_idx = _state_current_aufgabe_index.get()
+    let curr_aufg = _state_aufgaben.get().at(curr_idx)
     // Nur anzeigen, wenn es KEINE Teilaufgaben gibt
     if curr_aufg.teile == 0 {
-      let points = get-points(curr_aufg_nr)
+      let points = get-points(none, idx: curr_idx)
       if points > 0 {
         block(text(weight: "bold", size: 1.4em, h(1fr) + format-punkte(teil: false, points)))
       }
@@ -781,9 +787,9 @@
   
   // State-Update AUSSERHALB des context-Blocks
   context {
-    let curr_aufg = _counter_aufgaben.get().at(0)
+    let curr_idx = _state_current_aufgabe_index.get()
     _state_aufgaben.update(all => {
-      all.at(curr_aufg - 1).teile += 1
+      all.at(curr_idx).teile += 1
       all
     })
   }
@@ -792,6 +798,7 @@
   context {
     let curr_aufg = _counter_aufgaben.get().at(0)
     let curr_teil = _counter_aufgaben.get().at(1, default: 1)
+    let curr_idx = _state_current_aufgabe_index.get()
 
     let opts = _state_options.get()
     // Inline-Berechnung für bessere Kompatibilität
@@ -832,8 +839,9 @@
                 // Punkte werden am Ende des Dokuments berechnet und mit place am Rand platziert
                 context {
                   let points = get-points(
-                    _counter_aufgaben.get().at(0),
+                    none,
                     teil: _counter_aufgaben.get().at(1),
+                    idx: curr_idx,
                   )
                   if points > 0 {
                     // Platziere Punkte am rechten Rand (außerhalb des Textbereichs), linksbündig
@@ -859,8 +867,9 @@
               if punkte-anzeige in ("teilaufgaben", "alle", "keine-summe") and punkte-position == "ende" {
                 context {
                   let points = get-points(
-                    _counter_aufgaben.get().at(0),
+                    none,
                     teil: _counter_aufgaben.get().at(1),
+                    idx: curr_idx,
                   )
                   if points > 0 {
                     h(1fr)
@@ -906,7 +915,7 @@
 /// -> none
 #let loesung(body) = {
   context {
-    let curr_aufg = _counter_aufgaben.get().at(0)
+    let curr_idx = _state_current_aufgabe_index.get()
     let curr_teil = if _counter_aufgaben.get().len() > 1 {
       _counter_aufgaben.get().at(1)
     } else { 0 }
@@ -914,7 +923,7 @@
     // Store solution
     _state_aufgaben.update(all => {
       all
-        .at(curr_aufg - 1)
+        .at(curr_idx)
         .loesung
         .push((
           teil: curr_teil,
@@ -960,14 +969,14 @@
     panic("aufgabe expects 1 or 2 positional arguments")
   }
   context {
-    let curr_aufg = _counter_aufgaben.get().at(0)
+    let curr_idx = _state_current_aufgabe_index.get()
     let curr_teil = if _counter_aufgaben.get().len() > 1 {
       _counter_aufgaben.get().at(1)
     } else { 0 }
 
     _state_aufgaben.update(all => {
       all
-        .at(curr_aufg - 1)
+        .at(curr_idx)
         .erwartungen
         .push((
           teil: curr_teil,

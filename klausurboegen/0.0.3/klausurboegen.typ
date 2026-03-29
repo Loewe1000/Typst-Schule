@@ -1,5 +1,35 @@
 #import "@schule/patterns:0.0.1": kariert
 
+/// Erstellt personalisierte Klausurbögen im A3-Querformat für eine ganze Klasse.
+///
+/// Für jeden Schüler im `students`-Array wird ein eigener Klausurbogen erzeugt.
+/// Das karierte Schreibfeld wird automatisch aus `@schule/patterns` importiert.
+///
+/// ```typ
+/// #klausurbögen(
+///   exam: "Mathematik", class: "10a", date: "15.03.2025",
+///   students: ("Max Mustermann", "Erika Musterfrau"),
+/// )
+/// ```
+///
+/// - exam (string): Fachname der Klausur. Standard: `""`.
+/// - subexam (string): Untertitel / Thema der Klausur. Standard: `""`.
+/// - teacher (string): Kürzel oder Name der Lehrkraft. Standard: `"SLZ"`.
+/// - class (string): Klassenbezeichnung. Standard: `"PH1"`.
+/// - date (string): Datum der Klausur. Standard: `"09.10.2023"`.
+/// - students (array): Array mit Schülernamen. Standard: `()`.
+/// - sek1 (bool): Sek-I-Modus (kleineres Feld). Standard: `false`.
+/// - result (bool): Ergebnisseite generieren. Standard: `false`.
+/// - rand (length): Randbreite für das Schreibfeld. Standard: `5cm`.
+/// - scale (float): Skalierungsfaktor. Standard: `1`.
+/// - sub (bool): Unterpunkt-Modus. Standard: `false`.
+/// - numbering (string): Nummerierungsformat für Unterpunkte. Standard: `"a)"`.
+/// - mv (dictionary): Verschiebung `(dx: ..., dy: ...)`. Standard: `(dx: 0cm, dy: 0cm)`.
+/// - weißer-rand (bool): Weißen Rand verwenden (für farbige Seiten). Standard: `true`.
+/// - result-table (bool): Ergebnistabelle anzeigen. Standard: `true`.
+/// - vorschlag (bool): Korrekturvorschlag-Modus. Standard: `false`.
+/// - line-stroke (stroke): Strichstärke und Farbe der Linien. Standard: `1pt + rgb("FF0613")`.
+/// -> content
 #let klausurbögen(
   exam: "",
   subexam: "",

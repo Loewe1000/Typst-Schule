@@ -15,12 +15,13 @@
 //                  #show: with-web(template-fn: template, toml: toml("../typst.toml"), ...)
 //                  #include "content.typ"
 //
-//   content.typ →  #import "@schule/schuldocs:0.1.0": show-example, show-module
-//                  (identischer Inhalt für PDF und Web)
+//   content.typ →  #import "@schule/schuldocs:0.1.0": show-module, show-code
+//                  (show-example ist über den Parent-Scope verfügbar; im Web-Modus
+//                   wird manifesto-schema automatisch verwendet)
 //
-// HINWEIS: manifesto wird hier NICHT importiert, da es HTML-Export-Modus
-// erfordert und daher nicht in PDF-Kompilierungen geladen werden kann.
-// Stattdessen übergibt web.typ die manifesto-template-Funktion explizit.
+// HINWEIS: manifesto wird hier importiert, um schema in show-example automatisch
+// im Web-Modus zu verwenden. Der Import ist sicher, da schema nur bei mode=="web"
+// aufgerufen wird (HTML-Export-Modus) und keine Top-Level html.*-Aufrufe enthält.
 
 #import "@preview/mantys:1.0.2" as _mantys
 #import "@preview/tidy:0.4.2" as _tidy
@@ -201,23 +202,23 @@
   } else if schema-fn != none {
     schema-fn(rendered, code: source, width: width)
   } else {
-    // Nativer Fallback: Vorschau-Box + Quellcode-Block
-    block(
-      width: width,
-      stroke: 0.5pt + luma(180),
-      inset: 0.8em,
-      radius: 3pt,
-      rendered,
+    // Web-Modus ohne schema-fn: manifesto-kompatibles Layout via html.*
+    html.div(
+      class: "mb-7 rounded-md text-base border mb-4 flex-col flex *:m-0 *:block *:w-full *:even:rounded-t-none",
+      {
+        html.div(
+          class: "bg-white rounded-md overflow-hidden print:p-4 p-7 [&_svg]:max-w-full [&_svg]:h-auto"
+            + if source != none { " rounded-b-none" } else { "" },
+          html.frame(block(width: width, rendered)),
+        )
+        if source != none {
+          html.div(
+            class: "*:rounded-t-none *:border-none border-t *:m-0 dark:border-mist-800 *:border-none overflow-x-scroll",
+            source,
+          )
+        }
+      },
     )
-    if source != none {
-      block(
-        width: width,
-        fill: luma(245),
-        inset: 0.8em,
-        radius: 3pt,
-        raw(source.text, lang: "typ", block: true),
-      )
-    }
   }
 }
 
@@ -272,7 +273,64 @@
     filtered
   }
 
-  _tidy.show-module(sorted, show-outline: show-outline, style: _tidy.styles.default)
+  // Workaround für Typst HTML-Export: Programmatische Headings haben immer depth 1 in
+  // manifesto's Query. eval("== ...", mode: "markup") erzeugt depth-2-Headings korrekt.
+  // Wir rendern Funktionsnamen via eval und den Body direkt ohne tidy's show-module Block.
+
+  let eval-docstring = _tidy.utilities.eval-docstring
+  let style-fns = _tidy.utilities.get-style-functions(_tidy.styles.default)
+  let style-args = (
+    style: style-fns,
+    label-prefix: sorted.label-prefix,
+    first-heading-level: 2,
+    break-param-descriptions: false,
+    omit-empty-param-descriptions: true,
+    omit-private-parameters: false,
+    colors: _tidy.styles.default.colors,
+    enable-cross-references: false,
+    local-names: (parameters: [Parameters], default: [Default]),
+    scope: sorted.scope,
+  )
+
+  // "Parameters"- und Parameter-Einzel-Headings aus der Navigation ausschließen
+  show heading.where(level: 4): set heading(outlined: false)
+  show heading.where(level: 5): set heading(outlined: false)
+
+  for fn in sorted.functions.sorted(key: fn => fn.name) {
+    // Markup-Heading → depth 2 in manifesto-Nav (funktioniert korrekt)
+    // Label wird in den Heading-String eingebettet (als Markup)
+    eval("== " + fn.name + " <" + sorted.label-prefix + fn.name + ">", mode: "markup")
+
+    eval-docstring(fn.description, style-args)
+
+    block(breakable: style-args.break-param-descriptions, {
+      heading(style-args.local-names.parameters, level: style-args.first-heading-level + 2)
+      (style-fns.show-parameter-list)(fn, style-args: style-args)
+    })
+
+    for (name, info) in fn.args {
+      if style-args.omit-private-parameters and name.starts-with("_") { continue }
+      let types = info.at("types", default: ())
+      let description = info.at("description", default: "")
+      if description == "" and style-args.omit-empty-param-descriptions { continue }
+      (style-fns.show-parameter-block)(
+        name, types, eval-docstring(description, style-args),
+        style-args,
+        show-default: "default" in info,
+        default: info.at("default", default: none),
+        function-name: style-args.label-prefix + fn.name,
+      )
+    }
+    v(4.8em, weak: true)
+  }
+
+  for v-item in sorted.variables {
+    eval("== " + v-item.name, mode: "markup")
+    {
+      show heading.where(level: 3): set heading(outlined: false)
+      (style-fns.show-variable)(v-item, style-args)
+    }
+  }
 }
 
 // ─── Gemeinsame Styling-Utilities ────────────────────────────────────────────

@@ -5,7 +5,6 @@
 #show: it => template(
   it,
   toml: pkg,
-  universe: "https://typst.app/universe/package/klassenarbeit",
   notices: (
     [Entwickelt für das Schule-Typst-Ökosystem],
   ),
@@ -56,7 +55,7 @@ Das Paket stellt alle Funktionen aus `arbeitsblatt` und `aufgaben` bereit:
 
 #schema(
   {
-    import "/src/klassenarbeit.typ": aufgabe, erwartung, show-erwartungen
+    import "/klassenarbeit/0.1.2/src/klassenarbeit.typ": aufgabe, erwartung, show-erwartungen
     aufgabe("Quadratische Gleichungen")[
       Berechne die Lösungen von $x^2 - 5x + 6 = 0$.
       #erwartung(2)[Mitternachtsformel korrekt angewandt]
@@ -135,7 +134,7 @@ Jeder Eintrag ist ein Tupel `("Bezeichnung", "Wert")`. Bei `info-table: false` w
 
 #schema(
   {
-    import "/src/klassenarbeit.typ": aufgabe, teilaufgabe, erwartung, show-erwartungen
+    import "/klassenarbeit/0.1.2/src/klassenarbeit.typ": aufgabe, teilaufgabe, erwartung, show-erwartungen
     aufgabe("Funktionsanalyse")[
       #teilaufgabe[
         Bestimme die Nullstellen von $f(x) = x^2 - 4$.

@@ -11,10 +11,7 @@ compiler = "0.13.1"
 exclude = [
 	".DS_Store",
 	"*.pdf",
-	"/fr",
 	"/examples/*.png",
-	"/examples/test-*.typ",
-	"/test-*.typ",
 ]
 
 description = "Render Scratch-style blocks for educational documents."

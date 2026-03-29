@@ -10,6 +10,15 @@
 #let _state-hide-content = state("summify-hide", false)
 
 // Predefined Themes
+/// Vordefinierte Farbthemen für Summify.
+///
+/// Verfügbare Schlüssel: `"modern-blue"`, `"warm-sunset"`, `"dark-pro"`, `"default"`.
+///
+/// ```typ
+/// #summify(theme: "modern-blue")[...]
+/// ```
+///
+/// -> dictionary
 #let themes = (
   // Modern Blue - Professional and clean
   "modern-blue": (
@@ -139,6 +148,16 @@
 }
 
 // Set theme function
+/// Setzt das aktive Farbthema.
+///
+/// Wählt ein vordefiniertes Thema per Name oder setzt ein eigenes Thema-Dictionary.
+///
+/// ```typ
+/// #set-theme("modern-blue")
+/// ```
+///
+/// - theme (string): Thema-Name (z. B. `"modern-blue"`) oder Thema-Dictionary.
+/// -> none
 #let set-theme(theme) = {
   if type(theme) == str {
     // Theme by name
@@ -156,6 +175,16 @@
 }
 
 // Update specific theme parameters
+/// Aktualisiert einzelne Thema-Parameter.
+///
+/// Überschreibt einzelne Schlüssel des aktiven Themas ohne das gesamte Thema zu ersetzen.
+///
+/// ```typ
+/// #update-theme(colors: (primary: red))
+/// ```
+///
+/// - ..params (any): Benannte Parameter mit neuen Thema-Werten.
+/// -> none
 #let update-theme(..params) = context {
   let current = _state-theme.get()
   let updates = params.named()
@@ -167,6 +196,25 @@
 // Main Document Setup
 // -----------------------------------------------------------------------------
 
+/// Erstellt eine Zusammenfassungsseite im konfigurierbaren Rasterformat.
+///
+/// Richtet Seite, Schriftart und Thema ein. Enthält `compose`, `topic`, `section`
+/// und `content` für das innere Layout. Wird mit `#show: summify` oder direkt verwendet.
+///
+/// ```typ
+/// #summify(title: "Mechanik", theme: "modern-blue")[
+///   #cols(ratios: (1fr, 2fr))[...]
+/// ]
+/// ```
+///
+/// - title (string): Titel der Zusammenfassung (Kopfzeile). Standard: `""`.
+/// - paper (string): Papierformat. Standard: `"a3"`.
+/// - flipped (bool): Querformat. Standard: `true`.
+/// - hide-content (bool): Inhalte ausblenden (Lernmodus). Standard: `false`.
+/// - theme (string): Thema-Name. Standard: `"default"`.
+/// - theme-overrides (dictionary): Thema-Überschreibungen. Standard: `(:)`.
+/// - body (content): Der Inhalt der Zusammenfassung.
+/// -> content
 #let summify(
   title: "",
   paper: "a3",
@@ -226,6 +274,21 @@
 // Grid Composition Functions
 // -----------------------------------------------------------------------------
 
+/// Allgemeine Layout-Hilfsfunktion für horizontale oder vertikale Anordnung.
+///
+/// Grundlage für `beside`, `below`, `cols` und `rows`. Unterstützt optionale Trennlinien
+/// und benutzerdefinierte Spalten-/Zeilenbreiten.
+///
+/// ```typ
+/// #compose(direction: "horizontal", lines: true)[Box 1][Box 2]
+/// ```
+///
+/// - direction (string): Richtung: `"horizontal"` oder `"vertical"`. Standard: `"horizontal"`.
+/// - lines (bool): Trennlinien zwischen den Elementen. Standard: `false`.
+/// - gap (length): Abstand zwischen den Elementen. Standard: `auto` (aus Thema).
+/// - ratios (array): Spalten- oder Zeilenbreiten als Brüche. Standard: `none` (gleichmäßig).
+/// - ..children (any): Die anzuordnenden Inhalte.
+/// -> content
 #let compose(
   direction: "horizontal",
   lines: false,
@@ -268,19 +331,59 @@
   )
 }
 
+/// Ordnet Inhalte horizontal nebeneinander an (ohne Trennlinien).
+///
+/// ```typ
+/// #beside(ratios: (1fr, 2fr))[Links][Rechts]
+/// ```
+///
+/// - gap (length): Abstand zwischen den Elementen. Standard: `auto` (aus Thema).
+/// - ratios (array): Spaltenbreiten. Standard: `none` (gleichmäßig).
+/// - ..children (any): Die anzuordnenden Inhalte.
+/// -> content
 #let beside(gap: auto, ratios: none, ..children) = {
   compose(direction: "horizontal", gap: gap, ratios: ratios, ..children)
 }
 
+/// Ordnet Inhalte vertikal untereinander an (ohne Trennlinien).
+///
+/// ```typ
+/// #below(ratios: (auto, 1fr))[Oben][Unten]
+/// ```
+///
+/// - gap (length): Abstand zwischen den Elementen. Standard: `auto` (aus Thema).
+/// - ratios (array): Zeilenhöhen. Standard: `none` (gleichmäßig).
+/// - ..children (any): Die anzuordnenden Inhalte.
+/// -> content
 #let below(gap: auto, ratios: none, ..children) = {
   compose(direction: "vertical", gap: gap, ratios: ratios, ..children)
 }
 
+/// Ordnet Inhalte horizontal nebeneinander an (mit Trennlinien).
+///
+/// ```typ
+/// #cols(ratios: (1fr, 1fr))[Links][Rechts]
+/// ```
+///
+/// - gap (length): Abstand zwischen den Elementen. Standard: `auto` (aus Thema).
+/// - ratios (array): Spaltenbreiten. Standard: `none` (gleichmäßig).
+/// - ..children (any): Die anzuordnenden Inhalte.
+/// -> content
 #let cols(gap: auto, ratios: none, ..children) = context {
   let gap-val = if gap == auto { _state-theme.get().spacing.section } else { gap }
   compose(direction: "horizontal", gap: gap-val, ratios: ratios, lines: true, ..children)
 }
 
+/// Ordnet Inhalte vertikal untereinander an (mit Trennlinien).
+///
+/// ```typ
+/// #rows[Oben][Unten]
+/// ```
+///
+/// - gap (length): Abstand zwischen den Elementen. Standard: `auto` (aus Thema).
+/// - ratios (array): Zeilenhöhen. Standard: `none` (gleichmäßig).
+/// - ..children (any): Die anzuordnenden Inhalte.
+/// -> content
 #let rows(gap: auto, ratios: none, ..children) = context {
   let gap-val = if gap == auto { _state-theme.get().spacing.section } else { gap }
   compose(direction: "vertical", gap: gap-val, ratios: ratios, lines: true, ..children)
@@ -290,6 +393,23 @@
 // Content Blocks
 // -----------------------------------------------------------------------------
 
+/// Themenbox mit farbiger Titelleiste.
+///
+/// Container für einen thematischen Bereich der Zusammenfassung. Enthält
+/// optional eine farbige Titelleiste und einen umrandeten Inhaltsbereich.
+///
+/// ```typ
+/// #topic(title: [Kinematik])[#content[Inhalt hier]]
+/// ```
+///
+/// - title (content): Titel der Box. Standard: `none` (kein Titel).
+/// - height (length): Höhe der Box. Standard: `100%`.
+/// - width (length): Breite der Box. Standard: `100%`.
+/// - fill (color): Füllfarbe der Titelleiste. Standard: `auto` (aus Thema).
+/// - stroke (stroke): Rahmenlinie. Standard: `auto` (aus Thema).
+/// - radius (length): Eckenradius. Standard: `auto` (aus Thema).
+/// - body (content): Der Inhalt der Themenbox.
+/// -> content
 #let topic(
   title: none,
   height: 100%,
@@ -352,6 +472,18 @@
   }
 }
 
+/// Abschnittsüberschrift innerhalb einer Themenbox.
+///
+/// Erzeugt eine farbige Trennleiste mit Beschriftung für Unterabschnitte.
+///
+/// ```typ
+/// #section[Gleichförmige Bewegung]
+/// ```
+///
+/// - title (content): Beschriftung des Abschnitts.
+/// - fill (color): Hintergrundfarbe. Standard: `auto` (aus Thema).
+/// - height (length): Höhe der Leiste. Standard: `auto` (aus Thema).
+/// -> content
 #let section(title, fill: auto, height: auto) = context {
   let theme = _state-theme.get()
 
@@ -373,6 +505,20 @@
   )
 }
 
+/// Inhaltsblock innerhalb einer Themenbox.
+///
+/// Rendert Inhalt mit optionalem Titel und Versteck-Funktion für den Lernmodus.
+///
+/// ```typ
+/// #content(title: [Formel])[$ v = s / t $]
+/// ```
+///
+/// - title (content): Optionaler Titel des Blocks. Standard: `none`.
+/// - inset (length): Innenabstand. Standard: `auto` (aus Thema).
+/// - align-content (alignment): Ausrichtung des Inhalts. Standard: `left`.
+/// - hide (bool): Inhalt ausblenden. Standard: `auto` (= `summify`-`hide-content`-Wert).
+/// - body (content): Der darzustellende Inhalt.
+/// -> content
 #let content(
   title: none,
   inset: auto,

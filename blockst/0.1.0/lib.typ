@@ -6,6 +6,22 @@
 
 // Container function for block environments
 // Usage: #blockst[#import scratch.de: * ...]
+/// Container-Funktion für Scratch-Blockdiagramme.
+///
+/// Importiert die Sprachmodule (`scratch.de`, `scratch.en`, `scratch.fr`) und rendert
+/// Scratch-Blöcke im angegebenen Theme und Maßstab.
+///
+/// ```typ
+/// #blockst[
+///   #import scratch.de: *
+///   #wenn-dann[Taste gedrückt?][ #bewege(10) ]
+/// ]
+/// ```
+///
+/// - theme (string): Farbthema. Verfügbar: `"normal"`, `"dark"`, `"high-contrast"`. Standard: `auto` (aus State).
+/// - scale (ratio): Skalierungsfaktor. Standard: `auto` (aus State).
+/// - body (content): Scratch-Blöcke (inkl. Sprachmodul-Import).
+/// -> content
 #let blockst(
   theme: auto,
   scale: auto,
@@ -33,6 +49,18 @@
 
 // Global settings for block environments
 // Usage: #set-blockst(theme: "dark", scale: 80%, stroke-width: 1pt)
+/// Setzt globale Optionen für Scratch-Blockdiagramme.
+///
+/// Ändert Theme, Skalierung und Linienstärke für alle nachfolgenden `#blockst`-Aufrufe.
+///
+/// ```typ
+/// #set-blockst(theme: "dark", scale: 80%)
+/// ```
+///
+/// - theme (string): Farbthema. Standard: `none` (unverändert).
+/// - scale (ratio): Skalierungsfaktor. Standard: `none` (unverändert).
+/// - stroke-width (length): Linienstärke. Standard: `none` (unverändert).
+/// -> none
 #let set-blockst(
   theme: none,
   scale: none,

@@ -1,5 +1,26 @@
 
 // Was ist items? Gibts da nicht schönere Variablennamen?
+/// Erstellt ein kariertes Schreibfeld.
+///
+/// Zeichnet ein kariertes Raster mit optionalen Beschriftungen und Annotationen.
+/// Positionale Argumente werden unterstützt: erstes Argument = `rows`, zweites = `width`.
+///
+/// ```typ
+/// #kariert(rows: 10, grid-size: 0.5cm)
+/// ```
+///
+/// - rows (int): Anzahl der Zeilen. Standard: `1`.
+/// - width (length): Breite des Felds. Standard: `auto` (verfügbare Breite).
+/// - items (array): Liste von Einträgen, die im Raster platziert werden. Standard: `()`.
+/// - items-spacing (int): Zeilenabstand zwischen Items in Rastereinheiten. Standard: `2`.
+/// - grid-size (length): Größe einer Rasterzelle. Standard: `0.5cm`.
+/// - height (length): Höhe des Felds (überschreibt `rows`). Standard: `none`.
+/// - annotations (array): CeTZ-Annotationen, die über dem Raster gezeichnet werden. Standard: `()`.
+/// - line-stroke (stroke): Strichstil der Gitterlinien. Standard: hellgrau, 0.5pt.
+/// - fill-color (color): Hintergrundfarbe des Felds. Standard: `white`.
+/// - content (content): Inhalt, der über dem Raster angezeigt wird. Standard: `[]`.
+/// - ..args (any): Positionale Argumente: erstes = `rows`, zweites = `width`.
+/// -> content
 #let kariert(
   rows: 1,
   width: auto,
@@ -85,6 +106,23 @@
   })
 }
 
+/// Erstellt ein liniertes Schreibfeld.
+///
+/// Zeichnet horizontale Linien mit einstellbarem Zeilenabstand.
+/// Positionale Argumente werden unterstützt: erstes Argument = `rows`, zweites = `width`.
+///
+/// ```typ
+/// #liniert(rows: 5, line-height: 1cm)
+/// ```
+///
+/// - rows (int): Anzahl der Zeilen. Standard: `1`.
+/// - width (length): Breite des Felds. Standard: `auto` (verfügbare Breite).
+/// - items (array): Liste von Einträgen auf den Linien. Standard: `()`.
+/// - items-spacing (int): Abstand zwischen Items in Zeileneinheiten. Standard: `1`.
+/// - line-height (length): Höhe einer Zeile. Standard: `1cm`.
+/// - line-stroke (stroke): Strichstil der Linien. Standard: schwarz 50% aufgehellt, 0.5pt.
+/// - ..args (any): Positionale Argumente: erstes = `rows`, zweites = `width`.
+/// -> content
 #let liniert(
   rows: 1,
   width: auto,

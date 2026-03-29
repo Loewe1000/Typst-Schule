@@ -6,3 +6,4 @@ entrypoint = "klausurboegen.typ"
 
 description = "Package for klausurboegen"
 license = "MIT"
+repository = "https://github.com/Loewe1000/Typst-Schule"

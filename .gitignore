@@ -5,5 +5,10 @@ cheatsheets/.vscode/settings.json
 summify/.vscode/settings.json
 # Lokaler Docs-Build-Output (wird in CI nach .docs-site/ gebaut)
 .docs-site/
+docs-site/
 # Generierte web.html Dateien (Build-Artefakt, nicht einchecken)
 **/docs/web.html
+# Veraltete Build-Dateien (ersetzt durch .github/scripts/)
+build.sh
+index.html
+netlify.toml
