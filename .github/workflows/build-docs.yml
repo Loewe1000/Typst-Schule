@@ -7,6 +7,15 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Typst HTML-Docs bauen
@@ -37,17 +46,23 @@ jobs:
           if-no-files-found: error
           include-hidden-files: true
 
-      - name: Auf Netlify deployen
-        # Nur bei Push auf main (nicht bei PRs)
+      - name: GitHub Pages konfigurieren
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: nwtgck/actions-netlify@v3
+        uses: actions/configure-pages@v5
+
+      - name: Pages-Artefakt hochladen
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v3
         with:
-          publish-dir: ".docs-site"
-          production-deploy: true
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          deploy-message: "Deploy von Commit ${{ github.sha }}"
-          enable-pull-request-comment: false
-          enable-commit-comment: false
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          path: .docs-site/
+
+  deploy:
+    name: Auf GitHub Pages deployen
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy auf GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
