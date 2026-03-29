@@ -1,9 +1,12 @@
-#import "@preview/manifesto:0.1.1": *
+#import "@preview/manifesto:0.1.1": template
+#import "../../../schuldocs/0.1.0/lib.typ": with-web, show-example as _show-example
 
 #let pkg = toml("../typst.toml")
 
-#show: it => template(
-  it,
+#let show-example = _show-example
+
+#show: with-web(
+  template-fn: template,
   toml: pkg,
   notices: (
     [Entwickelt für das Schule-Typst-Ökosystem],
@@ -53,8 +56,8 @@ Das Paket stellt alle Funktionen aus `arbeitsblatt` und `aufgaben` bereit:
 ]
 ```
 
-#schema(
-  {
+#show-example(
+  rendered: {
     import "/klassenarbeit/0.1.2/src/klassenarbeit.typ": aufgabe, erwartung, show-erwartungen
     aufgabe("Quadratische Gleichungen")[
       Berechne die Lösungen von $x^2 - 5x + 6 = 0$.
@@ -63,7 +66,7 @@ Das Paket stellt alle Funktionen aus `arbeitsblatt` und `aufgaben` bereit:
     ]
     show-erwartungen()
   },
-  code: ```typ
+  source: ```typ
   #aufgabe("Quadratische Gleichungen")[
     Berechne die Lösungen von $x^2 - 5x + 6 = 0$.
     #erwartung(2)[Mitternachtsformel korrekt angewandt]
@@ -132,8 +135,8 @@ Jeder Eintrag ist ein Tupel `("Bezeichnung", "Wert")`. Bei `info-table: false` w
 ]
 ```
 
-#schema(
-  {
+#show-example(
+  rendered: {
     import "/klassenarbeit/0.1.2/src/klassenarbeit.typ": aufgabe, teilaufgabe, erwartung, show-erwartungen
     aufgabe("Funktionsanalyse")[
       #teilaufgabe[
@@ -148,7 +151,7 @@ Jeder Eintrag ist ein Tupel `("Bezeichnung", "Wert")`. Bei `info-table: false` w
     ]
     show-erwartungen()
   },
-  code: ```typ
+  source: ```typ
   #aufgabe("Funktionsanalyse")[
     #teilaufgabe[
       Bestimme die Nullstellen von $f(x) = x^2 - 4$.
