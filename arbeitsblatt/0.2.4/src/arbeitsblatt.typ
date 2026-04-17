@@ -519,13 +519,18 @@
 /// Nützlich, um Seitenumbrüche gezielt nur für die gedruckte Version
 /// einzufügen, ohne die Web-/Bildschirmansicht zu beeinflussen.
 ///
+/// - loesungen-only (boolean): Wenn `true`, wirkt der Umbruch nur wenn `loesungen: "nur"` gesetzt ist. Default: `false`
 /// ```typ
 /// #print-pagebreak()
+/// #print-pagebreak(loesungen-only: true)
 /// ```
 /// -> content
-#let print-pagebreak() = {
+#let print-pagebreak(loesungen-only: false) = {
   context {
     let print = print-state.get()
+    let loesungen = state("options", (:)).get().at("loesungen", default: "keine")
+    let loesungen-aktiv = loesungen == "nur"
+    if loesungen-only and not loesungen-aktiv { return }
     if print {
       pagebreak()
     }
@@ -537,13 +542,18 @@
 /// Nützlich, um Inhalte in der Web-/Bildschirmansicht zu trennen, ohne
 /// den Druck-Seitenfluss zu stören.
 ///
+/// - loesungen-only (boolean): Wenn `true`, wirkt der Umbruch nur wenn `loesungen: "nur"` gesetzt ist. Default: `false`
 /// ```typ
 /// #non-print-pagebreak()
+/// #non-print-pagebreak(loesungen-only: true)
 /// ```
 /// -> content
-#let non-print-pagebreak() = {
+#let non-print-pagebreak(loesungen-only: false) = {
   context {
     let print = print-state.get()
+    let loesungen = state("options", (:)).get().at("loesungen", default: "keine")
+    let loesungen-aktiv = loesungen == "nur"
+    if loesungen-only and not loesungen-aktiv { return }
     if not print {
       pagebreak()
     }

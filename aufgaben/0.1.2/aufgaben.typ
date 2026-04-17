@@ -133,6 +133,56 @@
   }
 }
 
+// Zeigt Lösungen inline (ohne Goalbox), formatiert wie Aufgaben
+#let show-loesung-inline(aufg) = {
+  context {
+    let opts = _state_options.get()
+    if aufg.loesung.len() == 0 { return }
+
+    block(
+      width: 100%,
+      above: 1.8em,
+      below: 1em,
+      spacing: 0pt,
+      text(weight: "bold", size: 1.4em, [
+        Lösung #{ aufg.nummer }
+        #if aufg.title != none and aufg.title != [] [ $-$ #{ aufg.title }]
+      ]),
+    )
+
+    // Hauptlösung (teil == 0)
+    for l in aufg.loesung.filter(l => l.teil == 0) {
+      l.body
+    }
+
+    // Teilaufgaben-Lösungen als Aufzählung
+    if aufg.teile > 0 {
+      let teil-loesungen = aufg.loesung.filter(l => l.teil > 0)
+      if teil-loesungen.len() > 0 {
+        let grouped = (:)
+        for l in teil-loesungen.sorted(key: l => l.teil) {
+          let teil-key = str(l.teil)
+          if teil-key not in grouped.keys() {
+            grouped.insert(teil-key, ())
+          }
+          grouped.at(teil-key).push(l.body)
+        }
+        enum(
+          numbering: if opts.teilaufgabe-numbering == "a)" { "a)" } else { n => numbering("1.1", aufg.nummer, n) },
+          tight: false,
+          ..grouped
+            .pairs()
+            .map(pair => {
+              let (teil, bodies) = pair
+              enum.item(int(teil), stack(spacing: 0.5em, ..bodies))
+            }),
+        )
+      }
+    }
+    v(1cm, weak: true)
+  }
+}
+
 /// Gibt Lösungen aus, die zuvor mit `loesung()` registriert wurden.
 ///
 /// Wird automatisch aufgerufen, wenn `loesungen` auf `"folgend"`, `"seite"` oder
@@ -140,18 +190,21 @@
 ///
 /// - curr (boolean): Wenn `true`, wird nur die Lösung der zuletzt erstellten Aufgabe angezeigt. Default: `false`
 /// - teil (boolean): Wenn eine Zahl, werden nur Lösungen der angegebenen Teilaufgabe angezeigt. Default: `false`
+/// - inline (boolean): Wenn `true`, werden Lösungen ohne Goalbox direkt wie Aufgaben formatiert. Default: `false`
 /// -> content
-#let show-loesungen(curr: false, teil: false) = {
+#let show-loesungen(curr: false, teil: false, inline: false) = {
   context {
     let all = _state_aufgaben.get()
     if curr { all = (all.last(),) }
 
-    if _state_options.get().loesungen == "seite" {
+    if not inline and _state_options.get().loesungen == "seite" {
       pagebreak(weak: true)
     }
     for aufg in all {
       if aufg.loesung.len() > 0 {
-        if _state_options.get().loesungen == "seiten" {
+        if inline {
+          show-loesung-inline(aufg)
+        } else if _state_options.get().loesungen == "seiten" {
           page(show-loesung(aufg, teil: teil))
         } else if _state_options.get().loesungen in ("sofort", "folgend") {
           show-loesung(aufg, teil: teil)
@@ -682,6 +735,7 @@
 
   if (actual-title != none and actual-title != []) or number {
     context {
+      if _state_options.get().loesungen == "nur" { return }
       let auf-head = figure(
         kind: "aufgabe",
         supplement: none,
@@ -729,15 +783,20 @@
     }
   }
   // Content - nur wenn body nicht leer ist
-  if body != none and body != [] {
-    body
+  // Im "nur"-Modus: body unsichtbar layouten, damit loesung()/erwartung() registriert werden
+  context {
+    if _state_options.get().loesungen == "nur" {
+      if body != none and body != [] { place(hide(body)) }
+    } else if body != none and body != [] {
+      body
+    }
   }
   // Workspace
-  context if workspace != none and _state_options.get().workspaces {
+  context if workspace != none and _state_options.get().workspaces and _state_options.get().loesungen != "nur" {
     block(width: 100%, inset: (x: 0em, y: 0.5em))[#workspace]
   }
   // "sofort" materials
-  context if _state_options.final().materialien in ("sofort", "seiten", "folgend") and _state_aufgaben.get().last().materialien.len() > 0 {
+  context if _state_options.final().materialien in ("sofort", "seiten", "folgend") and _state_aufgaben.get().last().materialien.len() > 0 and _state_options.final().loesungen != "nur" {
     if _state_options.final().materialien == "seiten" {
       pagebreak(weak: true)
     }
@@ -750,6 +809,10 @@
   // "folgend" solutions
   context if _state_options.final().loesungen == "folgend" {
     show-loesungen(curr: true)
+  }
+  // "nur" solutions: Lösungen inline ohne Goalbox anzeigen
+  context if _state_options.final().loesungen == "nur" {
+    show-loesungen(curr: true, inline: true)
   }
   // "keine-summe" mode: Zeige Punkte nur bei Aufgaben ohne Teilaufgaben
   context if get-punkte-anzeige(_state_options.get()) == "keine-summe" {
