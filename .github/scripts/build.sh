@@ -44,7 +44,7 @@ PACKAGES=(
   "abbozza/0.0.1"
   "angela/0.0.1"
   "blockst/0.1.0"
-  "energy-sketch/0.0.2"
+  "energy-sketch/0.0.3"
   "flashcards/0.0.1"
   "gutachten/0.0.2"
   "insert-a-word/0.0.3"
