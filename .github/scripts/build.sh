@@ -57,6 +57,7 @@ PACKAGES=(
 
 # Ausgabe-Verzeichnis vorbereiten (existierende HTML-Dateien löschen, Pagefind-Index behalten)
 mkdir -p "$SITE_DIR"
+find "$SITE_DIR" -name "index.html" -not -path "$SITE_DIR/pagefind/*" -delete
 
 # Pakete kompilieren
 for pkg_path in "${PACKAGES[@]}"; do

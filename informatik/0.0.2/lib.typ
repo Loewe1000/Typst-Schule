@@ -2,7 +2,7 @@
 /// `blockst`, `blockst-run`, `scratch`, `set-blockst`, `set-scratch`,
 /// `set-blockst-run`, `executable`.
 // tidy-ignore
-#import "@schule/blockst:0.0.1": blockst, blockst-run, scratch, set-blockst, set-scratch, set-blockst-run, executable
+#import "@preview/blockst:0.1.0": blockst, scratch, set-blockst, blockst-run-options, set-scratch-run, scratch-run
 
 /// Konvertiert eine Binärzahl (als String oder Integer) in eine Dezimalzahl.
 ///

@@ -136,6 +136,16 @@
 ) = body => {
   _docs-mode.update("web")
 
+  let heading-style-css = "article :is(h1, h2, h3) { color: rgb(20, 83, 127) !important; } article h2 { color: rgb(12, 74, 110) !important; } article h3 { color: rgb(3, 105, 161) !important; margin-top: 2.1rem !important; } @media (prefers-color-scheme: dark) { article :is(h1, h2, h3) { color: rgb(125, 211, 252) !important; } article h2 { color: rgb(147, 197, 253) !important; } article h3 { color: rgb(103, 232, 249) !important; } }"
+
+  let copy-script-js = "(function(){function addCopyButton(pre){var code=pre&&pre.querySelector('code');if(!code||pre.querySelector('.schuldocs-copy-btn')){return;}pre.style.position='relative';var btn=document.createElement('button');btn.type='button';btn.className='schuldocs-copy-btn';btn.title='Code kopieren';btn.setAttribute('aria-label','Code kopieren');btn.style.cssText='position:absolute;top:0;right:0;z-index:10;border:1px solid rgb(212,212,216);border-radius:.375rem;background:rgba(255,255,255,.92);padding:.3rem;line-height:0;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;';var icon=document.createElementNS('http://www.w3.org/2000/svg','svg');icon.setAttribute('viewBox','0 0 24 24');icon.setAttribute('width','14');icon.setAttribute('height','14');icon.setAttribute('aria-hidden','true');icon.setAttribute('focusable','false');var path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('fill','currentColor');path.setAttribute('d','M16 1H6a2 2 0 0 0-2 2v12h2V3h10V1zm3 4H10a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H10V7h9v14z');icon.appendChild(path);btn.appendChild(icon);function extractCodeText(node){var clone=node.cloneNode(true);var brs=clone.querySelectorAll('br');for(var j=0;j<brs.length;j+=1){brs[j].replaceWith('\\n');}return clone.textContent||'';}btn.onclick=function(){if(!navigator.clipboard){return;}navigator.clipboard.writeText(extractCodeText(code)).then(function(){btn.style.opacity='0.65';setTimeout(function(){btn.style.opacity='1';},900);});};pre.appendChild(btn);}var root=document.currentScript&&document.currentScript.parentElement;var preBlocks=root?root.querySelectorAll('pre'):document.querySelectorAll('pre');for(var i=0;i<preBlocks.length;i+=1){addCopyButton(preBlocks[i]);}})();"
+
+  let body-with-copy-buttons = {
+    body
+    html.elem("style", heading-style-css)
+    html.elem("script", copy-script-js)
+  }
+
   if template-fn != none {
     let web-args = (toml: toml, notices: notices, links: links)
     if universe != none { web-args.insert("universe", universe) }
@@ -143,9 +153,9 @@
     for (k, v) in rest.named() { web-args.insert(k, v) }
 
     show: it => template-fn(it, ..web-args)
-    body
+    body-with-copy-buttons
   } else {
-    body
+    body-with-copy-buttons
   }
 }
 
@@ -197,10 +207,17 @@
   schema-fn: none,
 ) = context {
   let mode = _docs-mode.get()
+
+  let code-block = if source != none {
+    source
+  } else {
+    none
+  }
+
   if mode == "pdf" {
     (_mantys.example)(source)
   } else if schema-fn != none {
-    schema-fn(rendered, code: source, width: width)
+    schema-fn(rendered, code: code-block, width: width)
   } else {
     // Web-Modus ohne schema-fn: manifesto-kompatibles Layout via html.*
     html.div(
@@ -211,11 +228,8 @@
             + if source != none { " rounded-b-none" } else { "" },
           html.frame(block(width: width, rendered)),
         )
-        if source != none {
-          html.div(
-            class: "*:rounded-t-none *:border-none border-t *:m-0 dark:border-mist-800 *:border-none overflow-x-scroll",
-            source,
-          )
+        if code-block != none {
+          code-block
         }
       },
     )
@@ -242,7 +256,6 @@
 /// )
 /// ```
 ///
-/// - module-text (string): Quelltext des Moduls (via `read("../src/lib.typ")`)
 /// - name (string): Angezeigter Modulname (optional)
 /// - filter (array): Nur diese Funktionsnamen dokumentieren (leer = alle)
 /// - show-outline (boolean): Inhaltsverzeichnis der dokumentierten Funktionen
@@ -288,7 +301,7 @@
     omit-private-parameters: false,
     colors: _tidy.styles.default.colors,
     enable-cross-references: false,
-    local-names: (parameters: [Parameters], default: [Default]),
+    local-names: (parameters: [Parameter], default: [Default]),
     scope: sorted.scope,
   )
 
@@ -296,31 +309,139 @@
   show heading.where(level: 4): set heading(outlined: false)
   show heading.where(level: 5): set heading(outlined: false)
 
+  let normalize-default-text = (value, is-string-type: false) => {
+    let unescaped = value.trim().replace("\\\"", "\"")
+
+    // Fälle wie ""false"" oder ""EA"" auf "false" bzw. "EA" reduzieren.
+    let doubled-quoted = unescaped.match(regex("^\"\"(.*)\"\"$"))
+    let undoubled = if doubled-quoted != none {
+      "\"" + doubled-quoted.captures.at(0) + "\""
+    } else {
+      unescaped
+    }
+
+    let normalized = undoubled
+
+    // Nur bei String-Parametern bleiben Anführungszeichen erhalten.
+    if not is-string-type {
+      let quoted-any = normalized.match(regex("^\"(.*)\"$"))
+      if quoted-any != none {
+        normalized = quoted-any.captures.at(0)
+      }
+    }
+
+    normalized
+  }
+
   for fn in sorted.functions.sorted(key: fn => fn.name) {
     // Markup-Heading → depth 2 in manifesto-Nav (funktioniert korrekt)
     // Label wird in den Heading-String eingebettet (als Markup)
     eval("== " + fn.name + " <" + sorted.label-prefix + fn.name + ">", mode: "markup")
 
-    eval-docstring(fn.description, style-args)
+    let description-lines = fn.description.split("\n")
+    let intro-lines = ()
+    let parsed-params = (:)
+
+    for line in description-lines {
+      let match = line.match(regex("^\\s*-\\s*([^:(][^:(]*)\\s*\\(([^)]*)\\):\\s*(.*)$"))
+      if match != none {
+        let p-name = match.captures.at(0).trim()
+        let p-type = match.captures.at(1).trim()
+        let p-description = match.captures.at(2).trim()
+        parsed-params.insert(p-name, (type: p-type, description: p-description))
+      } else {
+        intro-lines.push(line)
+      }
+    }
+
+    let cleaned-description = intro-lines.join("\n").trim()
+    if cleaned-description != "" {
+      eval-docstring(cleaned-description, style-args)
+    }
 
     block(breakable: style-args.break-param-descriptions, {
       heading(style-args.local-names.parameters, level: style-args.first-heading-level + 2)
-      (style-fns.show-parameter-list)(fn, style-args: style-args)
-    })
+      let rows = ()
 
-    for (name, info) in fn.args {
-      if style-args.omit-private-parameters and name.starts-with("_") { continue }
-      let types = info.at("types", default: ())
-      let description = info.at("description", default: "")
-      if description == "" and style-args.omit-empty-param-descriptions { continue }
-      (style-fns.show-parameter-block)(
-        name, types, eval-docstring(description, style-args),
-        style-args,
-        show-default: "default" in info,
-        default: info.at("default", default: none),
-        function-name: style-args.label-prefix + fn.name,
-      )
-    }
+      for (name, info) in fn.args {
+        if style-args.omit-private-parameters and name.starts-with("_") { continue }
+
+        let parsed = parsed-params.at(name, default: (type: "", description: ""))
+        let parsed-type = parsed.type
+        let parsed-description = parsed.description
+
+        let types = info.at("types", default: ())
+        let info-description = info.at("description", default: "")
+
+        let type-cell = if parsed-type != "" {
+          raw(parsed-type)
+        } else if types.len() > 0 {
+          raw(types.map(t => str(t)).join(", "))
+        } else {
+          [–]
+        }
+
+        let parsed-type-text = if parsed-type != none { str(parsed-type) } else { "" }
+        let is-string-type = if parsed-type-text == "string" or parsed-type-text == "str" {
+          true
+        } else {
+          types.filter(t => {
+            let t-text = str(t)
+            t-text == "string" or t-text == "str"
+          }).len() > 0
+        }
+
+        let description-text = if parsed-description != "" {
+          parsed-description
+        } else {
+          info-description
+        }
+
+        let default-from-description = none
+        let description-for-cell = description-text
+        let default-match = description-text.match(regex("^(.*)\\s+Default:\\s+(.+)$"))
+        if default-match != none {
+          description-for-cell = default-match.captures.at(0).trim()
+          default-from-description = default-match.captures.at(1).trim()
+        }
+
+        let description-cell = if description-for-cell != "" {
+          eval-docstring(description-for-cell, style-args)
+        } else {
+          [–]
+        }
+
+        let default-cell = if default-from-description != none {
+          eval-docstring(normalize-default-text(default-from-description, is-string-type: is-string-type), style-args)
+        } else if "default" in info {
+          raw(normalize-default-text(repr(info.at("default", default: none)), is-string-type: is-string-type))
+        } else {
+          [–]
+        }
+
+        rows.push(raw(name))
+        rows.push(type-cell)
+        rows.push(description-cell)
+        rows.push(default-cell)
+      }
+
+      if rows.len() == 0 {
+        [Keine Parameter.]
+      } else {
+        table(
+          columns: (1.2fr, 1fr, 2.4fr, 1fr),
+          align: (left, left, left, left),
+          inset: 0.45em,
+          table.header(
+            strong([Name]),
+            strong([Typ]),
+            strong([Beschreibung]),
+            strong([Default]),
+          ),
+          ..rows,
+        )
+      }
+    })
     v(4.8em, weak: true)
   }
 
