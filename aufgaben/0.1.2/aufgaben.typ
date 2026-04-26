@@ -644,15 +644,15 @@
     #line(length: 100%, stroke: 0.5pt)
   ]
   context {
-    let curr_idx = _state_current_aufgabe_index.get()
-
     _state_aufgaben.update(all => {
-      all
-        .at(curr_idx)
-        .materialien
-        .push((
-          body: mat,
-        ))
+      if all.len() > 0 {
+        all
+          .at(-1)
+          .materialien
+          .push((
+            body: mat,
+          ))
+      }
       all
     })
   }
@@ -850,9 +850,10 @@
   
   // State-Update AUSSERHALB des context-Blocks
   context {
-    let curr_idx = _state_current_aufgabe_index.get()
     _state_aufgaben.update(all => {
-      all.at(curr_idx).teile += 1
+      if all.len() > 0 {
+        all.at(-1).teile += 1
+      }
       all
     })
   }
@@ -978,20 +979,21 @@
 /// -> none
 #let loesung(body) = {
   context {
-    let curr_idx = _state_current_aufgabe_index.get()
     let curr_teil = if _counter_aufgaben.get().len() > 1 {
       _counter_aufgaben.get().at(1)
     } else { 0 }
 
     // Store solution
     _state_aufgaben.update(all => {
-      all
-        .at(curr_idx)
-        .loesung
-        .push((
-          teil: curr_teil,
-          body: body,
-        ))
+      if all.len() > 0 {
+        all
+          .at(-1)
+          .loesung
+          .push((
+            teil: curr_teil,
+            body: body,
+          ))
+      }
       all
     })
   }
@@ -1032,20 +1034,21 @@
     panic("aufgabe expects 1 or 2 positional arguments")
   }
   context {
-    let curr_idx = _state_current_aufgabe_index.get()
     let curr_teil = if _counter_aufgaben.get().len() > 1 {
       _counter_aufgaben.get().at(1)
     } else { 0 }
 
     _state_aufgaben.update(all => {
-      all
-        .at(curr_idx)
-        .erwartungen
-        .push((
-          teil: curr_teil,
-          text: body,
-          punkte: punkte,
-        ))
+      if all.len() > 0 {
+        all
+          .at(-1)
+          .erwartungen
+          .push((
+            teil: curr_teil,
+            text: body,
+            punkte: punkte,
+          ))
+      }
       all
     })
   }
