@@ -16,6 +16,7 @@
 /// - be (int): Maximale Bewertungseinheiten. Standard: `1`.
 /// - font (string): Hauptschriftart. Standard: `"New Computer Modern Sans"`.
 /// - math-font (string): Schriftart für mathematische Formeln. Standard: `"Fira Math"`.
+/// - jahr (int): Prüfungsjahr (Header-Angabe). Standard: aktuelles Jahr.
 /// -> none
 #let set-gutachten-infos(
   fach: "",
@@ -25,6 +26,7 @@
   be: 1,
   font: "New Computer Modern Sans",
   math-font: "Fira Math",
+  jahr: auto,
 ) = state("gutachten-infos").update((
   fach: fach,
   niveau: niveau,
@@ -33,6 +35,7 @@
   be: be,
   font: font,
   math-font: math-font,
+  jahr: jahr,
 ))
 
 #let name = context state("schüler").get().vorname
@@ -174,7 +177,7 @@
           align: (left + top, center + horizon, right + horizon),
           image("logo.svg", height: 1.3cm),
           [Gutachten über die schriftliche Prüfung von \ *#vorname #nachname*],
-          [Abitur 2025 \ #gutachten-infos.fach (#gutachten-infos.niveau) - #gutachten-infos.kürzel],
+          [Abitur #if gutachten-infos.jahr == auto { int(datetime.today().display("[year]")) } else { gutachten-infos.jahr } \ #gutachten-infos.fach (#gutachten-infos.niveau) - #gutachten-infos.kürzel],
         )
         #v(-3mm)
         #line(length: 100%, stroke: 1.5pt)
