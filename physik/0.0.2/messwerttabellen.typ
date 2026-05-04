@@ -88,8 +88,9 @@
   let basis_einheit = einheit
   let aktueller_prefix_wert = 1
 
-  // Erkenne aktuellen Prefix in der Einheit - aber nicht bei einzelnen Buchstaben!
-  if type(einheit) == str and einheit.len() > 1 {
+  // Erkenne aktuellen Prefix in der Einheit - aber nicht bei einzelnen Buchstaben
+  // und nicht bei "kg" (Kilogramm ist SI-Basiseinheit für Masse)!
+  if type(einheit) == str and einheit.len() > 1 and einheit != "kg" {
     for (prefix_key, prefix_value) in multiplikatoren {
       if prefix_key != "" and einheit.starts-with(prefix_key) {
         aktueller_prefix_wert = prefix_value
@@ -246,7 +247,9 @@
       }
 
       // Zusätzlich prüfen, ob die Einheit selbst einen Prefix enthält
-      if datensatz.einheit != none and type(datensatz.einheit) == str {
+      // "kg" ist die SI-Basiseinheit für Masse – Prefix nicht extrahieren
+      // Einbuchstabige Einheiten (wie "m" für Meter) nicht als Präfix interpretieren
+      if datensatz.einheit != none and type(datensatz.einheit) == str and datensatz.einheit.len() > 1 and datensatz.einheit != "kg" {
         for (prefix_key, prefix_value) in multiplikatoren {
           if prefix_key != "" and datensatz.einheit.starts-with(prefix_key) {
             datensatz_multiplikator = datensatz_multiplikator * prefix_value
@@ -316,7 +319,8 @@
   }
 
   // Zusätzlich prüfen, ob die Zieleinheit selbst einen Prefix enthält
-  if einheit != none and type(einheit) == str and einheit.len() > 1 {
+  // "kg" ist die SI-Basiseinheit für Masse – Prefix nicht extrahieren
+  if einheit != none and type(einheit) == str and einheit.len() > 1 and einheit != "kg" {
     for (prefix_key, prefix_value) in multiplikatoren {
       if prefix_key != "" and einheit.starts-with(prefix_key) {
         ziel_multiplikator = ziel_multiplikator * prefix_value
