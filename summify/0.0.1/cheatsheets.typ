@@ -1,4 +1,4 @@
-#import "@schule/arbeitsblatt:0.2.1": *
+#import "@schule/arbeitsblatt:0.2.4": *
 
 #let cheatsheets(
   title: "",
