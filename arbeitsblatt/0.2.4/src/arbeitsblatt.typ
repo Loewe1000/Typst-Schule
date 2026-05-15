@@ -40,9 +40,30 @@
 #import "@preview/cetz-plot:0.1.2": *
 #import "@preview/codly:1.3.0": *
 #import "@preview/colorful-boxes:1.4.3": *
-#import "@preview/fancy-units:0.1.1": add-macros, fancy-units-configure, num, qty, unit
+#import "@preview/unify:0.8.1": num as unify-num, qty as unify-qty, unit as unify-unit
 
-#let qty_old = qty
+#let _to-unify-str(value) = {
+  if type(value) in (str, int, float) {
+    str(value)
+  } else if type(value) == content {
+    let rendered = repr(value)
+    if rendered.starts-with("[") and rendered.ends-with("]") and rendered.len() >= 2 {
+      rendered.slice(1, rendered.len() - 1)
+    } else {
+      rendered
+    }
+  } else {
+    repr(value)
+  }
+}
+
+#let _named-with-default-per(named) = {
+  if named.at("per", default: none) == none {
+    named + (per: "fraction",)
+  } else {
+    named
+  }
+}
 
 /// Erstellt einen QR-Code mit schulfreundlichen Standardwerten.
 ///
@@ -59,93 +80,76 @@
   qr-code-zebra(..args, fill: dark-color, background-fill: light-color)
 }
 
-/// Wrapper um `fancy-units`' `qty` mit deutschen Makros vorinstalliert.
+/// Wrapper um `unify`'s `qty` mit Rückwärtskompatibilität zu `fancy-units`.
 ///
-/// Registriert `µ` (`u`) und `Ω` (`ohm`) als Makros und leitet dann an
-/// `fancy-units`' `qty` weiter. Unterstützt Kurzschreibweise mit zwei
+/// Alte Aufrufe wie `#qty[9.81][m/s^2]` übergeben in Typst `content`. Diese
+/// Werte werden in Strings konvertiert und an `unify.qty` weitergereicht.
+/// Unterstützt weiterhin auch die Kurzschreibweise mit zwei
 /// Positionsargumenten:
 ///
 /// ```typ
-/// #qty[9.81][m/s^2]   // fancy-units-Syntax
+/// #qty[9.81][m/s^2]   // alte fancy-units-Syntax
 /// #qty("9.81", "m/s^2") // Kurzschreibweise
 /// ```
 ///
-/// - ..args (any): Weitergegeben an `fancy-units.qty`.
+/// - ..args (any): Weitergegeben an `unify.qty`.
 /// -> content
 #let qty(..args) = {
-  add-macros(
-    u: sym.mu,
-    ohm: sym.Omega,
-  )
   let positional = args.pos()
-  if positional.len() == 2 and type(positional.at(0)) in (str, int, float) and type(positional.at(1)) == str {
-    let named = args.named()
-    if named != () {
-      return qty_old(..named)[#positional.at(0)][#positional.at(1)]
-    }
-    return qty_old[#positional.at(0)][#positional.at(1)]
+  let named = _named-with-default-per(args.named())
+  if positional.len() == 2 {
+    let value = _to-unify-str(positional.at(0))
+    let unit = _to-unify-str(positional.at(1))
+    return unify-qty(value, unit, ..named)
   } else {
-    return qty_old(..args)
+    return unify-qty(..positional, ..named)
   }
 }
 
-#let num_old = num
-
-/// Wrapper um `fancy-units`' `num` mit deutschen Makros vorinstalliert.
+/// Wrapper um `unify`'s `num` mit Rückwärtskompatibilität zu `fancy-units`.
 ///
-/// Wie `qty`, aber für reine Zahlen ohne Einheit. Unterstützt Kurzschreibweise:
+/// Wie `qty`, aber für reine Zahlen ohne Einheit. Alte Aufrufe mit
+/// `#num[...]` werden als String weitergegeben.
 ///
 /// ```typ
-/// #num[3.14]          // fancy-units-Syntax
+/// #num[3.14]          // alte fancy-units-Syntax
 /// #num("3.14")        // Kurzschreibweise
 /// ```
 ///
-/// - ..args (any): Weitergegeben an `fancy-units.num`.
+/// - ..args (any): Weitergegeben an `unify.num`.
 /// -> content
 #let num(..args) = {
-  add-macros(
-    u: sym.mu,
-    ohm: sym.Omega,
-  )
   let positional = args.pos()
-  if positional.len() == 1 and type(positional.at(0)) in (str, int, float) {
+  if positional.len() == 1 {
     let named = args.named()
-    if named != () {
-      return num_old(..named)[#positional.at(0)]
-    }
-    return num_old[#positional.at(0)]
+    let value = _to-unify-str(positional.at(0))
+    if named != () { return unify-num(value, ..named) }
+    return unify-num(value)
   } else {
-    return num_old(..args)
+    return unify-num(..args)
   }
 }
 
-#let unit_old = unit
-
-/// Wrapper um `fancy-units`' `unit` mit deutschen Makros vorinstalliert.
+/// Wrapper um `unify`'s `unit` mit Rückwärtskompatibilität zu `fancy-units`.
 ///
-/// Wie `qty`, aber für reine Einheiten ohne Zahlenwert. Unterstützt Kurzschreibweise:
+/// Wie `qty`, aber für reine Einheiten ohne Zahlenwert. Alte Aufrufe mit
+/// `#unit[...]` werden als String weitergegeben.
 ///
 /// ```typ
-/// #unit[N/m^2]        // fancy-units-Syntax
+/// #unit[N/m^2]        // alte fancy-units-Syntax
 /// #unit("N/m^2")      // Kurzschreibweise
 /// ```
 ///
-/// - ..args (any): Weitergegeben an `fancy-units.unit`.
+/// - ..args (any): Weitergegeben an `unify.unit`.
 /// -> content
 #let unit(..args) = {
-  add-macros(
-    u: sym.mu,
-    ohm: sym.Omega,
-  )
   let positional = args.pos()
-  if positional.len() == 1 and type(positional.at(0)) in (str, int, float) {
-    let named = args.named()
-    if named != () {
-      return unit_old(..named)[#positional.at(0)]
-    }
-    return unit_old[#positional.at(0)]
+  let named = _named-with-default-per(args.named())
+  if positional.len() == 1 {
+    let value = _to-unify-str(positional.at(0))
+    return unify-unit(value, ..named)
   } else {
-    return unit_old(..args)
+    return unify-unit(..positional, ..named)
   }
 }
 
@@ -436,12 +440,6 @@
         it
       }
     }
-
-    fancy-units-configure(per-mode: "fraction", decimal-separator: ",")
-    add-macros(
-      u: sym.mu,
-      ohm: sym.Omega,
-    )
 
     body
 
