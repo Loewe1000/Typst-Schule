@@ -12,6 +12,7 @@
 /// - table (array): Additional info table rows.
 /// - stufe (string, boolean): "I" for Sekundarstufe I, "II" for Sekundarstufe II.
 /// - info-table (boolean): Whether to show info table with name.
+/// - name-repeat (boolean): Whether to repeat the student name field in the page header on every page.
 /// - erwartungen (boolean): Whether to show expectations/rubric.
 /// - page-numbering (boolean, string): Page numbering mode:
 ///   - `true` or `"reset"`: Show page numbers, reset counter for each klassenarbeit (default).
@@ -31,6 +32,7 @@
   teacher: "",
   student: "",
   name-field: "Name",
+  name-repeat: false,
   info-table: false,
   page-numbering: true,
   klausurboegen: false,
@@ -62,6 +64,12 @@
   let math-font = args.named().at("math-font", default: "Fira Math")
   font = (font, "Fira Sans", "New Computer Modern Sans", "DejaVu Sans")
   math-font = (math-font, "New Computer Modern Sans Math")
+
+  let name-field-block = {
+    if name-field != none {
+      text(14pt, weight: "semibold")[#name-field: #h(0.25em) #student]
+    }
+  }
 
   set page(
     footer: if page-numbering != false {
@@ -98,7 +106,7 @@
       inset: 3pt,
       ..if logo != none {
         (
-          std.table.cell(rowspan: 2, align: left + horizon, inset: 0pt)[#text(16pt, weight: "semibold")[#box(height: 1cm)[#logo]]],
+          std.table.cell(rowspan: 2, align: left + horizon, inset: (rest: 0pt, bottom: 4pt))[#text(16pt, weight: "semibold")[#box(height: 1cm)[#logo]]],
           std.table.cell(rowspan: 2)[#stack(
             spacing: 0mm,
             text(16pt, weight: "semibold")[#title],
@@ -120,9 +128,14 @@
           std.table.cell(align: right + horizon)[#if class != "" and teacher != "" [#class - #teacher] else [#class#teacher]],
         )
       },
+      std.table.hline(stroke: 0.5pt + luma(200)),
+      ..if name-repeat {
+        (
+          std.table.cell(align: left + horizon, inset: (x: 0pt, y: 14pt))[#name-field-block],
+          std.table.hline(stroke: 0.5pt + luma(200)),
+        )
+      },
     )
-
-    move(dy: -1em, line(length: 100%, stroke: 0.5pt + luma(200)))
   }
 
   // Standard-Margin für Klassenarbeiten definieren
@@ -190,7 +203,9 @@
       )
     })
 
-    if name-field != none { text(14pt, weight: "semibold")[#name-field: #h(0.25em) #student] }
+    if not name-repeat {
+      if name-field != none { text(14pt, weight: "semibold")[#name-field: #h(0.25em) #student] }
+    }
 
     std.table(
       columns: (auto, 1fr),
@@ -203,9 +218,8 @@
       },
       std.table.hline(stroke: 0.5pt + luma(200)),
     )
-  } else if name-field != none {
-    text(14pt, weight: "semibold")[#name-field: #h(0.25em) #student]
-    line(length: 100%, stroke: 0.5pt + luma(200))
+  } else if not name-repeat {
+    name-field-block
   }
 
   body

@@ -143,6 +143,19 @@ Standardmäßig wird ein einfaches Namensfeld angezeigt:
 
 Das zeigt: *Name:* #box(line()). Die Beschrift kann angepasst (`name-field: "Name, Vorname"`) oder entfernt werden (`name-field: none`).
 
+== Name auf jeder Seite
+
+Wenn das normale Namensfeld auf jeder Seite in der Kopfzeile erscheinen soll, kann die Wiederholung aktiviert werden:
+
+#sourcecode[```typ
+#show: klassenarbeit.with(
+  name-repeat: true,
+  // ...
+)
+```]
+
+Dann wird das Namensfeld auf jeder Seite im Seitenkopf ausgegeben.
+
 == Informationstabelle aktivieren
 
 Mit `info-table` wird eine Tabelle mit Informationen angezeigt:
@@ -356,6 +369,7 @@ In der Regel werden bei Klassenarbeiten keine Lösungen mitgedruckt (`loesungen:
   arg(teacher: ""),
   arg(logo: "angela"),
   arg(schueler: ""),
+  arg(name-repeat: false),
   arg(info-table: false),
   arg(erwartungen: true),
   arg(page-numbering: true),
@@ -395,6 +409,10 @@ In der Regel werden bei Klassenarbeiten keine Lösungen mitgedruckt (`loesungen:
 
   #argument("schueler", types: "string", default: "")[
     Name des Schülers / der Schülerin oder Linie für Namenseintrag.
+  ]
+
+  #argument("name-repeat", types: "boolean", default: false)[
+    Wenn `true`, wird der Name zusätzlich in der Kopfzeile jeder Seite angezeigt.
   ]
 
   #argument("info-table", types: ("boolean", "array"), default: false)[
