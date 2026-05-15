@@ -12,6 +12,7 @@
 /// - fach (string): Fachname der Prüfung. Standard: `""`.
 /// - niveau (string): Kursniveau, z. B. `"E"` (erhöht) oder `"G"` (grundlegend). Standard: `""`.
 /// - kürzel (string): Kürzel der Lehrkraft. Standard: `""`.
+/// - anonym (bool): Anonymisiert die Namensanzeige im Dokument. Standard: `false`.
 /// - print (bool): Druckmodus (reduzierte Farben). Standard: `false`.
 /// - be (int): Maximale Bewertungseinheiten. Standard: `1`.
 /// - font (string): Hauptschriftart. Standard: `"New Computer Modern Sans"`.
@@ -22,6 +23,7 @@
   fach: "",
   niveau: "",
   kürzel: "",
+  anonym: false,
   print: false,
   be: 1,
   font: "New Computer Modern Sans",
@@ -31,6 +33,7 @@
   fach: fach,
   niveau: niveau,
   kürzel: kürzel,
+  anonym: anonym,
   print: print,
   be: be,
   font: font,
@@ -38,7 +41,17 @@
   jahr: jahr,
 ))
 
-#let name = context state("schüler").get().vorname
+#let _anonym-name-placeholder() = emph[#text(fill: black)[Schüler]]
+
+#let name = context {
+  let schüler = state("schüler").get()
+  let anonym = state("gutachten-infos").final().anonym
+  if anonym {
+    _anonym-name-placeholder()
+  } else {
+    schüler.vorname
+  }
+}
 
 /// Definiert die Aufgaben mit ihren maximalen Bewertungseinheiten.
 ///
@@ -112,9 +125,15 @@
 
   #context par[
     #let schüler = state("schüler").get()
+    #let anonym = state("gutachten-infos").final().anonym
+    #let schüler-anzeige = if anonym {
+      _anonym-name-placeholder()
+    } else {
+      schüler.at("vorname")
+    }
     #let be = state("aufgaben").get().at(name).be
     #state("punkte").update(i => { punkte + i })
-    In #name erreicht #schüler.at("vorname") insgesamt *$#punkte$* von *$#be$* Bewertungseinheiten.
+    In #name erreicht #schüler-anzeige insgesamt *$#punkte$* von *$#be$* Bewertungseinheiten.
   ]
 ]
 
@@ -147,6 +166,13 @@
   #context [
 
     #let gutachten-infos = state("gutachten-infos").final()
+    #let anonym = gutachten-infos.anonym
+    #let vorname-anzeige = if anonym { _anonym-name-placeholder() } else { vorname }
+    #let voller-name = if anonym {
+      _anonym-name-placeholder()
+    } else {
+      emph[#vorname #nachname]
+    }
 
     #set text(font: gutachten-infos.font, lang: "de")
     #show math.equation: set text(font: gutachten-infos.math-font)
@@ -176,7 +202,7 @@
           columns: (auto, 1fr, auto),
           align: (left + top, center + horizon, right + horizon),
           image("logo.svg", height: 1.3cm),
-          [Gutachten über die schriftliche Prüfung von \ *#vorname #nachname*],
+          [Gutachten über die schriftliche Prüfung von \ #voller-name],
           [Abitur #if gutachten-infos.jahr == auto { int(datetime.today().display("[year]")) } else { gutachten-infos.jahr } \ #gutachten-infos.fach (#gutachten-infos.niveau) - #gutachten-infos.kürzel],
         )
         #v(-3mm)
@@ -187,10 +213,15 @@
 
     #if wahl.len() > 0 [
       #context [
-        #vorname wählt #if type(wahl) == array {
+        #vorname-anzeige wählt #if type(wahl) == array {
           wahl.map(
             a => {
-              let aufgaben-name = state("aufgaben").get().at(a).name
+              let aufgaben-eintrag = state("aufgaben").get().at(a, default: (name: ""))
+              let aufgaben-name = if type(aufgaben-eintrag) == dictionary {
+                aufgaben-eintrag.at("name", default: "")
+              } else {
+                ""
+              }
               emph[#a#if aufgaben-name != "" [: #aufgaben-name]]
             },
           ).join(", ", last: " und ") + "."
@@ -201,8 +232,13 @@
               "im " + key + " "
               wahl.at(key).map(
                 a => {
-                  let aufgaben-name = state("aufgaben").get().at(a, default: a)
-                  emph[#a#if type(aufgaben-name) == dictionary and aufgaben-name.at("name", default: "") != "" [: #aufgaben-name]]
+                  let aufgaben-eintrag = state("aufgaben").get().at(a, default: (name: ""))
+                  let aufgaben-name = if type(aufgaben-eintrag) == dictionary {
+                    aufgaben-eintrag.at("name", default: "")
+                  } else {
+                    ""
+                  }
+                  emph[#a#if aufgaben-name != "" [: #aufgaben-name]]
                 },
               ).join(", ", last: " und ")
             },
