@@ -5,6 +5,30 @@
   if bold { strong(text) } else { text }
 }
 
+#let _normalisiere-sprache(language) = lower(str(language).trim())
+
+#let _csv-dateiname(fach, language) = {
+  let lang = _normalisiere-sprache(language)
+  if lang == "de" {
+    fach + ".csv"
+  } else if lang == "it" {
+    fach + "-it.csv"
+  } else {
+    panic("Unbekannte Sprache '" + str(language) + "'. Verfügbar: de, it.")
+  }
+}
+
+#let _operatorenlisten-titel(language) = {
+  let lang = _normalisiere-sprache(language)
+  if lang == "de" {
+    [Operatorenliste]
+  } else if lang == "it" {
+    [Elenco degli operatori]
+  } else {
+    panic("Unbekannte Sprache '" + str(language) + "'. Verfügbar: de, it.")
+  }
+}
+
 /// Markiert einen Operator im Text und verlinkt ihn mit der Operatorenliste.
 ///
 /// Der Operator wird automatisch zur internen Liste hinzugefügt und
@@ -44,18 +68,19 @@
 /// werden aufgelistet.
 ///
 /// ```typ
-/// #operatoren-liste(fach: "Physik")
+/// #operatoren-liste(fach: "Physik", language: "de")
 /// ```
 ///
 /// - fach (string): Fachname. Bestimmt die CSV-Datei. Verfügbar: `"Mathe"`, `"Physik"`. Standard: `"Mathe"`.
+/// - language (string): Sprachcode für CSV und Überschrift. Verfügbar: `"de"`, `"it"`. Standard: `"de"`.
 /// - operator-text-bold (boolean): Globale Darstellung von `#operator(...)` im Fließtext.
 ///   Standard: `false`.
 /// -> content
-#let operatoren-liste(fach: "Mathe", operator-text-bold: false) = [
+#let operatoren-liste(fach: "Mathe", language: "de", operator-text-bold: false) = [
   #import "@preview/tablex:0.0.9": *
   #context {
     operatoren-config-state.update(_ => (text-bold: operator-text-bold,))
-    let operatoren-definitionen-array = csv(fach + ".csv", delimiter: ";")
+    let operatoren-definitionen-array = csv(_csv-dateiname(fach, language), delimiter: ";")
     let operatoren-definitionen = (:)
     for operator in operatoren-definitionen-array {
       operatoren-definitionen.insert(operator.at(0), operator.at(1))
@@ -64,7 +89,7 @@
     context [
       #let operatoren = operatoren-state.final().map(op => lower(op))
       #label("-def")
-      = Operatorenliste
+      = #_operatorenlisten-titel(language)
       #set text(10pt, hyphenate: false)
       #tablex(columns: (auto, 1fr), stroke: 0.5pt, ..operatoren.dedup().sorted().map(op => {
         ([#_render-operator-text(op, bold: true)], [#operatoren-definitionen.at(op) #label(op+"-def")])
