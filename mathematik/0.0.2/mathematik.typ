@@ -361,7 +361,7 @@
 
   // Verarbeite die Marks/Points in ein einheitliches Format
   let processed-marks = ()
-  
+
   if marks != () {
     // Normalisiere zu Array von Mark-Definitionen
     let marks-array = if type(marks) == array {
@@ -369,7 +369,7 @@
     } else {
       (marks,)
     }
-    
+
     for mark-def in marks-array {
       let pos = none
       let mark-content = none
@@ -378,12 +378,12 @@
       let symbol = "x"
       let mark-stroke = black
       let mark-fill = none
-      
+
       if type(mark-def) == array and mark-def.len() == 2 {
         // Prüfe ob es ein Tupel (position, content) ist
         let first = mark-def.at(0)
         let second = mark-def.at(1)
-        
+
         if type(first) == array and first.len() == 2 and type(second) == content {
           // Format: ((x, y), [label])
           pos = first
@@ -400,32 +400,32 @@
         } else if "pos" in mark-def {
           pos = mark-def.pos
         }
-        
+
         if "content" in mark-def {
           mark-content = mark-def.content
         } else if "label" in mark-def {
           mark-content = mark-def.label
         }
-        
+
         if "anchor" in mark-def { anchor = mark-def.anchor }
         if "padding" in mark-def { padding = mark-def.padding }
         if "symbol" in mark-def { symbol = mark-def.symbol }
         if "stroke" in mark-def { mark-stroke = mark-def.stroke }
         if "fill" in mark-def { mark-fill = mark-def.fill }
-        if "color" in mark-def { 
+        if "color" in mark-def {
           mark-stroke = resolve-color(mark-def.color)
           if mark-fill == none {
             mark-fill = resolve-color(mark-def.color)
           }
         }
-        if "clr" in mark-def { 
+        if "clr" in mark-def {
           mark-stroke = resolve-color(mark-def.clr)
           if mark-fill == none {
             mark-fill = resolve-color(mark-def.clr)
           }
         }
       }
-      
+
       if pos != none {
         processed-marks.push((
           position: pos,
@@ -866,17 +866,17 @@
               // String-Form
               d.marker
             }
-            
+
             // Erstelle mark-style: Kombiniere Standard-Werte mit Optionen
             let base-mark-style = (fill: d.clr, stroke: d.clr + 1.25pt)
-            
+
             // Überschreibe mit mark-style-opts falls vorhanden (zuerst!)
             if d.mark-style-opts != none {
               for (key, value) in d.mark-style-opts {
                 base-mark-style.insert(key, value)
               }
             }
-            
+
             // Füge marker-Dictionary-Optionen hinzu (außer "symbol")
             // Diese überschreiben mark-style-opts wenn beides gesetzt ist
             if type(d.marker) == dictionary {
@@ -886,7 +886,7 @@
                 }
               }
             }
-            
+
             plot.add(
               d.points,
               style: (stroke: none),
@@ -901,7 +901,7 @@
             for m in processed-marks {
               // Zeichne den Punkt-Marker
               mark(m.position, (rel: (0, 0.00001)), symbol: m.symbol, stroke: m.stroke, fill: if m.fill != none { m.fill } else { m.stroke })
-              
+
               // Zeichne das Label wenn vorhanden
               if m.content != none {
                 // Konvertiere anchor string zu cetz anchor format
@@ -924,7 +924,7 @@
                 } else {
                   m.anchor
                 }
-                
+
                 content(m.position, anchor: cetz-anchor, padding: m.padding, m.content)
               }
             }
@@ -951,16 +951,82 @@
 ///
 /// - ..bedingungen (arguments): Bedingungsstrings wie `"f(2)=3"`, `"f'(-1)=0"`, `"f(3)=0"`.
 ///   Ableitungen werden durch Apostrophe markiert (`f'`, `f''`, …).
-/// - notation (string): Zahlenformat der Koeffizienten: `"dec"` (Dezimal) oder `"sci"` (wissenschaftlich).
+/// - notation (string): Zahlenformat der Koeffizienten: `"dec"` (Dezimal), `"sci"` (wissenschaftlich) oder `"frac"` (exakte Brüche).
 /// - precision (float): Schwellenwert, unterhalb dessen ein Koeffizient als null gilt.
 /// -> dictionary
 // Steckbriefaufgaben: Bestimme Polynomfunktion aus gegebenen Bedingungen
 #let steckbrief(..bedingungen, notation: "dec", precision: 1e-10) = {
   import "@preview/zero:0.5.0": num as znum
 
+  // Rationale Arithmetik für exakte Bruchrechnung
+  let rat-gcd(a, b) = {
+    a = calc.abs(a)
+    b = calc.abs(b)
+    while b != 0 {
+      let temp = calc.rem(a, b)
+      a = b
+      b = temp
+    }
+    a
+  }
+  let rat-simp(n, d) = {
+    if n == 0 { return (0, 1) }
+    let abs-n = calc.abs(n)
+    let abs-d = calc.abs(d)
+    let g = rat-gcd(abs-n, abs-d)
+    let sign = if (n < 0) != (d < 0) { -1 } else { 1 }
+    (sign * int(abs-n / g), int(abs-d / g))
+  }
+  let rat-add(a, b) = rat-simp(a.at(0) * b.at(1) + b.at(0) * a.at(1), a.at(1) * b.at(1))
+  let rat-sub(a, b) = rat-simp(a.at(0) * b.at(1) - b.at(0) * a.at(1), a.at(1) * b.at(1))
+  let rat-mul(a, b) = rat-simp(a.at(0) * b.at(0), a.at(1) * b.at(1))
+  let rat-div(a, b) = rat-simp(a.at(0) * b.at(1), a.at(1) * b.at(0))
+  let rat-is-zero(a) = a.at(0) == 0
+  let rat-is-neg(a) = a.at(0) < 0
+  let rat-abs(a) = (calc.abs(a.at(0)), a.at(1))
+  let rat-is-one(a) = a.at(0) == 1 and a.at(1) == 1
+  let rat-abs-gt(a, b) = calc.abs(a.at(0)) * b.at(1) > calc.abs(b.at(0)) * a.at(1)
+
+  // String zu rationalem Bruch (exakt)
+  let str-to-rat(s) = {
+    let s = s.trim()
+    if s.contains("/") {
+      let parts = s.split("/")
+      rat-simp(int(parts.at(0)), int(parts.at(1)))
+    } else if s.contains(".") {
+      let is-neg = s.starts-with("-")
+      let abs-s = if is-neg { s.slice(1) } else { s }
+      let parts = abs-s.split(".")
+      let dec-len = parts.at(1).len()
+      let pow = int(calc.pow(10, dec-len))
+      let int-part = int(parts.at(0))
+      let frac-part = int(parts.at(1))
+      let num = int-part * pow + frac-part
+      rat-simp(if is-neg { -num } else { num }, pow)
+    } else {
+      (int(s), 1)
+    }
+  }
+
+  // Float zu rationalem Bruch
+  let float-to-rat(v) = {
+    let rounded = calc.round(v, digits: 10)
+    if rounded == calc.round(rounded) { (int(rounded), 1) } else { str-to-rat(str(rounded)) }
+  }
+
+  // Formatiere rationalen Bruch als Math-Content
+  let format-number-rat(rat) = {
+    let n = rat.at(0)
+    let d = rat.at(1)
+    if d == 1 { $#str(n)$ } else if n < 0 { $-frac(#str(-n), #str(d))$ } else { $frac(#str(n), #str(d))$ }
+  }
+
   // Hilfsfunktion: Formatiere Zahl für Ausgabe
   let format-number(value, digits: 2) = {
-    if notation == "sci" {
+    if notation == "frac" {
+      let rat = float-to-rat(value)
+      format-number-rat(rat)
+    } else if notation == "sci" {
       let exp = if value == 0 { 0 } else { calc.floor(calc.log(calc.abs(value), base: 10)) }
       let mantissa = value / calc.pow(10, exp)
 
@@ -1027,6 +1093,22 @@
     }
 
     (x: x-val, y: y-val, ableitung: ableitung)
+  }
+
+  // Parse mit rationalen Zahlen (für exakte Bruchrechnung)
+  let parse-bedingung-rat(bedingung-str) = {
+    let s = bedingung-str.replace(" ", "")
+    let ableitung = 0
+    for char in s.clusters() {
+      if char == "'" { ableitung += 1 }
+    }
+    let x-match = s.match(regex("\(([^)]+)\)"))
+    assert(x-match != none, message: "Ungültiges Format: " + bedingung-str)
+    let x-str = x-match.captures.at(0)
+    let y-match = s.match(regex("=(.+)$"))
+    assert(y-match != none, message: "Kein '=' gefunden in: " + bedingung-str)
+    let y-str = y-match.captures.at(0)
+    (x: str-to-rat(x-str), y: str-to-rat(y-str), ableitung: ableitung)
   }
 
   // Parse alle Bedingungen
@@ -1132,12 +1214,77 @@
   // Extrahiere Lösung (letzte Spalte)
   let koeffizienten = matrix.map(row => row.last())
 
+  // Rationale Gauß-Elimination für exakte Bruchkoeffizienten
+  let koeff-rat = if notation == "frac" {
+    let parsed-rat = bedingungen-array.map(parse-bedingung-rat)
+    let mat-rat = ()
+    for bedingung in parsed-rat {
+      let row = ()
+      let x = bedingung.x
+      let abl = bedingung.ableitung
+      for i in range(n) {
+        let koeff-int = 1
+        let exponent = i
+        for d in range(abl) {
+          if exponent == 0 {
+            koeff-int = 0
+            break
+          }
+          koeff-int = koeff-int * exponent
+          exponent = exponent - 1
+        }
+        let wert = if koeff-int == 0 {
+          (0, 1)
+        } else if exponent == 0 {
+          (koeff-int, 1)
+        } else {
+          let x-pow = (1, 1)
+          for _ in range(exponent) { x-pow = rat-mul(x-pow, x) }
+          rat-mul((koeff-int, 1), x-pow)
+        }
+        row.push(wert)
+      }
+      row.push(bedingung.y)
+      mat-rat.push(row)
+    }
+    for i in range(n) {
+      let max-row = i
+      for k in range(i + 1, n) {
+        if rat-abs-gt(mat-rat.at(k).at(i), mat-rat.at(max-row).at(i)) {
+          max-row = k
+        }
+      }
+      if max-row != i {
+        (mat-rat.at(i), mat-rat.at(max-row)) = (mat-rat.at(max-row), mat-rat.at(i))
+      }
+      let pivot = mat-rat.at(i).at(i)
+      for j in range(i, n + 1) {
+        mat-rat.at(i).at(j) = rat-div(mat-rat.at(i).at(j), pivot)
+      }
+      for k in range(n) {
+        if k != i {
+          let factor = mat-rat.at(k).at(i)
+          if not rat-is-zero(factor) {
+            for j in range(i, n + 1) {
+              mat-rat.at(k).at(j) = rat-sub(mat-rat.at(k).at(j), rat-mul(factor, mat-rat.at(i).at(j)))
+            }
+          }
+        }
+      }
+    }
+    mat-rat.map(row => row.last())
+  } else { () }
+
   // Erstelle Gleichungssystem für Ausgabe
   let gleichungssystem = ()
+  let gleichungssystem-rows = ()
+  let gleichungssystem-max-cells = 0
   for (idx, bedingung) in parsed.enumerate() {
     let x = bedingung.x
     let abl = bedingung.ableitung
     let terms = ()
+    let row-cells = ()
+    let first-term = true
 
     for i in range(grad, -1, step: -1) {
       let koeff-idx = i
@@ -1164,19 +1311,39 @@
 
         // Formatiere Term
         let var-name = ("a", "b", "c", "d", "e", "f", "g", "h").at(grad - i)
-
-        if calc.abs(x-wert - 1) < 0.01 {
-          terms.push($#var-name$)
+        let term-content = if calc.abs(x-wert - 1) < 0.01 {
+          $#var-name$
         } else if calc.abs(x-wert + 1) < 0.01 {
-          terms.push($-#var-name$)
+          $-#var-name$
         } else {
           let x-str = format-number(x-wert)
-          terms.push($#x-str dot #var-name$)
+          $#x-str#var-name$
         }
+
+        if first-term {
+          if x-wert < 0 {
+            row-cells.push($-#term-content$)
+          } else {
+            row-cells.push(term-content)
+          }
+          first-term = false
+        } else if x-wert < 0 {
+          row-cells.push($-$)
+          row-cells.push(term-content)
+        } else {
+          row-cells.push($+$)
+          row-cells.push(term-content)
+        }
+
+        terms.push(term-content)
       }
     }
 
     let y-str = format-number(bedingung.y)
+    if row-cells.len() > gleichungssystem-max-cells {
+      gleichungssystem-max-cells = row-cells.len()
+    }
+    gleichungssystem-rows.push((cells: row-cells, rhs: y-str))
     let equation = if terms.len() == 0 {
       $0 = #y-str$
     } else {
@@ -1186,7 +1353,45 @@
     gleichungssystem.push(equation)
   }
 
+  // Erstelle Bedingungen als eigenes Gleichungssystem
+  let bedingungen-system-rows = ()
+  for bedingung in parsed {
+    let primes = if bedingung.ableitung == 0 {
+      []
+    } else {
+      math.primes(bedingung.ableitung)
+    }
+    bedingungen-system-rows.push(($f^#primes (#format-number(bedingung.x))$, $ = $, $#format-number(bedingung.y)$))
+  }
+
+  let bedingungen-display = bedingungen-array.map(bedingung-str => eval("$" + bedingung-str + "$"))
+
   // Erstelle Funktionsgleichung
+  let format-ansatz() = {
+    let terms = ()
+    for i in range(grad, -1, step: -1) {
+      let name = ("a", "b", "c", "d", "e", "f", "g", "h").at(grad - i)
+      let term = if i == 0 {
+        $#name$
+      } else if i == 1 {
+        $#name\x$
+      } else {
+        $#name\x^#i$
+      }
+      terms.push(term)
+    }
+
+    if terms.len() == 0 {
+      $f(x) = 0$
+    } else {
+      let eq = $f(x) = #terms.first()$
+      for term in terms.slice(1) {
+        eq = $#eq + #term$
+      }
+      eq
+    }
+  }
+
   let format-polynom(koeff, digits: 2) = {
     let terms = ()
     for i in range(grad, -1, step: -1) {
@@ -1241,6 +1446,44 @@
     }
   }
 
+  // Formatiere Polynom mit exakten rationalen Koeffizienten
+  let format-polynom-rat(koeff-rat-arr) = {
+    let terms = ()
+    for i in range(grad, -1, step: -1) {
+      let k = koeff-rat-arr.at(i)
+      if not rat-is-zero(k) {
+        let is-neg = rat-is-neg(k)
+        let abs-k = rat-abs(k)
+        let is-one = rat-is-one(abs-k)
+        let term = if i == 0 {
+          format-number-rat(abs-k)
+        } else if i == 1 {
+          if is-one { $x$ } else { $#format-number-rat(abs-k) x$ }
+        } else {
+          if is-one { $x^#i$ } else { $#format-number-rat(abs-k) x^#i$ }
+        }
+        terms.push((term: term, is-negative: is-neg))
+      }
+    }
+    if terms.len() == 0 {
+      $f(x) = 0$
+    } else {
+      let eq = if terms.first().is-negative {
+        $f(x) = -#terms.first().term$
+      } else {
+        $f(x) = #terms.first().term$
+      }
+      for term-info in terms.slice(1) {
+        eq = if term-info.is-negative {
+          $#eq - #term-info.term$
+        } else {
+          $#eq + #term-info.term$
+        }
+      }
+      eq
+    }
+  }
+
   // Erstelle Funktion
   let f(x) = {
     let y = 0
@@ -1251,11 +1494,43 @@
   }
 
   // Erstelle Rückgabewert ähnlich wie bei Regressionen
+  let gleichungssystem-layout = ()
+  for row in gleichungssystem-rows {
+    let cells = ()
+    for cell in row.cells {
+      cells.push(cell)
+    }
+    while cells.len() < gleichungssystem-max-cells {
+      cells.push([])
+    }
+    cells.push($=$)
+    cells.push(row.rhs)
+    gleichungssystem-layout.push(cells)
+  }
+
+  let gleichungssystem-display = if gleichungssystem-layout.len() == 0 {
+    none
+  } else {
+    [$mat(delim: "|", column-gap: #0.2em, align: #right, ..#gleichungssystem-layout)$]
+  }
+
+  let bedingungen-system-display = if bedingungen-system-rows.len() == 0 {
+    none
+  } else {
+    [$mat(delim: "|", column-gap: #0.2em, align: #right, ..#bedingungen-system-rows)$]
+  }
+
   let result = (
-    math: format-polynom(koeffizienten),
-    math-digits: digits => format-polynom(koeffizienten, digits: digits),
+    ansatz: format-ansatz(),
+    math: if notation == "frac" { format-polynom-rat(koeff-rat) } else { format-polynom(koeffizienten) },
+    math-digits: digits => if notation == "frac" { format-polynom-rat(koeff-rat) } else { format-polynom(koeffizienten, digits: digits) },
     function: f,
-    gleichungssystem: gleichungssystem,
+    gleichungssystem: gleichungssystem-display,
+    bedingungen: bedingungen-display,
+    bedingungen-raw: bedingungen-array,
+    bedingungen-system: bedingungen-system-display,
+    gleichungssystem-raw: gleichungssystem,
+    bedingungen-system-raw: bedingungen-system-rows,
   )
 
   // Füge Koeffizienten mit Namen hinzu
@@ -1562,12 +1837,12 @@
 ) = {
   let cell-list = cells.pos()
   let processed-cells = ()
-  
+
   for (i, cell) in cell-list.enumerate() {
     let is-last = i == cell-list.len() - 1
     processed-cells.push(geogebra-cell(cell, menu: true, approx: is-last and last-has-approx))
   }
-  
+
   geogebra-style[
     #table(
       stroke: stroke,
