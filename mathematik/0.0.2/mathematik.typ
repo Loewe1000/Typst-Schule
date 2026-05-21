@@ -1361,7 +1361,7 @@
     } else {
       math.primes(bedingung.ableitung)
     }
-    bedingungen-system-rows.push(($f^#primes (#format-number(bedingung.x))$, $ = $, $#format-number(bedingung.y)$))
+    bedingungen-system-rows.push(($f#primes (#format-number(bedingung.x))$, $ = $, $#format-number(bedingung.y)$))
   }
 
   let bedingungen-display = bedingungen-array.map(bedingung-str => eval("$" + bedingung-str + "$"))
