@@ -1311,12 +1311,11 @@
 
         // Formatiere Term
         let var-name = ("a", "b", "c", "d", "e", "f", "g", "h").at(grad - i)
-        let term-content = if calc.abs(x-wert - 1) < 0.01 {
+        let abs-x-wert = calc.abs(x-wert)
+        let term-content = if calc.abs(abs-x-wert - 1) < 0.01 {
           $#var-name$
-        } else if calc.abs(x-wert + 1) < 0.01 {
-          $-#var-name$
         } else {
-          let x-str = format-number(x-wert)
+          let x-str = format-number(abs-x-wert)
           $#x-str#var-name$
         }
 
@@ -1335,7 +1334,7 @@
           row-cells.push(term-content)
         }
 
-        terms.push(term-content)
+        terms.push((term: term-content, is-negative: x-wert < 0))
       }
     }
 
@@ -1347,7 +1346,19 @@
     let equation = if terms.len() == 0 {
       $0 = #y-str$
     } else {
-      terms.join($" " + " "$) + $= #y-str$
+      let eq = if terms.first().is-negative {
+        $-#terms.first().term$
+      } else {
+        terms.first().term
+      }
+      for term-info in terms.slice(1) {
+        eq = if term-info.is-negative {
+          $#eq - #term-info.term$
+        } else {
+          $#eq + #term-info.term$
+        }
+      }
+      $#eq = #y-str$
     }
 
     gleichungssystem.push(equation)
@@ -1361,7 +1372,7 @@
     } else {
       math.primes(bedingung.ableitung)
     }
-    bedingungen-system-rows.push(($f#primes (#format-number(bedingung.x))$, $ = $, $#format-number(bedingung.y)$))
+    bedingungen-system-rows.push(($f^#primes (#format-number(bedingung.x))$, $ = $, $#format-number(bedingung.y)$))
   }
 
   let bedingungen-display = bedingungen-array.map(bedingung-str => eval("$" + bedingung-str + "$"))
