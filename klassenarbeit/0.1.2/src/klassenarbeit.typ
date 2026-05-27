@@ -234,7 +234,7 @@
   }
 
   [
-    #if klausurboegen != false and (type(klausurboegen) == dictionary or klausurboegen == true) {
+    #if klausurboegen != false and ((type(klausurboegen) == dictionary and klausurboegen.at("show", default: true) == true) or klausurboegen == true) {
       import "@schule/klausurboegen:0.0.3": *
 
       klausurbögen(
