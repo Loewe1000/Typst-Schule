@@ -45,9 +45,9 @@
 
 #let _format-punkte-wert(punkte) = {
   if type(punkte) == int and punkte >= 0 and punkte < 10 {
-    "0" + str(punkte)
+    "0" + str(punkte).replace(".", ",")
   } else {
-    str(punkte)
+    str(punkte).replace(".", ",")
   }
 }
 
