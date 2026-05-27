@@ -43,6 +43,14 @@
 
 #let _anonym-name-placeholder() = emph[#text(fill: black)[Schüler]]
 
+#let _format-punkte-wert(punkte) = {
+  if type(punkte) == int and punkte >= 0 and punkte < 10 {
+    "0" + str(punkte)
+  } else {
+    str(punkte)
+  }
+}
+
 #let name = context {
   let schüler = state("schüler").get()
   let anonym = state("gutachten-infos").final().anonym
@@ -133,7 +141,7 @@
     }
     #let be = state("aufgaben").get().at(name).be
     #state("punkte").update(i => { punkte + i })
-    In #name erreicht #schüler-anzeige insgesamt *$#punkte$* von *$#be$* Bewertungseinheiten.
+    In #name erreicht #schüler-anzeige insgesamt *#_format-punkte-wert(punkte)* von *#_format-punkte-wert(be)* Bewertungseinheiten.
   ]
 ]
 
@@ -257,7 +265,7 @@
 
         #v(1em)
 
-        Insgesamt erreicht der Prüfling *$#punkte$* von *$#be$* Bewertungseinheiten ($#calc.round(100 * punkte / be, digits: 1)$%).\
+        Insgesamt erreicht der Prüfling *#_format-punkte-wert(punkte)* von *#_format-punkte-wert(be)* Bewertungseinheiten ($#calc.round(100 * punkte / be, digits: 1)$%).\
         Daher bewerte ich die Arbeit mit\
         #align(center)[*#bewertungsskala(punkte / be)*.]
 
