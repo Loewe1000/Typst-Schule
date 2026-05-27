@@ -1,0 +1,15 @@
+[package]
+name = "eduki"
+version = "0.1.0"
+entrypoint = "src/eduki.typ"
+authors = ["Alexander Schulz"]
+description = "Typst-Paket fuer Eduki Material-Boxen mit automatischen Seitenlayouts fuer Vorschaukarten."
+license = "MIT"
+repository = "https://github.com/Loewe1000/Typst-Schule"
+keywords = [
+    "eduki",
+    "material-box",
+    "schule",
+]
+categories = ["layout", "components", "office"]
+disciplines = ["education"]
