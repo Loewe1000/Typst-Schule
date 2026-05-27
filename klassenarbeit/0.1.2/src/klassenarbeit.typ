@@ -136,6 +136,7 @@
         )
       },
     )
+    v(14pt)
   }
 
   // Standard-Margin für Klassenarbeiten definieren
