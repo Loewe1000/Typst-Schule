@@ -136,7 +136,9 @@
         )
       },
     )
-    v(14pt)
+    if name-repeat and here().page() != 1 {
+      v(14pt)
+    }
   }
 
   // Standard-Margin für Klassenarbeiten definieren
