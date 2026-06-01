@@ -5,7 +5,7 @@
 #import "@schule/patterns:0.0.2": *
 #import "@preview/eqalc:0.1.3": *
 #import "@preview/zero:0.5.0": *
-#import "@schule/mathematik:0.0.2": graphen, kreisdiagramm, steckbrief, teilaufgaben, geogebra-algebra, geogebra-cell,
+#import "@schule/mathematik:0.0.2": geogebra-algebra, geogebra-cell, graphen, kreisdiagramm, steckbrief, teilaufgaben
 #import "@schule/informatik:0.0.2": *
 #import "@schule/physik:0.0.2": (
   // Tabellen und Daten
@@ -40,7 +40,7 @@
 #import "@preview/cetz-plot:0.1.2": *
 #import "@preview/codly:1.3.0": *
 #import "@preview/colorful-boxes:1.4.3": *
-#import "@preview/unify:0.8.1": num as unify-num, qty as unify-qty, unit as unify-unit
+#import "@preview/unify:0.8.1": add-unit, num as unify-num, qty as unify-qty, unit as unify-unit
 
 #let _to-unify-str(value) = {
   if type(value) in (str, int, float) {
@@ -59,7 +59,7 @@
 
 #let _named-with-default-per(named) = {
   if named.at("per", default: none) == none {
-    named + (per: "fraction",)
+    named + (per: "fraction")
   } else {
     named
   }
@@ -228,6 +228,8 @@
   // Set document title and authors in metadata
   // Set font and text properties
   set par(justify: true, leading: 0.65em, linebreaks: "optimized")
+
+  add-unit("Watt hours", "Wh", "upright(\"Wh\")")
 
   set text(font-size, font: font, hyphenate: true, lang: "de")
   show math.equation: set text(font: math-font)

@@ -139,9 +139,11 @@
     } else {
       schüler.at("vorname")
     }
-    #let be = state("aufgaben").get().at(name).be
+    #let aufgaben-eintrag = state("aufgaben").get().at(name)
+    #let be = aufgaben-eintrag.be
+    #let name-dativ = aufgaben-eintrag.at("dativ", default: name)
     #state("punkte").update(i => { punkte + i })
-    In #name erreicht #schüler-anzeige insgesamt *#_format-punkte-wert(punkte)* von *#_format-punkte-wert(be)* Bewertungseinheiten.
+    In #name-dativ erreicht #schüler-anzeige insgesamt *#_format-punkte-wert(punkte)* von *#_format-punkte-wert(be)* Bewertungseinheiten.
   ]
 ]
 
