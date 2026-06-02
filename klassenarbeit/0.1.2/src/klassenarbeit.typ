@@ -207,7 +207,11 @@
     })
 
     if not name-repeat {
-      if name-field != none { text(14pt, weight: "semibold")[#name-field: #h(0.25em) #student] }
+      if name-field != none {
+        v(14pt)
+        text(14pt, weight: "semibold")[#name-field: #h(0.25em) #student]
+        v(14pt, weak: true)
+      }
     }
 
     std.table(
@@ -222,7 +226,13 @@
       std.table.hline(stroke: 0.5pt + luma(200)),
     )
   } else if not name-repeat {
-    name-field-block
+    if name-field != none {
+      v(14pt)
+      name-field-block
+      v(-3pt)
+      line(length: 100%, stroke: 0.5pt + luma(200))
+      v(6pt)
+    }
   }
 
   body
