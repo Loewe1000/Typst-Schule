@@ -136,7 +136,7 @@
         )
       },
     )
-    if name-repeat and here().page() != 1 {
+    context if name-repeat and here().page() != 1 {
       v(14pt)
     }
   }
