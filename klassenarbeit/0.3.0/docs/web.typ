@@ -1,4 +1,4 @@
-#import "@preview/manifesto:0.1.1": template
+#import "@preview/manifesto:0.2.0": template
 #import "../../../schuldocs/0.1.0/lib.typ": with-web, show-example as _show-example
 
 #let pkg = toml("../typst.toml")

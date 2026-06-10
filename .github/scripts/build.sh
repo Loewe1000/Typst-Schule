@@ -46,10 +46,11 @@ echo "Ausgabe-Verzeichnis: $SITE_DIR"
 echo "Typst-Paketpfad: $TYPST_PACKAGE_ROOT"
 echo ""
 
-# Versions-Dropdown als Injection-Fallback für Seiten, die nicht über
-# schuldocs' with-web gebaut wurden. Identischer Code wie in
-# schuldocs/0.1.0/lib.typ (Marker: schuldocs-versionen) – synchron halten!
-DROPDOWN_JS="(function(){if(document.getElementById('schuldocs-versionen')){return;}var p=location.pathname.replace(/index\\.html\$/,'');if(p.slice(-1)!=='/'){p+='/';}var vm=p.match(/\\/(\\d+\\.\\d+\\.\\d+)\\/\$/);var root=vm?p.slice(0,p.length-vm[1].length-1):p;var current=vm?vm[1]:null;fetch(root+'versions.json').then(function(r){if(!r.ok){throw 0;}return r.json();}).then(function(versions){if(!Array.isArray(versions)||versions.length<2){return;}var style=document.createElement('style');style.textContent='#schuldocs-versionen{position:fixed;top:.75rem;right:.75rem;z-index:50;padding:.3rem .5rem;border:1px solid rgb(212,212,216);border-radius:.375rem;background:rgba(255,255,255,.92);font:500 .8rem/1.2 Inter,system-ui,sans-serif;color:rgb(63,63,70);cursor:pointer;}@media (prefers-color-scheme:dark){#schuldocs-versionen{background:rgba(39,39,42,.92);color:rgb(212,212,216);border-color:rgb(63,63,70);}}';document.head.appendChild(style);var sel=document.createElement('select');sel.id='schuldocs-versionen';sel.title='Dokumentations-Version';sel.setAttribute('aria-label','Dokumentations-Version wählen');versions.forEach(function(v,i){var o=document.createElement('option');o.value=v;o.textContent=i===0?v+' (neueste)':v;sel.appendChild(o);});sel.value=current||versions[0];sel.onchange=function(){location.href=root+sel.value+'/';};document.body.appendChild(sel);}).catch(function(){});})();"
+# Navigationsleiste (Übersicht-Button + Versions-Dropdown) als
+# Injection-Fallback für Seiten, die nicht über schuldocs' with-web gebaut
+# wurden. Identischer Code wie in schuldocs/0.1.0/lib.typ
+# (Marker: schuldocs-nav) – synchron halten!
+DROPDOWN_JS="(function(){if(document.getElementById('schuldocs-nav')){return;}var p=location.pathname.replace(/index\\.html\$/,'');if(p.slice(-1)!=='/'){p+='/';}var vm=p.match(/\\/(\\d+\\.\\d+\\.\\d+)\\/\$/);var root=vm?p.slice(0,p.length-vm[1].length-1):p;var current=vm?vm[1]:null;var home=root.replace(/[^/]+\\/\$/,'');var style=document.createElement('style');style.textContent='#schuldocs-nav{position:fixed;top:.75rem;right:.75rem;z-index:50;display:flex;gap:.4rem;align-items:center;}#schuldocs-nav a,#schuldocs-nav select{padding:.3rem .5rem;border:1px solid rgb(212,212,216);border-radius:.375rem;background:rgba(255,255,255,.92);font:500 .8rem/1.2 Inter,system-ui,sans-serif;color:rgb(63,63,70);cursor:pointer;text-decoration:none;}@media (prefers-color-scheme:dark){#schuldocs-nav a,#schuldocs-nav select{background:rgba(39,39,42,.92);color:rgb(212,212,216);border-color:rgb(63,63,70);}}';document.head.appendChild(style);var nav=document.createElement('div');nav.id='schuldocs-nav';var back=document.createElement('a');back.href=home;back.title='Zur Paketübersicht';back.setAttribute('aria-label','Zur Paketübersicht');back.textContent='\\u2190 Übersicht';nav.appendChild(back);document.body.appendChild(nav);fetch(root+'versions.json').then(function(r){if(!r.ok){throw 0;}return r.json();}).then(function(versions){if(!Array.isArray(versions)||versions.length<2){return;}var sel=document.createElement('select');sel.id='schuldocs-versionen';sel.title='Dokumentations-Version';sel.setAttribute('aria-label','Dokumentations-Version wählen');versions.forEach(function(v,i){var o=document.createElement('option');o.value=v;o.textContent=i===0?v+' (neueste)':v;sel.appendChild(o);});sel.value=current||versions[0];sel.onchange=function(){location.href=root+sel.value+'/';};nav.appendChild(sel);}).catch(function(){});})();"
 
 # Ausgabe-Verzeichnis vorbereiten (existierende HTML-Dateien und
 # versions.json löschen, Pagefind-Index behalten)
@@ -58,6 +59,10 @@ find "$SITE_DIR" \( -name "index.html" -o -name "versions.json" \) -not -path "$
 find "$SITE_DIR" -type d -empty -delete 2>/dev/null || true
 
 fehlgeschlagen=()
+# Neueste gebaute Version je Paket als JSON-Fragment ("paket":"version",…) –
+# wird in die Startseite eingesetzt. Kein assoziatives Array, damit das Skript
+# auch mit dem älteren bash 3.2 (macOS) läuft.
+neueste_versionen_json=""
 
 # Pakete kompilieren: alle Versionsordner mit docs/web.typ, neueste zuerst
 for pkg_dir in "$PACKAGES_DIR"/*/; do
@@ -99,7 +104,7 @@ for pkg_dir in "$PACKAGES_DIR"/*/; do
     ); then
       # Injection-Fallback: Dropdown nur ergänzen, wenn die Seite es nicht
       # bereits nativ (über schuldocs with-web) mitbringt
-      if ! grep -q "schuldocs-versionen" "$out_dir/index.html"; then
+      if ! grep -q "schuldocs-nav" "$out_dir/index.html"; then
         SCHULDOCS_SNIPPET="<script>$DROPDOWN_JS</script>" python3 -c '
 import os, sys
 pfad = sys.argv[1]
@@ -135,13 +140,36 @@ open(pfad, "w", encoding="utf-8").write(html)
 
   # Neueste Version zusätzlich als unversionierte Standard-Seite
   cp "$out_pkg_dir/${gebaut[0]}/index.html" "$out_pkg_dir/index.html"
+  neueste_versionen_json+="\"$pkg_name\":\"${gebaut[0]}\","
   echo "    → $pkg_name/index.html (= ${gebaut[0]})"
 done
 
-# Startseite kopieren
+# Startseite kopieren und die Paket-Versionsnummern auf den jeweils neuesten
+# gebauten Stand aktualisieren (die Versions-Badges in index.html sind sonst
+# statisch und veralten bei jedem Release)
 if [[ -f "$SCRIPT_DIR/index.html" ]]; then
   cp "$SCRIPT_DIR/index.html" "$SITE_DIR/index.html"
-  echo "--- Startseite kopiert ---"
+
+  SCHULDOCS_VERSIONEN="{${neueste_versionen_json}}" python3 -c '
+import json, os, re, sys
+pfad = sys.argv[1]
+# Trailing-Komma vor der schließenden Klammer entfernen (vom inkrementellen
+# Aufbau im Shell-Loop), damit json.loads den String akzeptiert.
+versionen = json.loads(re.sub(r",\s*}", "}", os.environ["SCHULDOCS_VERSIONEN"]))
+html = open(pfad, encoding="utf-8").read()
+# Pro Paket die font-mono-Version-Span ersetzen, die direkt auf das
+# <h3>paketname</h3> der Karte folgt.
+for pkg, version in versionen.items():
+    muster = re.compile(
+        r"(<h3[^>]*>" + re.escape(pkg)
+        + r"</h3>\s*<span class=\"text-xs text-slate-500 font-mono\">)[^<]*(</span>)"
+    )
+    html, n = muster.subn(r"\g<1>" + version + r"\g<2>", html, count=1)
+    if n == 0:
+        print("    HINWEIS: keine Versions-Badge fuer " + pkg + " in index.html gefunden")
+open(pfad, "w", encoding="utf-8").write(html)
+' "$SITE_DIR/index.html"
+  echo "--- Startseite kopiert (Versionen aktualisiert) ---"
 fi
 
 # Pagefind-Index generieren – nur Startseite und die unversionierten
