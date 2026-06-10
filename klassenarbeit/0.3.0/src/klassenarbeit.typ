@@ -163,10 +163,13 @@
         )
       },
     )
-    context if name-repeat and here().page() != 1 {
-      v(14pt)
-    }
   }
+
+  // Fester Abstand zwischen Kopfzeilen-Unterkante und Inhalt – auf JEDER
+  // Seite, unabhängig von name-repeat. Wird über header-ascent realisiert;
+  // der obere Rand wird um denselben Betrag erhöht, damit die Kopfzeile
+  // weiterhin beim eigentlichen oberen Rand (Standard: 1cm) beginnt.
+  let kopf-abstand = 14pt
 
   // Standard-Margin für Klassenarbeiten definieren
   let klassenarbeit-margin = (top: 1cm, bottom: 1cm, left: 1.5cm, right: 1.5cm)
@@ -175,6 +178,12 @@
   let final-page-settings = page-settings
   if "margin" not in page-settings.keys() {
     final-page-settings.insert("margin", klassenarbeit-margin)
+  }
+  // Kopf-Abstand auf den oberen Rand aufschlagen
+  if type(final-page-settings.margin) == dictionary {
+    let m = final-page-settings.margin
+    m.insert("top", m.at("top", default: 1cm) + kopf-abstand)
+    final-page-settings.insert("margin", m)
   }
 
   // Handle punkte-template parameter
@@ -203,7 +212,7 @@
   show: arbeitsblatt-einzeln.with(
     title: title,
     print: true,
-    header-ascent: 0%,
+    header-ascent: kopf-abstand,
     custom-header: header(
       title: title,
       subtitle: subtitle,
@@ -239,7 +248,6 @@
 
     if not name-repeat {
       if name-field != none {
-        v(14pt)
         text(14pt, weight: "semibold")[#name-field: #h(0.25em) #student]
         v(14pt, weak: true)
       }
@@ -258,7 +266,6 @@
     )
   } else if not name-repeat {
     if name-field != none {
-      v(14pt)
       name-field-block
       v(-3pt)
       line(length: 100%, stroke: 0.5pt + luma(200))
