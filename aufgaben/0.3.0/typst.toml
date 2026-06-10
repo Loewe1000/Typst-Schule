@@ -1,0 +1,8 @@
+[package]
+name = "aufgaben"
+version = "0.3.0"
+entrypoint = "aufgaben.typ"
+
+description = "Ein Paket zur Erstellung strukturierter Aufgaben mit Teilaufgaben, Lösungen, Materialien und Bewertungsschemata für den Schulbereich."
+license = "MIT"
+repository = "https://github.com/Loewe1000/Typst-Schule"
