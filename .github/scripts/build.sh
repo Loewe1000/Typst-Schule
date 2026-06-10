@@ -1,9 +1,22 @@
 #!/usr/bin/env bash
 # =============================================================================
-# build.sh — Baut alle Typst-Paket-Dokumentationen und generiert Pagefind-Index
+# build.sh — Baut alle Typst-Paket-Dokumentationen (versioniert) und
+#            generiert den Pagefind-Index
 # =============================================================================
 # Verwendung (aus dem Repo-Root):
 #   bash .github/scripts/build.sh
+#
+# Funktionsweise:
+#   - Auto-Discovery: Jeder Versionsordner {paket}/{version}/ mit einer
+#     docs/web.typ wird gebaut – Versionen müssen hier NICHT mehr gepflegt
+#     werden. Doku gibt es damit automatisch "ab der Version", in der
+#     docs/web.typ eingeführt wurde.
+#   - Ausgabe: .docs-site/{paket}/{version}/index.html pro Version,
+#     .docs-site/{paket}/index.html als Kopie der neuesten Version sowie
+#     .docs-site/{paket}/versions.json (absteigend sortiert) für das
+#     Versions-Dropdown (siehe schuldocs with-web).
+#   - Pagefind indexiert nur Startseite + {paket}/index.html, damit
+#     Suchtreffer nicht über alle Versionen dupliziert werden.
 #
 # Anforderungen:
 #   - typst >= 0.14.0 (mit HTML-Export-Unterstützung)
@@ -33,65 +46,96 @@ echo "Ausgabe-Verzeichnis: $SITE_DIR"
 echo "Typst-Paketpfad: $TYPST_PACKAGE_ROOT"
 echo ""
 
-# Pakete mit Pfad (PAKET/VERSION)
-PACKAGES=(
-  "aufgaben/0.1.2"
-  "arbeitsblatt/0.2.4"
-  "klassenarbeit/0.1.2"
-  "mathematik/0.0.2"
-  "physik/0.0.2"
-  "informatik/0.0.2"
-  "abbozza/0.0.1"
-  "angela/0.0.1"
-  "blockst/0.1.0"
-  "energy-sketch/0.0.3"
-  "flashcards/0.0.1"
-  "gutachten/0.0.2"
-  "insert-a-word/0.0.3"
-  "klausurboegen/0.0.3"
-  "operatoren/0.0.1"
-  "patterns/0.0.2"
-  "summify/0.1.0"
-  "typlace/0.0.1"
-)
+# Versions-Dropdown als Injection-Fallback für Seiten, die nicht über
+# schuldocs' with-web gebaut wurden. Identischer Code wie in
+# schuldocs/0.1.0/lib.typ (Marker: schuldocs-versionen) – synchron halten!
+DROPDOWN_JS="(function(){if(document.getElementById('schuldocs-versionen')){return;}var p=location.pathname.replace(/index\\.html\$/,'');if(p.slice(-1)!=='/'){p+='/';}var vm=p.match(/\\/(\\d+\\.\\d+\\.\\d+)\\/\$/);var root=vm?p.slice(0,p.length-vm[1].length-1):p;var current=vm?vm[1]:null;fetch(root+'versions.json').then(function(r){if(!r.ok){throw 0;}return r.json();}).then(function(versions){if(!Array.isArray(versions)||versions.length<2){return;}var style=document.createElement('style');style.textContent='#schuldocs-versionen{position:fixed;top:.75rem;right:.75rem;z-index:50;padding:.3rem .5rem;border:1px solid rgb(212,212,216);border-radius:.375rem;background:rgba(255,255,255,.92);font:500 .8rem/1.2 Inter,system-ui,sans-serif;color:rgb(63,63,70);cursor:pointer;}@media (prefers-color-scheme:dark){#schuldocs-versionen{background:rgba(39,39,42,.92);color:rgb(212,212,216);border-color:rgb(63,63,70);}}';document.head.appendChild(style);var sel=document.createElement('select');sel.id='schuldocs-versionen';sel.title='Dokumentations-Version';sel.setAttribute('aria-label','Dokumentations-Version wählen');versions.forEach(function(v,i){var o=document.createElement('option');o.value=v;o.textContent=i===0?v+' (neueste)':v;sel.appendChild(o);});sel.value=current||versions[0];sel.onchange=function(){location.href=root+sel.value+'/';};document.body.appendChild(sel);}).catch(function(){});})();"
 
-# Ausgabe-Verzeichnis vorbereiten (existierende HTML-Dateien löschen, Pagefind-Index behalten)
+# Ausgabe-Verzeichnis vorbereiten (existierende HTML-Dateien und
+# versions.json löschen, Pagefind-Index behalten)
 mkdir -p "$SITE_DIR"
-find "$SITE_DIR" -name "index.html" -not -path "$SITE_DIR/pagefind/*" -delete
+find "$SITE_DIR" \( -name "index.html" -o -name "versions.json" \) -not -path "$SITE_DIR/pagefind/*" -delete
+find "$SITE_DIR" -type d -empty -delete 2>/dev/null || true
 
-# Pakete kompilieren
-for pkg_path in "${PACKAGES[@]}"; do
-  pkg_name=$(echo "$pkg_path" | cut -d'/' -f1)
-  pkg_dir="$PACKAGES_DIR/$pkg_path"
+fehlgeschlagen=()
 
-  if [[ ! -d "$pkg_dir" ]]; then
-    echo "WARNUNG: $pkg_dir existiert nicht, überspringe..."
-    continue
-  fi
+# Pakete kompilieren: alle Versionsordner mit docs/web.typ, neueste zuerst
+for pkg_dir in "$PACKAGES_DIR"/*/; do
+  pkg_name="$(basename "$pkg_dir")"
 
-  if [[ ! -f "$pkg_dir/docs/web.typ" ]]; then
-    echo "WARNUNG: $pkg_dir/docs/web.typ nicht gefunden, überspringe..."
-    continue
-  fi
-
-  echo "--- Kompiliere $pkg_name ---"
-  (
-    cd "$pkg_dir"
-    typst compile \
-      --format html \
-      --features html \
-      --package-path "$TYPST_PACKAGE_ROOT" \
-      --root "$PACKAGES_DIR" \
-      docs/web.typ \
-      docs/web.html \
-      2>&1 | awk '!/^warning: html export/ && !/^= hint:/ { print }'
+  # Versionen mit Doku ermitteln, absteigend sortiert (neueste zuerst)
+  versions=()
+  while IFS= read -r v; do
+    versions+=("$v")
+  done < <(
+    for vdir in "$pkg_dir"*/; do
+      [[ -f "$vdir/docs/web.typ" ]] && basename "$vdir"
+    done | sort -rV
   )
 
-  # HTML ins docs-site-Verzeichnis kopieren
-  out_dir="$SITE_DIR/$pkg_name"
-  mkdir -p "$out_dir"
-  cp "$pkg_dir/docs/web.html" "$out_dir/index.html"
-  echo "    → $out_dir/index.html"
+  [[ ${#versions[@]} -eq 0 ]] && continue
+
+  echo "--- $pkg_name (${versions[*]}) ---"
+  out_pkg_dir="$SITE_DIR/$pkg_name"
+  mkdir -p "$out_pkg_dir"
+
+  gebaut=()
+  for version in "${versions[@]}"; do
+    src="$pkg_dir$version/docs/web.typ"
+    out_dir="$out_pkg_dir/$version"
+    mkdir -p "$out_dir"
+
+    if (
+      cd "$pkg_dir$version"
+      typst compile \
+        --format html \
+        --features html \
+        --package-path "$TYPST_PACKAGE_ROOT" \
+        --root "$PACKAGES_DIR" \
+        docs/web.typ \
+        "$out_dir/index.html" \
+        2>&1 | awk '!/^warning: html export/ && !/^= hint:/ { print }'
+      exit "${PIPESTATUS[0]}"
+    ); then
+      # Injection-Fallback: Dropdown nur ergänzen, wenn die Seite es nicht
+      # bereits nativ (über schuldocs with-web) mitbringt
+      if ! grep -q "schuldocs-versionen" "$out_dir/index.html"; then
+        SCHULDOCS_SNIPPET="<script>$DROPDOWN_JS</script>" python3 -c '
+import os, sys
+pfad = sys.argv[1]
+snippet = os.environ["SCHULDOCS_SNIPPET"]
+html = open(pfad, encoding="utf-8").read()
+if "</body>" in html:
+    html = html.replace("</body>", snippet + "</body>", 1)
+else:
+    html += snippet
+open(pfad, "w", encoding="utf-8").write(html)
+' "$out_dir/index.html"
+      fi
+      gebaut+=("$version")
+      echo "    → $pkg_name/$version/index.html"
+    else
+      echo "    WARNUNG: $pkg_name/$version ließ sich nicht kompilieren, überspringe..."
+      fehlgeschlagen+=("$pkg_name/$version")
+      rm -rf "$out_dir"
+    fi
+  done
+
+  [[ ${#gebaut[@]} -eq 0 ]] && { rm -rf "$out_pkg_dir"; continue; }
+
+  # versions.json (absteigend, neueste zuerst) für das Dropdown
+  {
+    printf '['
+    for i in "${!gebaut[@]}"; do
+      [[ $i -gt 0 ]] && printf ','
+      printf '"%s"' "${gebaut[$i]}"
+    done
+    printf ']\n'
+  } > "$out_pkg_dir/versions.json"
+
+  # Neueste Version zusätzlich als unversionierte Standard-Seite
+  cp "$out_pkg_dir/${gebaut[0]}/index.html" "$out_pkg_dir/index.html"
+  echo "    → $pkg_name/index.html (= ${gebaut[0]})"
 done
 
 # Startseite kopieren
@@ -100,11 +144,13 @@ if [[ -f "$SCRIPT_DIR/index.html" ]]; then
   echo "--- Startseite kopiert ---"
 fi
 
-# Pagefind-Index generieren
+# Pagefind-Index generieren – nur Startseite und die unversionierten
+# Paket-Seiten indexieren, damit Treffer nicht pro Version dupliziert werden
 echo ""
 echo "--- Generiere Pagefind-Index ---"
 if command -v npx &>/dev/null; then
-  npx pagefind --site "$SITE_DIR" --output-path "$SITE_DIR/pagefind" --force-language de
+  npx pagefind --site "$SITE_DIR" --output-path "$SITE_DIR/pagefind" --force-language de \
+    --glob "{index.html,*/index.html}"
   echo "    → Pagefind-Index in $SITE_DIR/pagefind/"
 else
   echo "WARNUNG: npx nicht gefunden. Pagefind wird übersprungen."
@@ -113,5 +159,9 @@ fi
 
 echo ""
 echo "=== Build abgeschlossen ==="
+if [[ ${#fehlgeschlagen[@]} -gt 0 ]]; then
+  echo "WARNUNG: Folgende Versionen konnten nicht gebaut werden:"
+  printf '  - %s\n' "${fehlgeschlagen[@]}"
+fi
 echo "Ausgabe: $SITE_DIR/"
 ls "$SITE_DIR/"

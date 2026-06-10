@@ -140,10 +140,19 @@
 
   let copy-script-js = "(function(){function addCopyButton(pre){var code=pre&&pre.querySelector('code');if(!code||pre.querySelector('.schuldocs-copy-btn')){return;}pre.style.position='relative';var btn=document.createElement('button');btn.type='button';btn.className='schuldocs-copy-btn';btn.title='Code kopieren';btn.setAttribute('aria-label','Code kopieren');btn.style.cssText='position:absolute;top:0;right:0;z-index:10;border:1px solid rgb(212,212,216);border-radius:.375rem;background:rgba(255,255,255,.92);padding:.3rem;line-height:0;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;';var icon=document.createElementNS('http://www.w3.org/2000/svg','svg');icon.setAttribute('viewBox','0 0 24 24');icon.setAttribute('width','14');icon.setAttribute('height','14');icon.setAttribute('aria-hidden','true');icon.setAttribute('focusable','false');var path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('fill','currentColor');path.setAttribute('d','M16 1H6a2 2 0 0 0-2 2v12h2V3h10V1zm3 4H10a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H10V7h9v14z');icon.appendChild(path);btn.appendChild(icon);function extractCodeText(node){var clone=node.cloneNode(true);var brs=clone.querySelectorAll('br');for(var j=0;j<brs.length;j+=1){brs[j].replaceWith('\\n');}return clone.textContent||'';}btn.onclick=function(){if(!navigator.clipboard){return;}navigator.clipboard.writeText(extractCodeText(code)).then(function(){btn.style.opacity='0.65';setTimeout(function(){btn.style.opacity='1';},900);});};pre.appendChild(btn);}var root=document.currentScript&&document.currentScript.parentElement;var preBlocks=root?root.querySelectorAll('pre'):document.querySelectorAll('pre');for(var i=0;i<preBlocks.length;i+=1){addCopyButton(preBlocks[i]);}})();"
 
+  // Versions-Dropdown: lädt zur Laufzeit {paket}/versions.json (von
+  // build.sh erzeugt) und bietet einen Wechsel zwischen den dokumentierten
+  // Versionen an. Erscheint nur, wenn mindestens zwei Versionen existieren.
+  // HINWEIS: build.sh enthält denselben Code als Injection-Fallback für
+  // Seiten, die nicht über with-web gebaut wurden – bei Änderungen beide
+  // Stellen synchron halten (Marker: schuldocs-versionen).
+  let version-dropdown-js = "(function(){if(document.getElementById('schuldocs-versionen')){return;}var p=location.pathname.replace(/index\\.html$/,'');if(p.slice(-1)!=='/'){p+='/';}var vm=p.match(/\\/(\\d+\\.\\d+\\.\\d+)\\/$/);var root=vm?p.slice(0,p.length-vm[1].length-1):p;var current=vm?vm[1]:null;fetch(root+'versions.json').then(function(r){if(!r.ok){throw 0;}return r.json();}).then(function(versions){if(!Array.isArray(versions)||versions.length<2){return;}var style=document.createElement('style');style.textContent='#schuldocs-versionen{position:fixed;top:.75rem;right:.75rem;z-index:50;padding:.3rem .5rem;border:1px solid rgb(212,212,216);border-radius:.375rem;background:rgba(255,255,255,.92);font:500 .8rem/1.2 Inter,system-ui,sans-serif;color:rgb(63,63,70);cursor:pointer;}@media (prefers-color-scheme:dark){#schuldocs-versionen{background:rgba(39,39,42,.92);color:rgb(212,212,216);border-color:rgb(63,63,70);}}';document.head.appendChild(style);var sel=document.createElement('select');sel.id='schuldocs-versionen';sel.title='Dokumentations-Version';sel.setAttribute('aria-label','Dokumentations-Version wählen');versions.forEach(function(v,i){var o=document.createElement('option');o.value=v;o.textContent=i===0?v+' (neueste)':v;sel.appendChild(o);});sel.value=current||versions[0];sel.onchange=function(){location.href=root+sel.value+'/';};document.body.appendChild(sel);}).catch(function(){});})();"
+
   let body-with-copy-buttons = {
     body
     html.elem("style", heading-style-css)
     html.elem("script", copy-script-js)
+    html.elem("script", version-dropdown-js)
   }
 
   if template-fn != none {
@@ -272,6 +281,15 @@
     module-text,
     name: name,
     scope: (:),
+  )
+
+  // Private Funktionen und Variablen (Unterstrich-Präfix) nie dokumentieren –
+  // ihr Name würde im Markup-Heading-eval zudem als unbalancierte Emphasis
+  // scheitern.
+  let docs = (
+    ..docs,
+    functions: docs.functions.filter(f => not f.name.starts-with("_")),
+    variables: docs.variables.filter(v => not v.name.starts-with("_")),
   )
 
   let filtered = if filter.len() > 0 {
