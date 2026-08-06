@@ -300,7 +300,7 @@
   }
 
   let header(title: none, class: none, font-size: 16pt, copyright: none) = {
-    text(font-size, font: font, weight: "semibold")[#title]
+    text(font-size, weight: "semibold")[#title]
     h(1fr)
 
     if copyright != none {
@@ -310,7 +310,6 @@
 
     text(
       font-size,
-      font: font,
       weight: "semibold",
       fill: luma(130),
     )[#class]
