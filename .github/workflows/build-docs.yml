@@ -28,7 +28,13 @@ jobs:
       - name: Typst installieren
         uses: typst-community/setup-typst@v4
         with:
-          typst-version: latest
+          # Festgenagelt, nicht `latest`: der Bündel-Export, aus dem Website und
+          # Handbuch in einem Lauf entstehen, steht hinter `--features bundle`
+          # und ist ausdrücklich experimentell. Mit `latest` könnte eine neue
+          # Typst-Fassung die veröffentlichte Doku brechen, ohne dass sich hier
+          # etwas geändert hat. Beim Anheben örtlich einmal
+          # `bash .github/scripts/build.sh` laufen lassen.
+          typst-version: "0.15.0"
 
       - name: Node.js installieren (für Pagefind)
         uses: actions/setup-node@v4
