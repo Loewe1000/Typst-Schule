@@ -1,0 +1,12 @@
+[package]
+name = "schuldocs"
+version = "0.2.0"
+entrypoint = "src/lib.typ"
+authors = ["Lukas Köhl", "Alexander Schulz"]
+description = "Dokumentation für das Schule-Ökosystem: Handbuch (PDF) und Website (HTML) aus einer Quelle, in einem Lauf — über den Bündel-Export von Typst 0.15."
+license = "MIT"
+repository = "https://github.com/Loewe1000/Typst-Schule"
+keywords = ["docs", "documentation", "manual", "tidy", "html", "bundle"]
+categories = ["utility"]
+disciplines = ["education"]
+compiler = "0.15.0"
