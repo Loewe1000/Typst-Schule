@@ -1,4 +1,4 @@
-#import "../../../schuldocs/0.1.0/lib.typ": show-example, show-module, show-code
+#import "@schule/schuldocs:0.2.0": show-example, show-module, show-code
 
 = Über dieses Paket
 
@@ -30,7 +30,7 @@ im Layout stehen.
 
 #show-example(
   rendered: {
-    import "/typlace/0.0.1/typlace.typ": typlace
+    import "../typlace.typ": typlace
     typlace(
       "XXXXXX\nTTXXTT\nTTXXTT\nXXXXXX\nXXPPXX",
       namen: ("Anna", "Ben", "Clara", "David", "Eva", "Felix", "Greta", "Hans"),

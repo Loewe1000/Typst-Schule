@@ -1,4 +1,4 @@
-#import "../../../schuldocs/0.1.0/lib.typ": show-example, show-module, show-code
+#import "@schule/schuldocs:0.2.0": show-example, show-module, show-code
 
 = Über dieses Paket
 
@@ -22,7 +22,7 @@ Der erste positionale Parameter gibt die Zeilenanzahl an (bei Standardrastergrö
 
 #show-example(
   rendered: {
-    import "/patterns/0.0.2/patterns.typ": kariert
+    import "../patterns.typ": kariert
     kariert(5)
   },
   source: ```typ
@@ -38,7 +38,7 @@ Anstelle einer Zeilenanzahl kann auch eine absolute Höhe angegeben werden:
 
 #show-example(
   rendered: {
-    import "/patterns/0.0.2/patterns.typ": kariert
+    import "../patterns.typ": kariert
     kariert(height: 4cm)
   },
   source: ```typ
@@ -52,7 +52,7 @@ Mit `grid-size` wird die Kantenlänge einer Rasterzelle festgelegt (Standard: 0,
 
 #show-example(
   rendered: {
-    import "/patterns/0.0.2/patterns.typ": kariert
+    import "../patterns.typ": kariert
     kariert(4, grid-size: 1cm)
   },
   source: ```typ
@@ -67,7 +67,7 @@ Mit dem `items`-Parameter können Zeilenbeschriftungen angegeben werden.
 
 #show-example(
   rendered: {
-    import "/patterns/0.0.2/patterns.typ": kariert
+    import "../patterns.typ": kariert
     kariert(
       items: ("Messung 1", "Messung 2", "Messung 3"),
       items-spacing: 3,
@@ -91,7 +91,7 @@ Vier linierte Zeilen (Standard-Zeilenhöhe: 1 cm):
 
 #show-example(
   rendered: {
-    import "/patterns/0.0.2/patterns.typ": liniert
+    import "../patterns.typ": liniert
     liniert(4)
   },
   source: ```typ
@@ -105,7 +105,7 @@ Vier linierte Zeilen (Standard-Zeilenhöhe: 1 cm):
 
 #show-example(
   rendered: {
-    import "/patterns/0.0.2/patterns.typ": liniert
+    import "../patterns.typ": liniert
     liniert(3, line-height: 1.5cm)
   },
   source: ```typ
@@ -119,7 +119,7 @@ Analog zu `kariert` können mit `items` Zeilenbezeichner angegeben werden:
 
 #show-example(
   rendered: {
-    import "/patterns/0.0.2/patterns.typ": liniert
+    import "../patterns.typ": liniert
     liniert(
       items: ("Name:", "Klasse:", "Datum:"),
       items-spacing: 1,

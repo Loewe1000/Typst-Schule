@@ -1,38 +1,14 @@
-#import "@preview/mantys:1.0.2": *
-
-#import "../src/klassenarbeit.typ" as ka
-
-#import "@preview/codly:1.3.0": *
-
-#show: mantys(
-  name: "klassenarbeit",
-  version: "0.3.0",
-  authors: (
-    "Lukas Köhl",
-    "Alexander Schulz",
-  ),
-  license: "MIT",
-  description: "Ein Typst-Paket zur Erstellung von Klassenarbeiten und Tests für den Schulunterricht mit Erwartungshorizonten, Bewertungsbögen und Klausurbögen-Generierung.",
-
-  abstract: [
-    Das `klassenarbeit` Paket bietet eine spezialisierte Lösung zur Erstellung von Klassenarbeiten und Tests für den Schulbereich. Es basiert auf dem `arbeitsblatt` Paket und erweitert es um spezielle Funktionen für Prüfungssituationen, einschließlich Erwartungshorizonte, Bewertungsbögen und automatischer Klausurbögen-Generierung.
-  ],
-
-  examples-scope: (
-    scope: (klassenarbeit: ka),
-    imports: (klassenarbeit: "*"),
-  ),
-)
+#import "@schule/schuldocs:0.2.0": doc-target, info, show-code, show-example, show-module, tip, warning
 
 = Über dieses Paket
 
-Das #package[klassenarbeit] Paket ist speziell für Lehrkräfte entwickelt, die Klassenarbeiten, Tests und Klausuren erstellen möchten. Es baut auf dem #package[arbeitsblatt] Paket auf und fügt klassenarbeitsspezifische Funktionen hinzu.
+Das `klassenarbeit` Paket ist speziell für Lehrkräfte entwickelt, die Klassenarbeiten, Tests und Klausuren erstellen möchten. Es baut auf dem `arbeitsblatt` Paket auf und fügt klassenarbeitsspezifische Funktionen hinzu.
 
 Dieses Manual gliedert sich wie folgt:
 1. *Erste Schritte* -- Installation und grundlegende Verwendung
 2. *Deckblatt gestalten* -- Anpassung des Kopfbereichs
 3. *Informationstabelle* -- Schülerdaten und Metainformationen
-4. *Aufgabenverwaltung* -- Erstellung von Aufgaben (wie in #package[arbeitsblatt])
+4. *Aufgabenverwaltung* -- Erstellung von Aufgaben (wie in `arbeitsblatt`)
 5. *Erwartungshorizont* -- Automatische Bewertungskriterien
 6. *Klausurbögen* -- Optionale Ergebnisbögen
 7. *Referenz* -- Vollständige Funktionsübersicht
@@ -41,24 +17,24 @@ Dieses Manual gliedert sich wie folgt:
 
 == Paket importieren
 
-Um das #package[klassenarbeit] Paket zu verwenden, importieren Sie es einfach:
+Um das `klassenarbeit` Paket zu verwenden, importieren Sie es einfach:
 
-#sourcecode[```typ
+#show-code(```typ
 #import "@schule/klassenarbeit:0.3.0": *
-```]
+```)
 
 == Abhängigkeiten
 
-Das #package[klassenarbeit] Paket importiert automatisch:
-- #package[arbeitsblatt] -- Alle Arbeitsblatt-Funktionen
-- #package[aufgaben] -- Aufgabenverwaltung (über arbeitsblatt)
-- #package[klausurboegen] -- Für optionale Klausurbögen
-#pagebreak()
+Das `klassenarbeit` Paket importiert automatisch:
+- `arbeitsblatt` -- Alle Arbeitsblatt-Funktionen
+- `aufgaben` -- Aufgabenverwaltung (über arbeitsblatt)
+- `klausurboegen` -- Für optionale Klausurbögen
+
 == Grundlegende Klassenarbeit
 
 Eine einfache Klassenarbeit wird so erstellt:
 
-#sourcecode[```typ
+#show-code(```typ
 #import "@schule/klassenarbeit:0.3.0": *
 
 #show: klassenarbeit.with(
@@ -74,19 +50,19 @@ Eine einfache Klassenarbeit wird so erstellt:
 ]
 
 #erwartung(3)[Korrekte Nullstellen berechnet]
-```]
+```)
 
 Das Paket erstellt automatisch:
 - Ein professionelles Deckblatt
 - Namensfeld für Schüler
 - Seitennummerierung
 - Optional: Erwartungshorizont am Ende
-#pagebreak(weak: true)
+
 = Deckblatt gestalten
 
 == Titel und Untertitel
 
-#sourcecode[```typ
+#show-code(```typ
 #show: klassenarbeit.with(
   title: "Klassenarbeit Nr. 1",
   subtitle: "Bruchrechnung und Dezimalzahlen",
@@ -94,7 +70,7 @@ Das Paket erstellt automatisch:
   date: "22.01.2024",
   teacher: "SLZ",
 )
-```]
+```)
 
 Das Deckblatt zeigt: Titel (fett, groß), Untertitel (normal, kleiner), Datum (rechts oben), Klasse und Lehrer (rechts unten)
 
@@ -102,31 +78,31 @@ Das Deckblatt zeigt: Titel (fett, groß), Untertitel (normal, kleiner), Datum (r
 
 Sie können ein Logo im Kopfbereich anzeigen:
 
-#sourcecode[```typ
+#show-code(```typ
 #show: klassenarbeit.with(
   title: "Mathe-Test",
   logo: "angela",  // Vordefiniertes Logo
   // ...
 )
-```]
+```)
 
 Sie können auch ein eigenes Logo verwenden:
 
-#sourcecode[```typ
+#show-code(```typ
 #show: klassenarbeit.with(
   title: "Test",
   logo: image("mein-logo.png"),  // Benutzerdefiniertes Logo
   // ...
 )
-```]
+```)
 
 Um kein Logo anzuzeigen:
 
-#sourcecode[```typ
+#show-code(```typ
 #show: klassenarbeit.with(
   logo: none,  // Kein Logo
 )
-```]
+```)
 
 = Informationstabelle
 
@@ -134,32 +110,47 @@ Um kein Logo anzuzeigen:
 
 Standardmäßig wird ein einfaches Namensfeld angezeigt:
 
-#sourcecode[```typ
+#show-code(```typ
 #show: klassenarbeit.with(
   name-field: "Name:",
   // ...
 )
-```]
+```)
 
-Das zeigt: *Name:* #box(line()). Die Beschrift kann angepasst (`name-field: "Name, Vorname"`) oder entfernt werden (`name-field: none`).
+Das zeigt: *Name:* #context {
+  let feld = box(width: 5cm, line(length: 100%))
+  if doc-target() == "web" { html.frame(feld) } else { feld }
+}. Die Beschrift kann angepasst (`name-field: "Name, Vorname"`) oder entfernt werden (`name-field: none`).
+
+== Name eintragen
+
+`student` nimmt einen Namen und setzt ihn statt des leeren Feldes ein — für
+vorbereitete Kopien oder für die Lehrerfassung.
+
+#show-code(```typ
+#show: klassenarbeit.with(
+  student: "Mia Schneider",
+)
+```)
 
 == Name auf jeder Seite
 
 Wenn das normale Namensfeld auf jeder Seite in der Kopfzeile erscheinen soll, kann die Wiederholung aktiviert werden:
 
-#sourcecode[```typ
+#show-code(```typ
 #show: klassenarbeit.with(
   name-repeat: true,
   // ...
 )
-```]
+```)
 
 Dann wird das Namensfeld auf jeder Seite im Seitenkopf ausgegeben.
 
 == Informationstabelle aktivieren
 
 Mit `info-table` wird eine Tabelle mit Informationen angezeigt:
-#sourcecode[```typ
+
+#show-code(```typ
 #show: klassenarbeit.with(
   info-table: (
     ([Hilfsmittel], [Taschenrechner, Formelsammlung]),
@@ -167,7 +158,7 @@ Mit `info-table` wird eine Tabelle mit Informationen angezeigt:
   ),
   // ...
 )
-```]
+```)
 
 Jedes Element ist ein Tupel `(label, wert)`. Die Tabelle wird formatiert mit:
 - Label in Fettdruck mit Doppelpunkt
@@ -178,18 +169,18 @@ Jedes Element ist ein Tupel `(label, wert)`. Die Tabelle wird formatiert mit:
 
 Um die Tabelle komplett zu deaktivieren:
 
-#sourcecode[```typ
+#show-code(```typ
 #show: klassenarbeit.with(
   info-table: false,
   // ...
 )
-```]
+```)
 
 = Klausurbögen
 
 == Was sind Klausurbögen?
 
-Klausurbögen sind leere Doppelbögen (Schreibbögen) für Schüler*innen, auf denen sie ihre Lösungen schreiben. Sie enthalten:
+Klausurbögen sind leere Doppelbögen (Schreibbögen) für Schüler\*innen, auf denen sie ihre Lösungen schreiben. Sie enthalten:
 - Kopfbereich mit Titel, Datum und weiteren Metadaten der Arbeit
 - Name des Schülers / der Schülerin
 - Linierte oder karierte Schreibfläche
@@ -199,22 +190,22 @@ Klausurbögen sind leere Doppelbögen (Schreibbögen) für Schüler*innen, auf d
 
 Klausurbögen werden über den `klausurboegen` Parameter aktiviert:
 
-#sourcecode[```typ
+#show-code(```typ
 #show: klassenarbeit.with(
   klausurboegen: (
     stufe: "I",  // "I" für Sek I, "II" für Sek II
   ),
   // ...
 )
-```]
+```)
 
-Dies erzeugt leere Schreibbögen für die Schüler*innen am Ende des Dokuments.
+Dies erzeugt leere Schreibbögen für die Schüler\*innen am Ende des Dokuments.
 
 == Stufe festlegen
 
 Die Schulstufe bestimmt das Layout der Bögen:
 
-#sourcecode[```typ
+#show-code(```typ
 #show: klassenarbeit.with(
   klausurboegen: (
     stufe: "I",   // Sekundarstufe I
@@ -225,21 +216,21 @@ Die Schulstufe bestimmt das Layout der Bögen:
   ),
   // ...
 )
-```]
+```)
 
 == Ergebnisse eintragen
 
 Optional können Sie Schülernamen direkt aus einer passend formatierten .csv Datei importieren:
 
-#sourcecode[```typ
+#show-code(```typ
 #show: klassenarbeit.with(
   klausurboegen: (
     stufe: "I",
-    ergebnisse: csv("schueler.csv"),
+    ergebnisse: csv("student.csv"),
   ),
   // ...
 )
-```]
+```)
 
 Für jeden Schüler wird dann ein individueller Klausurbogen mit vorgedrucktem Namen erstellt. Die erreichten Punkte und Noten können nach der Korrektur händisch oder mit einem separaten Durchlauf ergänzt werden.
 
@@ -247,7 +238,7 @@ Für jeden Schüler wird dann ein individueller Klausurbogen mit vorgedrucktem N
 
 Wenn Sie nur leere Bögen ohne vorgedruckte Namen erstellen möchten:
 
-#sourcecode[```typ
+#show-code(```typ
 #show: klassenarbeit.with(
   klausurboegen: (
     stufe: "I",
@@ -255,7 +246,7 @@ Wenn Sie nur leere Bögen ohne vorgedruckte Namen erstellen möchten:
   ),
   // ...
 )
-```]
+```)
 
 Dies erzeugt generische Bögen mit Namensfeld zum manuellen Ausfüllen.
 
@@ -263,54 +254,110 @@ Dies erzeugt generische Bögen mit Namensfeld zum manuellen Ausfüllen.
 
 Um keine Klausurbögen zu erzeugen:
 
-#sourcecode[```typ
+#show-code(```typ
 #show: klassenarbeit.with(
   klausurboegen: false,  // Standard
   // ...
 )
-```]
+```)
+
+= Erwartungshorizont
+
+Mit `erwartungen: true` — der Vorgabe — sammelt das Paket alle `erwartung()`
+einer Arbeit und setzt daraus am Ende einen Erwartungshorizont mit Punkten.
+Im Bündel steht er nur im Lösungsdokument.
+
+#show-example(
+  rendered: {
+    import "../src/klassenarbeit.typ": aufgabe, teilaufgabe
+    import "@schule/aufgaben:0.3.0": reset-aufgaben
+    // Der Aufgabenzähler läuft durchs ganze Dokument; im Ausschnitt soll die
+    // Nummer die des Ausschnitts sein.
+    reset-aufgaben()
+    aufgabe("Funktionsanalyse")[
+      #teilaufgabe[Bestimme die Nullstellen von $f(x) = x^2 - 4$.]
+      #teilaufgabe[Skizziere den Graphen.]
+    ]
+  },
+  source: ```typ
+  #aufgabe("Funktionsanalyse")[
+    #teilaufgabe[Bestimme die Nullstellen von $f(x) = x^2 - 4$.]
+    #teilaufgabe[Skizziere den Graphen.]
+  ]
+  ```,
+  width: 14cm,
+)
+
+Die Erwartungen hängen sich an die Teilaufgaben, `show-erwartungen()` setzt am
+Ende die Tabelle daraus:
+
+#show-code(```typ
+#aufgabe("Funktionsanalyse")[
+  #teilaufgabe[
+    Bestimme die Nullstellen von $f(x) = x^2 - 4$.
+    #erwartung(2)[Korrekte Nullstellen: $x = plus.minus 2$]
+  ]
+  #teilaufgabe[
+    Skizziere den Graphen.
+    #erwartung(1)[Korrekte Form der Parabel]
+    #erwartung(1)[Scheitelpunkt eingezeichnet]
+  ]
+]
+#show-erwartungen()
+```)
+
+Die Punkte einer Aufgabe stehen an ihr selbst (`aufgabe(punkte: 6)`) oder an den
+Teilaufgaben; `erwartung(n)` trägt die Punkte des einzelnen Kriteriums.
+
+#info[
+  Warum das zweite Stück nur als Quelltext steht: Aufgabenzähler, Punktesummen und
+  der Erwartungshorizont gehören einem *ganzen* Dokument — sie werden über einen
+  Zustand gesammelt und am Schluss abgelesen. In einem Handbuch mit mehreren
+  Beispielen zeigte ein Ausschnitt deshalb die Zahlen der anderen mit. In einer
+  echten Klassenarbeit — ein Dokument, eine Arbeit — stimmt es.
+]
 
 = Seitenlayout
 
 == Seitenränder
 
-Das #package[klassenarbeit] Paket verwendet optimierte Ränder für Klassenarbeiten:
+Das `klassenarbeit` Paket verwendet optimierte Ränder für Klassenarbeiten:
 
 - Oben: 1cm
-- Unten: 1cm  
+- Unten: 1cm
 - Links: 1.5cm
 - Rechts: 1.5cm
 
 Diese können mit `page-settings` überschrieben werden:
 
-#sourcecode[```typ
+#show-code(```typ
 #show: klassenarbeit.with(
   page-settings: (
     margin: (top: 2cm, bottom: 2cm, x: 2.5cm),
   ),
   // ...
 )
-```]
+```)
 
 == Seitennummerierung
 
 Standardmäßig werden Seiten nummeriert ("Seite X von Y" rechts unten):
 
-#sourcecode[```typ
+#show-code(```typ
 #show: klassenarbeit.with(
   page-numbering: true,  // Standard
   // ...
 )
-```]
+```)
 
 Um die Nummerierung zu deaktivieren:
 
-#sourcecode[```typ
+#show-code(```typ
 #show: klassenarbeit.with(
   page-numbering: false,
   // ...
 )
-```]
+```)
 
 Die Nummerierung endet automatisch vor den Lösungen und dem Erwartungshorizont.
 
@@ -318,9 +365,9 @@ Die Nummerierung endet automatisch vor den Lösungen und dem Erwartungshorizont.
 
 == Schriftarten und -größen
 
-Das Paket nutzt die Einstellungen von #package[arbeitsblatt]:
+Das Paket nutzt die Einstellungen von `arbeitsblatt`:
 
-#sourcecode[```typ
+#show-code(```typ
 #show: klassenarbeit.with(
   font: "Linux Libertine",
   math-font: "Fira Math",
@@ -328,7 +375,7 @@ Das Paket nutzt die Einstellungen von #package[arbeitsblatt]:
   figure-font-size: 9pt,
   // ...
 )
-```]
+```)
 
 Standard:
 - `font: "Myriad Pro"`
@@ -337,138 +384,45 @@ Standard:
 
 == Teilaufgaben-Nummerierung
 
-#sourcecode[```typ
+#show-code(```typ
 #show: klassenarbeit.with(
   teilaufgabe-numbering: "a)",  // a), b), c)... (Standard)
   // oder
   teilaufgabe-numbering: "1.",  // 1.1, 1.2, 1.3...
   // ...
 )
-```]
+```)
 
 == Lösungen und Materialien
 
-Wie in #package[arbeitsblatt] können Sie Lösungen und Materialien verwalten:
+Wie in `arbeitsblatt` können Sie Lösungen und Materialien verwalten:
 
-#sourcecode[```typ
+#show-code(```typ
 #show: klassenarbeit.with(
   loesungen: "keine",    // Standard für Klassenarbeiten
   materialien: "sofort", // Material direkt nach Aufgabe
 )
-```]
+```)
 
 In der Regel werden bei Klassenarbeiten keine Lösungen mitgedruckt (`loesungen: "keine"`).
 
 = Funktionsreferenz
 
-#command("klassenarbeit",
-  arg(title: ""),
-  arg(subtitle: ""),
-  arg(date: ""),
-  arg(class: ""),
-  arg(teacher: ""),
-  arg(logo: "angela"),
-  arg(schueler: ""),
-  arg(name-repeat: false),
-  arg(info-table: false),
-  arg(erwartungen: true),
-  arg(page-numbering: true),
-  arg(klausurboegen: false),
-  arg(page-settings: (:)),
-  sarg[arbeitsblatt-args],
-  arg[body]
-)[
-  Erstellt eine Klassenarbeit mit Deckblatt und optionalem Erwartungshorizont.
+Erzeugt aus den Kommentaren von `src/klassenarbeit.typ` und damit immer auf dem
+Stand der Quelle.
 
-  #argument("title", types: "string", default: "")[
-    Titel der Klassenarbeit (z.B. "Klassenarbeit Nr. 1").
-  ]
+#show-module(read("../src/klassenarbeit.typ"), name: "klassenarbeit")
 
-  #argument("subtitle", types: "string", default: "")[
-    Untertitel mit Thema (z.B. "Quadratische Funktionen").
-  ]
-
-  #argument("date", types: "string", default: "")[
-    Datum der Klassenarbeit.
-  ]
-
-  #argument("class", types: "string", default: "")[
-    Klassenbezeichnung (z.B. "9a").
-  ]
-
-  #argument("teacher", types: "string", default: "")[
-    Name der Lehrkraft.
-  ]
-
-  #argument("logo", types: ("string", "content", none), default: "angela")[
-    Logo für die Kopfzeile. Kann sein:
-    - `"angela"`: Vordefiniertes Logo
-    - `image(...)`: Benutzerdefiniertes Bild
-    - `none`: Kein Logo
-  ]
-
-  #argument("schueler", types: "string", default: "")[
-    Name des Schülers / der Schülerin oder Linie für Namenseintrag.
-  ]
-
-  #argument("name-repeat", types: "boolean", default: false)[
-    Wenn `true`, wird der Name zusätzlich in der Kopfzeile jeder Seite angezeigt.
-  ]
-
-  #argument("info-table", types: ("boolean", "array"), default: false)[
-    - `false`: Keine Informationstabelle
-    - Array: Benutzerdefinierte Informationen als `(label, wert)` Tupel
-  ]
-
-  #argument("erwartungen", types: "boolean", default: true)[
-    Wenn `true`, wird automatisch ein Erwartungshorizont auf neuer Seite am Ende eingefügt.
-  ]
-
-  #argument("page-numbering", types: "boolean", default: true)[
-    Wenn `true`, werden Seiten nummeriert ("Seite X von Y").
-  ]
-
-  #argument("klausurboegen", types: ("boolean", "dictionary"), default: false)[
-    - `false`: Keine Klausurbögen
-    - Dictionary mit:
-      - `stufe`: `"I"` oder `"II"` (Sekundarstufe)
-      - `ergebnisse`: CSV-Daten mit Schülernamen (optional) – erzeugt individuelle Bögen pro Schüler*in
-      
-    Klausurbögen sind leere Doppelbögen zum Beschreiben mit Kopfbereich.
-  ]
-
-  #argument("page-settings", types: "dictionary", default: (:))[
-    Zusätzliche Seiteneinstellungen, die an `page()` übergeben werden.
-    
-    *Hinweis*: Margin-Einstellungen werden mit den Standard-Klassenarbeit-Margins kombiniert.
-  ]
-
-  #argument("arbeitsblatt-args", types: "any")[
-    Alle weiteren Parameter werden an die `arbeitsblatt()` Funktion weitergereicht.
-    
-    Verfügbare Parameter:
-    - `font`, `math-font`, `font-size`, `figure-font-size`
-    - `loesungen`, `materialien`, `punkte`
-    - `teilaufgabe-numbering`, `workspaces`
-    - Siehe #package[arbeitsblatt] Manual für Details
-  ]
-
-  #argument("body", types: "content")[
-    Inhalt der Klassenarbeit (Aufgaben, Materialien, etc.).
-  ]
-]
-
-Alle Funktionen aus #package[arbeitsblatt] sind verfügbar:
-- `#aufgabe()`, `#teilaufgabe()`
-- `#loesung()`, `#erwartung()`, `#material()`
-- `#show-erwartungen()`, `#show-bewertung()`
-- `#lücke()`, `#minipage()`, etc.
+Alle Bausteine aus `arbeitsblatt` und `aufgaben` stehen zusätzlich zur
+Verfügung: `aufgabe`, `teilaufgabe`, `loesung`, `erwartung`, `material`,
+`show-erwartungen`, `show-bewertung`, `lücke`, `minipage`. Ihre Beschreibung
+steht in den Handbüchern dieser Pakete.
 
 = Beispiele
 
 == Einfache Klassenarbeit
 
-#sourcecode(breakable: true)[```typ
+#show-code(```typ
 #import "@schule/klassenarbeit:0.3.0": *
 
 #show: klassenarbeit.with(
@@ -490,11 +444,28 @@ Alle Funktionen aus #package[arbeitsblatt] sind verfügbar:
 ]
 #erwartung(1)[Formel angegeben]
 #erwartung(2)[Steigung berechnet: $m=2$]
-```]
+```)
+
+#show-example(
+  rendered: {
+    import "../src/klassenarbeit.typ": aufgabe
+    import "@schule/aufgaben:0.3.0": reset-aufgaben
+    reset-aufgaben()
+    aufgabe("Quadratische Gleichungen")[
+      Berechne die Lösungen von $x^2 - 5x + 6 = 0$.
+    ]
+  },
+  source: ```typ
+  #aufgabe("Quadratische Gleichungen")[
+    Berechne die Lösungen von $x^2 - 5x + 6 = 0$.
+  ]
+  ```,
+  width: 14cm,
+)
 
 == Klassenarbeit mit Teilaufgaben
 
-#sourcecode(breakable: true)[```typ
+#show-code(```typ
 #import "@schule/klassenarbeit:0.3.0": *
 
 #show: klassenarbeit.with(
@@ -515,7 +486,7 @@ Alle Funktionen aus #package[arbeitsblatt] sind verfügbar:
   ]
   #erwartung(1)[Hauptnenner: 6]
   #erwartung(1)[Ergebnis: $5/6$]
-  
+
   #teilaufgabe[
     Berechne: $2/5 + 1/4$
   ]
@@ -528,29 +499,31 @@ Alle Funktionen aus #package[arbeitsblatt] sind verfügbar:
   ]
   #erwartung(2)[Ergebnis: $1/2$]
 ]
-```]
+```)
 
 = Integration
 
-Das #package[klassenarbeit] Paket integriert sich mit:
+Das `klassenarbeit` Paket integriert sich mit:
 
 == Arbeitsblatt-Paket
-Alle Funktionen von #package[arbeitsblatt] sind verfügbar:
+
+Alle Funktionen von `arbeitsblatt` sind verfügbar:
 - Aufgaben- und Teilaufgabenverwaltung
 - Lösungen und Materialien
 - Erwartungshorizonte und Bewertung
 - Hilfsfunktionen wie `lücke()`, `minipage()`, etc.
 
-== Klausurbögen-Paket  
-Automatische Integration von #package[klausurboegen] für leere Schreibbögen mit Kopfbereich und optionalen Bewertungsfeldern.
+== Klausurbögen-Paket
+
+Automatische Integration von `klausurboegen` für leere Schreibbögen mit Kopfbereich und optionalen Bewertungsfeldern.
 
 = Zusammenfassung
 
-Das #package[klassenarbeit] Paket bietet:
+Das `klassenarbeit` Paket bietet:
 
 - ✓ Professionelles Deckblatt mit Logo und Metadaten
 - ✓ Flexible Informationstabelle für Schülerdaten
-- ✓ Alle Funktionen des #package[arbeitsblatt] Pakets
+- ✓ Alle Funktionen des `arbeitsblatt` Pakets
 - ✓ Automatischer Erwartungshorizont
 - ✓ Optionale leere Klausurbögen (Schreibbögen) mit Kopfbereich
 
@@ -558,8 +531,8 @@ Das Paket ist ideal für Lehrkräfte, die professionelle Klassenarbeiten mit min
 
 = Weiterführende Ressourcen
 
-- #package[arbeitsblatt] Manual -- Für alle Arbeitsblatt-Funktionen
-- #package[aufgaben] Manual -- Für Aufgabenverwaltung im Detail
-- #package[klausurboegen] Manual -- Für erweiterte Klausurbogen-Optionen
+- `arbeitsblatt` Manual -- Für alle Arbeitsblatt-Funktionen
+- `aufgaben` Manual -- Für Aufgabenverwaltung im Detail
+- `klausurboegen` Manual -- Für erweiterte Klausurbogen-Optionen
 
 Bei Fragen oder Problemen wenden Sie sich an den Paket-Maintainer oder erstellen Sie ein Issue auf GitHub.

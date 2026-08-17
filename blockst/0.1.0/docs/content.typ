@@ -1,5 +1,5 @@
-#import "../../../schuldocs/0.1.0/lib.typ": show-example, show-module, show-code
-#import "/blockst/0.1.0/lib.typ": scratch, set-blockst, blockst
+#import "@schule/schuldocs:0.2.0": show-example, show-module, show-code
+#import "../lib.typ": scratch, set-blockst, blockst
 #import scratch.de: *
 #set-blockst(scale: 82%)
 
@@ -46,7 +46,7 @@ Zusätzlich stehen drei visuelle Themes zur Auswahl: `"normal"`, `"dark"` und `"
 
 #show-example(
   rendered: {
-    import "/blockst/0.1.0/lib.typ": blockst, scratch
+    import "../lib.typ": blockst, scratch
     blockst[
       #import scratch.de: *
       #wenn-gruene-flagge-geklickt[
@@ -79,7 +79,7 @@ des Blocks werden zuerst die Sprachbausteine importiert, dann die Blöcke zusamm
 
 #show-example(
   rendered: {
-    import "/blockst/0.1.0/lib.typ": blockst, scratch
+    import "../lib.typ": blockst, scratch
     blockst[
       #import scratch.de: *
       #wenn-gruene-flagge-geklickt[
@@ -107,7 +107,7 @@ des Blocks werden zuerst die Sprachbausteine importiert, dann die Blöcke zusamm
 
 #show-example(
   rendered: {
-    import "/blockst/0.1.0/lib.typ": blockst, scratch
+    import "../lib.typ": blockst, scratch
     blockst[
       #import scratch.de: *
       #wenn-gruene-flagge-geklickt[
@@ -137,7 +137,7 @@ des Blocks werden zuerst die Sprachbausteine importiert, dann die Blöcke zusamm
 
 #show-example(
   rendered: {
-    import "/blockst/0.1.0/lib.typ": blockst, scratch
+    import "../lib.typ": blockst, scratch
     blockst[
       #import scratch.de: *
       #wenn-gruene-flagge-geklickt[
@@ -169,7 +169,7 @@ Für internationale Kontexte oder englischsprachige Schulen kann `scratch.en` im
 
 #show-example(
   rendered: {
-    import "/blockst/0.1.0/lib.typ": blockst, scratch
+    import "../lib.typ": blockst, scratch
     blockst[
       #import scratch.en: *
       #when-flag-clicked[
