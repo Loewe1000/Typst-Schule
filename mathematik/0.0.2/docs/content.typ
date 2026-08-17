@@ -1,4 +1,4 @@
-#import "../../../schuldocs/0.1.0/lib.typ": show-example, show-module, show-code
+#import "@schule/schuldocs:0.2.0": show-example, show-module, show-code
 #import "@preview/gentle-clues:1.2.0": tip
 
 = Über dieses Paket
@@ -33,7 +33,7 @@ Das Paket hängt ab von: `cetz` (0.4.2), `cetz-plot` (0.1.3), `eqalc` (0.1.3),
 
 #show-example(
   rendered: {
-    import "/mathematik/0.0.2/mathematik.typ": graphen
+    import "../mathematik.typ": graphen
     graphen(x => x * x, x: (-3, 3), y: (-1, 9))
   },
   source: ```typ
@@ -50,7 +50,7 @@ Funktionen können als Typst-Closure oder als Mathe-Content übergeben werden:
 
 #show-example(
   rendered: {
-    import "/mathematik/0.0.2/mathematik.typ": graphen
+    import "../mathematik.typ": graphen
     graphen(
       x => x * x - 2,
       x: (-3, 3),
@@ -73,7 +73,7 @@ Jede Funktion wird als weiteres positionales Argument übergeben:
 
 #show-example(
   rendered: {
-    import "/mathematik/0.0.2/mathematik.typ": graphen
+    import "../mathematik.typ": graphen
     graphen(
       x => x * x,
       x => 2 * x - 1,
@@ -123,7 +123,7 @@ Mit `fills` können Flächen unter oder zwischen Kurven eingefärbt werden.
 
 #show-example(
   rendered: {
-    import "/mathematik/0.0.2/mathematik.typ": graphen
+    import "../mathematik.typ": graphen
     graphen(
       x => calc.sin(x),
       x: (-1, 4),
@@ -158,7 +158,7 @@ Mit `fills` können Flächen unter oder zwischen Kurven eingefärbt werden.
 
 #show-example(
   rendered: {
-    import "/mathematik/0.0.2/mathematik.typ": graphen
+    import "../mathematik.typ": graphen
     graphen(
       x => x * x,
       x => 2 * x + 1,
@@ -204,7 +204,7 @@ Diskrete Messpunkte aus dem Physik-Paket oder als einfache Arrays können direkt
 
 #show-example(
   rendered: {
-    import "/mathematik/0.0.2/mathematik.typ": graphen
+    import "../mathematik.typ": graphen
     import "@schule/physik:0.0.2": datensatz
     let t = datensatz($t$, "s", (0, 1, 2, 3, 4))
     let s = datensatz($s$, "m", (0, 5, 20, 45, 80))
@@ -305,7 +305,7 @@ Die `teilaufgaben()`-Funktion (Alias: `tasks`) erzeugt ein mehrspaltiges Grid f�
 
 #show-example(
   rendered: {
-    import "/mathematik/0.0.2/mathematik.typ": teilaufgaben
+    import "../mathematik.typ": teilaufgaben
     import "@schule/aufgaben:0.1.2": teilaufgabe, loesung
     teilaufgaben(columns: 2)[
       + Berechne $2 + 3$.
@@ -352,7 +352,7 @@ Der Polynomgrad ergibt sich automatisch aus der Anzahl der Bedingungen (Grad = A
 
 #show-example(
   rendered: {
-    import "/mathematik/0.0.2/mathematik.typ": steckbrief, graphen
+    import "../mathematik.typ": steckbrief, graphen
     let sb = steckbrief("f(0)=2", "f'(0)=0", "f(2)=0", "f'(2)=0")
     [Die Funktion lautet: #sb.math]
     graphen(sb.function, x: (-1, 3), y: (-1, 3))
@@ -388,7 +388,7 @@ Die Rückgabe ist ein Dictionary mit:
 
 #show-example(
   rendered: {
-    import "/mathematik/0.0.2/mathematik.typ": kreisdiagramm
+    import "../mathematik.typ": kreisdiagramm
     kreisdiagramm(
       (
         ("Äpfel", 35),
@@ -433,7 +433,7 @@ Das Paket enthält Hilfsfunktionen, um die GeoGebra-Algebra-Ansicht in Typst nac
 
 #show-example(
   rendered: {
-    import "/mathematik/0.0.2/mathematik.typ": geogebra-algebra, geogebra-style
+    import "../mathematik.typ": geogebra-algebra, geogebra-style
     geogebra-algebra(
       $v = vec(2, 1, 5)$,
       $u = vec(1, -1, 3)$,

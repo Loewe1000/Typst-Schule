@@ -1,4 +1,4 @@
-#import "../../../schuldocs/0.1.0/lib.typ": show-example, show-module, show-code
+#import "@schule/schuldocs:0.2.0": show-example, show-module, show-code
 
 = Über dieses Paket
 
@@ -22,7 +22,7 @@ Einsatzgebiete: Physik-Definitionen, Grammatikübungen, Fachvokabular, Lese-/Hö
 
 #show-example(
   rendered: {
-    import "/insert-a-word/0.0.3/lib.typ": insert-a-word, iaword
+    import "../lib.typ": insert-a-word, iaword
     insert-a-word[
       Die Energie ist #iaword[proportional] zur Zeit.
       Der Quotient $E slash t$ ist konstant und die Kurve ist eine #iaword[Gerade].
@@ -51,7 +51,7 @@ Diese Option eignet sich für Lehrkraft-Exemplare oder Selbstkontrollbögen:
 
 #show-example(
   rendered: {
-    import "/insert-a-word/0.0.3/lib.typ": insert-a-word, iaword
+    import "../lib.typ": insert-a-word, iaword
     insert-a-word(show-solution: true)[
       Licht breitet sich gradlinig aus und wird an glatten Flächen #iaword[reflektiert].
       An rauen Flächen tritt #iaword[Streuung] auf.
@@ -73,7 +73,7 @@ so lassen sich keine Rückschlüsse aus der Lückenbreite ziehen:
 
 #show-example(
   rendered: {
-    import "/insert-a-word/0.0.3/lib.typ": insert-a-word, iaword
+    import "../lib.typ": insert-a-word, iaword
     insert-a-word(uniform-gaps: true)[
       Der #iaword[Widerstand] eines Leiters ist #iaword[proportional] zu seiner #iaword[Länge].
     ]
@@ -103,7 +103,7 @@ für Varianten ohne Hilfestellung oder für den reinen Lösungsbogen:
 
 #show-example(
   rendered: {
-    import "/insert-a-word/0.0.3/lib.typ": insert-a-word, iaword
+    import "../lib.typ": insert-a-word, iaword
     insert-a-word[
       Die Formel lautet #iaword[$F = m a$].
       Die Einheit der Kraft ist #iaword[$"N" = "kg" dot "m/s"^2$].
