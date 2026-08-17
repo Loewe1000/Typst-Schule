@@ -8,6 +8,10 @@ summify/.vscode/settings.json
 docs-site/
 # Generierte web.html Dateien (Build-Artefakt, nicht einchecken)
 **/docs/web.html
+# Örtlicher Bündel-Build einer Paket-Doku (Handbuch, Website, Stilvorlage).
+# Entsteht bei `typst compile docs/docs.typ build --format bundle …`; die
+# veröffentlichte Fassung baut die CI nach .docs-site/.
+**/docs/build/
 # Veraltete Build-Dateien (ersetzt durch .github/scripts/)
 build.sh
 index.html
