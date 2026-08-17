@@ -201,6 +201,16 @@
   aufgaben-shortcodes: "teilaufgaben",
   copyright: none,
   scope: none,
+  // Bibliotheks-Metadaten (alle optional, siehe <ab-meta>)
+  fach: none,
+  thema: none,
+  jahrgang: (),
+  stufe: none,
+  niveau: none,
+  typ: none,
+  stichworte: (),
+  kerncurriculum: (),
+  stand: none,
   ..args,
   body,
 ) = {
@@ -300,7 +310,7 @@
   }
 
   let header(title: none, class: none, font-size: 16pt, copyright: none) = {
-    text(font-size, font: font, weight: "semibold")[#title]
+    text(font-size, weight: "semibold")[#title]
     h(1fr)
 
     if copyright != none {
@@ -310,7 +320,6 @@
 
     text(
       font-size,
-      font: font,
       weight: "semibold",
       fill: luma(130),
     )[#class]
@@ -392,6 +401,24 @@
     print-state.update(_ => {
       print
     })
+
+    // Bibliotheks-Metadaten für `typst query '<ab-meta>' --field value`.
+    // Wird immer ausgegeben, auch wenn nichts gesetzt ist – so lassen sich
+    // ungetaggte Blätter maschinell finden. `metadata` ist unsichtbar und
+    // beeinflusst das Layout nicht.
+    [#metadata((
+      titel: title,
+      klasse: class,
+      fach: fach,
+      thema: thema,
+      jahrgang: jahrgang,
+      stufe: stufe,
+      niveau: niveau,
+      typ: typ,
+      stichworte: stichworte,
+      kerncurriculum: kerncurriculum,
+      stand: stand,
+    )) #std.label("ab-meta")]
 
     // Bundle-Variante: Anfang markieren und alle Aufgaben-Zustände
     // zurücksetzen, da States/Counter im Bundle global sind.
@@ -583,6 +610,22 @@
 /// - dateiname (string, none): Präfix für die Ausgabedateien im Bundle
 ///   (z. B. `"quadratische-funktionen"` → `quadratische-funktionen-digital.pdf`).
 ///   Standard: `none`.
+/// - fach (string, none): Fach, z. B. `"physik"`. Standard: `none`.
+/// - thema (string, none): Pfad des Themas in der Materialbibliothek, z. B.
+///   `"physik/energie/potentielle-energie"`. Standard: `none`.
+/// - jahrgang (array): Jahrgangsstufen, in denen das Blatt eingesetzt wird,
+///   z. B. `(9, 11)`. Bewusst eine Liste, damit dasselbe Material in mehreren
+///   Stufen geführt werden kann. Standard: `()`.
+/// - stufe (string, none): Bildungsstufe nach AMB: `"sek-1"` | `"sek-2"`.
+///   Standard: `none`.
+/// - niveau (string, none): `"einfuehrung"` | `"vertiefung"` | `"ea"` | `"ga"`.
+///   Standard: `none`.
+/// - typ (string, none): Materialart, z. B. `"arbeitsblatt"`, `"uebung"`,
+///   `"stationsarbeit"`, `"klausur"`. Standard: `none`.
+/// - stichworte (array): Freie Schlagworte. Standard: `()`.
+/// - kerncurriculum (array): Bezüge zum Kerncurriculum. Standard: `()`.
+/// - stand (string, none): Datum der letzten Überarbeitung, `"JJJJ-MM-TT"`.
+///   Standard: `none`.
 /// - ..args (any): Weitere benannte Argumente (z. B. `header-ascent`).
 /// -> function
 #let arbeitsblatt(
@@ -608,6 +651,16 @@
   copyright: none,
   varianten: auto,
   dateiname: none,
+  // Bibliotheks-Metadaten (alle optional, siehe <ab-meta>)
+  fach: none,
+  thema: none,
+  jahrgang: (),
+  stufe: none,
+  niveau: none,
+  typ: none,
+  stichworte: (),
+  kerncurriculum: (),
+  stand: none,
   ..args,
   body,
 ) = {
@@ -632,6 +685,15 @@
     punkte: punkte,
     aufgaben-shortcodes: aufgaben-shortcodes,
     copyright: copyright,
+    fach: fach,
+    thema: thema,
+    jahrgang: jahrgang,
+    stufe: stufe,
+    niveau: niveau,
+    typ: typ,
+    stichworte: stichworte,
+    kerncurriculum: kerncurriculum,
+    stand: stand,
   ) + args.named()
 
   context if target() == "bundle" {
