@@ -4,3 +4,6 @@
 [submodule "typstage-geogebra/0.1.0"]
 	path = typstage-geogebra/0.1.0
 	url = https://github.com/Loewe1000/typstage-geogebra.git
+[submodule "blockst/0.3.0"]
+	path = blockst/0.3.0
+	url = https://github.com/Loewe1000/blockst.git
