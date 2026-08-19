@@ -1,0 +1,1 @@
+/Users/alexander/Library/Application\ Support/typst/packages/schule/typlace/0.0.2/rust/target/wasm32-unknown-unknown/release/typlace_optimierer.wasm: /Users/alexander/Library/Application\ Support/typst/packages/schule/typlace/0.0.2/rust/src/lib.rs
