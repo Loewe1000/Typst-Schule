@@ -88,6 +88,15 @@ for pkg_dir in "$PACKAGES_DIR"/*/; do
     if [[ ! -f "$vdir/docs/docs.typ" && -f "$vdir/docs/web.typ" ]]; then
       uebersprungen+=("$pkg_name/$(basename "$vdir")")
     fi
+    # Ein leerer Versionsordner heißt: ein Submodul wurde nicht ausgecheckt.
+    # Das ist ein Fehler und kein Grund, die Seite still ohne dieses Paket zu
+    # veröffentlichen — genau so sind typstage, typstage-geogebra und blockst
+    # einmal wortlos von der Website verschwunden.
+    if [[ -d "$vdir" && -z "$(ls -A "$vdir" 2>/dev/null)" ]]; then
+      echo "FEHLER: $pkg_name/$(basename "$vdir") ist leer — Submodul nicht" \
+           "ausgecheckt? (git submodule update --init --recursive)" >&2
+      exit 1
+    fi
   done
 
   [[ ${#versions[@]} -eq 0 ]] && continue
