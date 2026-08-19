@@ -24,6 +24,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # Ohne das bleiben die Submodule leere Ordner, das Bau-Skript findet
+          # dort kein docs/docs.typ und die Seiten von typstage,
+          # typstage-geogebra und blockst verschwinden wortlos von der Website.
+          submodules: recursive
 
       - name: Typst installieren
         uses: typst-community/setup-typst@v4
