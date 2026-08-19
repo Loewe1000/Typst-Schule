@@ -1,0 +1,11 @@
+[package]
+name = "typlace"
+version = "0.0.2"
+entrypoint = "typlace.typ"
+authors = ["Alexander Schulz"]
+description = "Erstellt Sitzpläne für Klassenräume aus einem einfachen String-Muster und sucht die Sitzordnung, die am besten zu den Wünschen der Schüler passt."
+license = "MIT"
+keywords = ["classroom", "layout", "seating", "schule", "tisch", "sitzplan"]
+categories = ["layout", "visualization"]
+disciplines = ["education"]
+repository = "https://github.com/Loewe1000/Typst-Schule"
