@@ -55,7 +55,7 @@ echo ""
 # Navigationsleiste (Übersicht, Versions-Dropdown, Handbuch als PDF). Die
 # Seiten aus schuldocs 0.2.0 bringen sie nicht selbst mit: welche Versionen es
 # gibt, weiß erst dieser Build. Der Platzhalter __PDF__ wird je Paket ersetzt.
-DROPDOWN_JS="(function(){if(document.getElementById('schuldocs-nav')){return;}var p=location.pathname.replace(/index\\.html\$/,'');if(p.slice(-1)!=='/'){p+='/';}var vm=p.match(/\\/(\\d+\\.\\d+\\.\\d+)\\/\$/);var root=vm?p.slice(0,p.length-vm[1].length-1):p;var current=vm?vm[1]:null;var home=root.replace(/[^/]+\\/\$/,'');var style=document.createElement('style');style.textContent='#schuldocs-nav{position:fixed;top:.75rem;right:.75rem;z-index:50;display:flex;gap:.4rem;align-items:center;}#schuldocs-nav a,#schuldocs-nav select{padding:.3rem .5rem;border:1px solid rgb(212,212,216);border-radius:.375rem;background:rgba(255,255,255,.92);font:500 .8rem/1.2 Inter,system-ui,sans-serif;color:rgb(63,63,70);cursor:pointer;text-decoration:none;}@media (prefers-color-scheme:dark){#schuldocs-nav a,#schuldocs-nav select{background:rgba(39,39,42,.92);color:rgb(212,212,216);border-color:rgb(63,63,70);}}';document.head.appendChild(style);var nav=document.createElement('div');nav.id='schuldocs-nav';var back=document.createElement('a');back.href=home;back.title='Zur Paketübersicht';back.setAttribute('aria-label','Zur Paketübersicht');back.textContent='\\u2190 Übersicht';nav.appendChild(back);var pdf=document.createElement('a');pdf.href='__PDF__';pdf.title='Handbuch als PDF';pdf.textContent='PDF';nav.appendChild(pdf);document.body.appendChild(nav);fetch(root+'versions.json').then(function(r){if(!r.ok){throw 0;}return r.json();}).then(function(versions){if(!Array.isArray(versions)||versions.length<2){return;}var sel=document.createElement('select');sel.id='schuldocs-versionen';sel.title='Dokumentations-Version';sel.setAttribute('aria-label','Dokumentations-Version wählen');versions.forEach(function(v,i){var o=document.createElement('option');o.value=v;o.textContent=i===0?v+' (neueste)':v;sel.appendChild(o);});sel.value=current||versions[0];sel.onchange=function(){location.href=root+sel.value+'/';};nav.appendChild(sel);}).catch(function(){});})();"
+DROPDOWN_JS="(function(){if(document.getElementById('schuldocs-nav')){return;}var p=location.pathname.replace(/index\\.html\$/,'');if(p.slice(-1)!=='/'){p+='/';}var vm=p.match(/\\/(\\d+\\.\\d+\\.\\d+)\\/\$/);var root=vm?p.slice(0,p.length-vm[1].length-1):p;var current=vm?vm[1]:null;var home=root.replace(/[^/]+\\/\$/,'');var style=document.createElement('style');style.textContent='#schuldocs-nav{position:fixed;top:.75rem;right:.75rem;z-index:50;display:flex;gap:.4rem;align-items:center;}#schuldocs-nav a,#schuldocs-nav select{padding:.3rem .5rem;border:1px solid rgb(212,212,216);border-radius:.375rem;background:rgba(255,255,255,.92);font:500 .8rem/1.2 Inter,system-ui,sans-serif;color:rgb(63,63,70);cursor:pointer;text-decoration:none;}@media (prefers-color-scheme:dark){#schuldocs-nav a,#schuldocs-nav select{background:rgba(39,39,42,.92);color:rgb(212,212,216);border-color:rgb(63,63,70);}}';document.head.appendChild(style);var nav=document.createElement('div');nav.id='schuldocs-nav';var back=document.createElement('a');back.href=home;back.title='Zur Paketübersicht';back.setAttribute('aria-label','Zur Paketübersicht');back.textContent='\\u2190 Übersicht';nav.appendChild(back);var pdf=document.createElement('a');pdf.href='__PDF__';pdf.title='Handbuch als PDF';pdf.textContent='PDF';nav.appendChild(pdf);var demos='__DEMOS__';if(demos){var dm=document.createElement('a');dm.href=demos;dm.title='Beispielpr\u00e4sentationen im Browser';dm.textContent='Beispiele';nav.appendChild(dm);}document.body.appendChild(nav);fetch(root+'versions.json').then(function(r){if(!r.ok){throw 0;}return r.json();}).then(function(versions){if(!Array.isArray(versions)||versions.length<2){return;}var sel=document.createElement('select');sel.id='schuldocs-versionen';sel.title='Dokumentations-Version';sel.setAttribute('aria-label','Dokumentations-Version wählen');versions.forEach(function(v,i){var o=document.createElement('option');o.value=v;o.textContent=i===0?v+' (neueste)':v;sel.appendChild(o);});sel.value=current||versions[0];sel.onchange=function(){location.href=root+sel.value+'/';};nav.appendChild(sel);}).catch(function(){});})();"
 
 # Ausgabe-Verzeichnis vorbereiten: alles außer dem Pagefind-Index verwerfen,
 # damit keine Datei einer entfernten Version stehenbleibt.
@@ -122,10 +122,58 @@ for pkg_dir in "$PACKAGES_DIR"/*/; do
         2>&1 | awk '!/^warning: bundle export is experimental/ && !/^warning: html export/ && !/^= hint:/ { print }'
       exit "${PIPESTATUS[0]}"
     ) && [[ -f "$out_dir/index.html" ]]; then
+      # Beispielpräsentationen: jede examples/*.typ als eigenständige HTML-Datei
+      # neben die Doku. Sie sind der einzige Weg, das Paket auszuprobieren, ohne
+      # Typst zu installieren — ein Deck ist eine Datei, ohne Server und ohne
+      # Nachladen. Gefunden wird wie bei der Doku von selbst; wo es keinen
+      # examples-Ordner gibt, passiert nichts.
+      beispiele_href=""
+      if [[ -d "$pkg_dir$version/examples" ]]; then
+        beispiel_namen=()
+        for bsp in "$pkg_dir$version/examples"/*.typ; do
+          [[ -e "$bsp" ]] || continue
+          # Nur Decks: eine beliebige Beispieldatei nach HTML zu exportieren
+          # ergibt eine Seite, auf der Typst Raster und Abstände verworfen hat.
+          # typstage baut die Folien dagegen selbst als SVG ein, deshalb ist der
+          # Import das ehrliche Kennzeichen. Andere Pakete bleiben unberührt.
+          grep -q '@schule/typstage' "$bsp" || continue
+          bsp_name="$(basename "${bsp%.typ}")"
+          mkdir -p "$out_dir/beispiele"
+          if (
+            cd "$pkg_dir$version/examples"
+            typst compile \
+              --format html \
+              --features html \
+              --package-path "$TYPST_PACKAGE_ROOT" \
+              --root "$PACKAGES_DIR" \
+              "$(basename "$bsp")" \
+              "$out_dir/beispiele/$bsp_name.html" \
+              2>&1 | awk '!/^warning: html export/ && !/^= hint:/ { print }'
+            exit "${PIPESTATUS[0]}"
+          ) && [[ -s "$out_dir/beispiele/$bsp_name.html" ]]; then
+            beispiel_namen+=("$bsp_name")
+          else
+            echo "    WARNUNG: Beispiel $pkg_name/$version/$bsp_name ließ sich nicht bauen"
+            rm -f "$out_dir/beispiele/$bsp_name.html"
+          fi
+        done
+        if [[ ${#beispiel_namen[@]} -gt 0 ]]; then
+          BSP_PAKET="$pkg_name" BSP_VERSION="$version" \
+          BSP_NAMEN="${beispiel_namen[*]}" python3 "$SCRIPT_DIR/beispiele-index.py" \
+            "$out_dir/beispiele/index.html"
+          beispiele_href="beispiele/"
+          echo "    → $pkg_name/$version/beispiele/ (${#beispiel_namen[@]} Präsentationen)"
+        else
+          rmdir "$out_dir/beispiele" 2>/dev/null || true
+        fi
+      fi
+
       # Handbuch-Dateiname für den PDF-Verweis in der Navigationsleiste
       pdf_datei="$(cd "$out_dir" && ls *.pdf 2>/dev/null | head -1)"
 
-      SCHULDOCS_SNIPPET="<script>${DROPDOWN_JS//__PDF__/$pdf_datei}</script>" python3 -c '
+      nav_js="${DROPDOWN_JS//__PDF__/$pdf_datei}"
+      nav_js="${nav_js//__DEMOS__/$beispiele_href}"
+      SCHULDOCS_SNIPPET="<script>$nav_js</script>" python3 -c '
 import os, sys
 pfad = sys.argv[1]
 snippet = os.environ["SCHULDOCS_SNIPPET"]
@@ -162,7 +210,7 @@ open(pfad, "w", encoding="utf-8").write(html)
 
   # Neueste Version zusätzlich unversioniert: alle drei Dateien, damit die
   # Seite auch dort ihre Stilvorlage und ihr Handbuch findet.
-  cp "$out_pkg_dir/${gebaut[0]}"/* "$out_pkg_dir/"
+  cp -R "$out_pkg_dir/${gebaut[0]}"/* "$out_pkg_dir/"
   neueste_versionen_json+="\"$pkg_name\":\"${gebaut[0]}\","
   echo "    → $pkg_name/ (= ${gebaut[0]})"
 done
