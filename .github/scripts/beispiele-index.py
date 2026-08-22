@@ -89,9 +89,10 @@ seite = """<!doctype html>
   <main>
     <a class="zurueck" href="../">← Handbuch</a>
     <h1>Beispiele</h1>
-    <p class="unter">{paket} {version} — dieselbe Präsentation in jedem
-    mitgelieferten Theme. Jede Folie ist von Typst gesetzt und als SVG
-    eingebettet; bewegt wird sie erst im Browser.</p>
+    <p class="unter">{paket} {version} — je ein kurzer Vortrag in jedem
+    mitgelieferten Theme, mit Einblendungen, Magic Move und verschiedenen
+    Folienübergängen. Jede Folie ist von Typst gesetzt und als SVG eingebettet;
+    bewegt wird sie erst im Browser.</p>
     <div class="gitter">
 {karten}
     </div>
