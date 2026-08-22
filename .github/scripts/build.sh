@@ -158,6 +158,12 @@ for pkg_dir in "$PACKAGES_DIR"/*/; do
           fi
         done
         if [[ ${#beispiel_namen[@]} -gt 0 ]]; then
+          # Medien neben einem Beispiel reisen mit: `video("demo.mp4")` verweist
+          # auf eine Datei, die neben der HTML-Seite liegen muss.
+          for bei in "$pkg_dir$version/examples"/*; do
+            case "$bei" in *.typ) continue;; esac
+            [ -f "$bei" ] && cp "$bei" "$out_dir/beispiele/"
+          done
           BSP_PAKET="$pkg_name" BSP_VERSION="$version" \
           BSP_NAMEN="${beispiel_namen[*]}" python3 "$SCRIPT_DIR/beispiele-index.py" \
             "$out_dir/beispiele/index.html"
