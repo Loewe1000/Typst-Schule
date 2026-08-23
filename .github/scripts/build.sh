@@ -122,6 +122,28 @@ for pkg_dir in "$PACKAGES_DIR"/*/; do
         2>&1 | awk '!/^warning: bundle export is experimental/ && !/^warning: html export/ && !/^= hint:/ { print }'
       exit "${PIPESTATUS[0]}"
     ) && [[ -f "$out_dir/index.html" ]]; then
+      # Ein englisches Handbuch, falls das Paket eines hat. Eigener Lauf, weil
+      # `docs()` eine Show-Regel ist und je Datei genau zwei Ausgaben schreibt;
+      # die Datei benennt ihre Ausgaben selbst und landet deshalb neben der
+      # deutschen, statt sie zu überschreiben. Wer keine `manual-en.typ` hat,
+      # merkt von dieser Zeile nichts.
+      if [[ -f "$pkg_dir$version/docs/manual-en.typ" ]]; then
+        (
+          cd "$pkg_dir$version/docs"
+          typst compile \
+            --format bundle \
+            --features bundle,html \
+            --package-path "$TYPST_PACKAGE_ROOT" \
+            --root "$PACKAGES_DIR" \
+            manual-en.typ \
+            "$out_dir" \
+            2>&1 | awk '!/^warning: bundle export is experimental/ && !/^warning: html export/ && !/^= hint:/ { print }'
+          exit "${PIPESTATUS[0]}"
+        ) && [[ -f "$out_dir/en.html" ]] || {
+          echo "FEHLER: $pkg_name/$version: englisches Handbuch ließ sich nicht bauen" >&2
+          exit 1
+        }
+      fi
       # Beispielpräsentationen: jede examples/*.typ als eigenständige HTML-Datei
       # neben die Doku. Sie sind der einzige Weg, das Paket auszuprobieren, ohne
       # Typst zu installieren — ein Deck ist eine Datei, ohne Server und ohne

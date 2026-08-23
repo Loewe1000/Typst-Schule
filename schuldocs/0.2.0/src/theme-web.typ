@@ -4,7 +4,7 @@
 // Stilvorlage, Kopfbereich, Inhaltsverzeichnis als Navigation, Körper.
 // Das Aussehen steckt in `assets/docs.css`, nicht hier.
 
-#import "config.typ": css-name, pdf-mark, version as schuldocs-version
+#import "config.typ": css-name, pdf-mark, version as schuldocs-version, word
 
 // Reiner Text aus beliebigem Inhalt — für Anker und Verzeichnis.
 #let _plain(c) = {
@@ -81,7 +81,7 @@
     "nav",
     attrs: (class: "inhalt", "aria-label": "Inhaltsverzeichnis"),
     {
-      html.elem("h2", attrs: (class: "inhalt-titel"), "Inhalt")
+      context html.elem("h2", attrs: (class: "inhalt-titel"), word("contents"))
       _toc-list(sichtbar, 0, sichtbar.first().level).content
     },
   )
@@ -112,11 +112,13 @@
 ) = {
   let titel = if version != "" { name + " " + version } else { name }
 
-  html.elem("html", attrs: (lang: "de"), {
+  // Die Sprache steht am Dokument und nicht fest im Gerüst: eine Seite, die
+  // englisch geschrieben ist, soll sich auch englisch ankündigen.
+  context html.elem("html", attrs: (lang: text.lang), {
     html.elem("head", {
       html.elem("meta", attrs: (charset: "utf-8"))
       html.elem("meta", attrs: (name: "viewport", content: "width=device-width, initial-scale=1"))
-      html.elem("title", titel + " — Dokumentation")
+      html.elem("title", titel + " — " + word("docs"))
       if description != "" {
         html.elem("meta", attrs: (name: "description", content: description))
       }

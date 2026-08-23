@@ -3,7 +3,7 @@
 // Setzt den Körper der Dokumentation als PDF: Titelseite, Inhaltsverzeichnis,
 // Kopf- und Fußzeile, Fließtext.
 
-#import "config.typ": colors, fonts, pdf-mark, sizes
+#import "config.typ": colors, fonts, pdf-mark, sizes, word
 
 // Autorenliste als Text.
 #let _join-authors(authors) = authors.map(a => str(a)).join(", ", last: " und ")
@@ -172,7 +172,7 @@
   // Inhaltsverzeichnis — nur die Überschriften dieses Dokuments.
   {
     set heading(numbering: none, outlined: false)
-    heading(level: 1)[Inhalt]
+    context heading(level: 1, word("contents"))
   }
   {
     show outline.entry.where(level: 1): set text(weight: 600)

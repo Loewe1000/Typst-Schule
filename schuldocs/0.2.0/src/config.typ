@@ -6,6 +6,32 @@
 /// Version des Pakets.
 #let version = "0.2.0"
 
+// ─── Wörter der Vorlage ─────────────────────────────────────────────────────
+//
+// Die Seite hat einige wenige eigene Wörter: das Inhaltsverzeichnis, der
+// Zusatz im Fenstertitel, die Überschriften der Hinweiskästen. Sie folgen
+// `text.lang` statt fest deutsch zu sein, sonst trägt ein englisches Handbuch
+// deutsches Beiwerk.
+#let _woerter = (
+  de: (contents: "Inhalt", docs: "Dokumentation",
+       tip: "Tipp", info: "Hinweis", warning: "Achtung",
+       caution: "Vorsicht", note: "Notiz"),
+  en: (contents: "Contents", docs: "Documentation",
+       tip: "Tip", info: "Note", warning: "Careful",
+       caution: "Caution", note: "Aside"),
+  fr: (contents: "Sommaire", docs: "Documentation",
+       tip: "Astuce", info: "Remarque", warning: "Attention",
+       caution: "Prudence", note: "Note"),
+)
+
+/// Ein Wort der Vorlage in der Sprache des Dokuments.
+///
+/// Nur in `context` aufrufbar, weil `text.lang` erst dort feststeht.
+#let word(key) = {
+  let l = _woerter.at(text.lang, default: _woerter.de)
+  l.at(key, default: _woerter.de.at(key))
+}
+
 // ─── Ausgabe-Zustand ────────────────────────────────────────────────────────
 
 // Welche Ausgabe gerade gesetzt wird. `docs()` setzt den Wert zu Beginn jedes

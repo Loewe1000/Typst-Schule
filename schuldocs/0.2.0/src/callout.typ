@@ -12,14 +12,16 @@
 //   .sd-callout-title           die Zeile mit Zeichen und Titel
 //   .sd-callout-body            der Text
 
-#import "config.typ": colors, doc-target
+#import "config.typ": colors, doc-target, word
 
+// Die Überschrift steht hier als Schlüssel, nicht als Wort: nachgeschlagen
+// wird sie erst im Satz, wo die Sprache des Dokuments feststeht.
 #let _arten = (
-  tip: (zeichen: "→", titel: "Tipp", farbe: rgb("#0f7a5a")),
-  info: (zeichen: "i", titel: "Hinweis", farbe: rgb("#14537f")),
-  warning: (zeichen: "!", titel: "Achtung", farbe: rgb("#b45309")),
-  caution: (zeichen: "!", titel: "Vorsicht", farbe: rgb("#a3232b")),
-  note: (zeichen: "•", titel: "Notiz", farbe: rgb("#5b6670")),
+  tip: (zeichen: "→", titel: "tip", farbe: rgb("#0f7a5a")),
+  info: (zeichen: "i", titel: "info", farbe: rgb("#14537f")),
+  warning: (zeichen: "!", titel: "warning", farbe: rgb("#b45309")),
+  caution: (zeichen: "!", titel: "caution", farbe: rgb("#a3232b")),
+  note: (zeichen: "•", titel: "note", farbe: rgb("#5b6670")),
 )
 
 /// Ein Hinweiskasten.
@@ -28,7 +30,7 @@
 /// `title` überschreibt die vorgegebene Überschrift der Art.
 #let callout(body, kind: "info", title: auto) = context {
   let art = _arten.at(kind, default: _arten.info)
-  let kopf = if title == auto { art.titel } else { title }
+  let kopf = if title == auto { word(art.titel) } else { title }
 
   if doc-target() == "web" {
     html.div(
