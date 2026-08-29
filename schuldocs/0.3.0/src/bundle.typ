@@ -71,6 +71,7 @@
       license: license,
       authors: autoren,
       links: o.links,
+      depth: o.toc-depth,
       notices: o.notices,
       body,
     )
@@ -141,6 +142,10 @@
   if h == none { none } else { h.body }
 }
 
+// Wie viele Ebenen eine Datei unter der Wurzel liegt, als Praefix fuer jeden
+// Verweis: "en/geogebra.html" liegt eine Ebene tief und braucht "../".
+#let _wurzel-zu(datei) = "../" * datei.matches("/").len()
+
 #let _build-multi(o, body) = {
   let pkg = _package(o.toml)
   let name = _text-of(pkg.at("name", default: "paket"))
@@ -156,7 +161,11 @@
     let t = _chapter-title(kap)
     let roh = if t == none { "kapitel-" + str(i + 1) } else { _plain(t) }
     (
-      datei: if i == 0 { o.html-name } else { _slug(roh) + ".html" },
+      // Die erste Seite behaelt ihren Namen und bleibt oben; die Kapitel
+      // gehen in den Ordner, wenn einer genannt ist. Zwei Handbuecher auf
+      // derselben Website tragen sonst dieselben Kapitelnamen -- deutsch und
+      // englisch haben beide ein Kapitel "GeoGebra".
+      datei: if i == 0 { o.html-name } else { o.ordner + _slug(roh) + ".html" },
       titel: roh,
     )
   })
@@ -180,9 +189,11 @@
         license: license,
         authors: autoren,
         links: o.links,
+        depth: o.toc-depth,
         notices: o.notices,
         seiten: seiten,
         aktuell: i,
+        wurzel: _wurzel-zu(seite.datei),
         kap.join(),
       )
     ]
@@ -190,7 +201,7 @@
 
   // Zusätzlich das ganze Handbuch auf einer Seite — für Strg-F und zum Drucken.
   document(
-    "alles.html",
+    o.ordner + "alles.html",
     title: [#titel],
     description: [#description],
     author: autoren,
@@ -198,7 +209,7 @@
     #target-state.update("web")
     #_reset-counters()
     #(o.reset)()
-    #metadata("alles.html")#seiten-marke
+    #metadata(o.ordner + "alles.html")#seiten-marke
     #web-page(
       name: name,
       version: version,
@@ -206,9 +217,11 @@
       license: license,
       authors: autoren,
       links: o.links,
+      depth: o.toc-depth,
       notices: o.notices,
       seiten: seiten,
       aktuell: -1,
+      wurzel: _wurzel-zu(o.ordner + "alles.html"),
       body,
     )
   ]
@@ -284,6 +297,16 @@
   html-name: "index.html",
   reset: () => none,
   split: false,
+  // Wohin die Kapitelseiten gehen, wenn geteilt wird. Leer heisst: neben die
+  // Einstiegsseite. "en/" legt sie in einen Ordner -- noetig, sobald zwei
+  // Handbuecher auf derselben Website stehen, denn ihre Kapitel heissen
+  // gleich. Der abschliessende Schraegstrich gehoert dazu.
+  ordner: "",
+  // Tiefste Ebene im Inhaltsverzeichnis. Drei ist die Vorgabe und bleibt es;
+  // ein geteiltes Handbuch ist mit zwei besser bedient, weil dort ohnehin
+  // jedes Kapitel seine eigene Seite hat und die dritte Ebene die Uebersicht
+  // nur laenger macht. An typstage gemessen: 141 Eintraege gegen 91.
+  toc-depth: 3,
   ..rest,
 ) = {
   let einstellungen = (
@@ -295,6 +318,8 @@
     pdf-name: pdf-name,
     reset: reset,
     html-name: html-name,
+    ordner: ordner,
+    toc-depth: toc-depth,
   )
   let bauen = if split { _build-multi } else { _build }
   if rest.pos().len() == 0 {

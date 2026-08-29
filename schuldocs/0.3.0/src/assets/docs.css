@@ -183,7 +183,21 @@ nav.inhalt ul ul {
   font-size: 0.95em;
 }
 
-nav.inhalt li { margin: 0.18rem 0; }
+nav.inhalt li { margin: 0.18rem 0; position: relative; }
+
+/* Wo man gerade steht. Gesetzt wird `aria-current` vom Skript am Fuß der
+   Seite; ohne JavaScript bleibt die Liste, wie sie war. Der Strich links
+   steht *neben* dem Text und nicht darunter, damit die Zeile nicht springt,
+   wenn die Markierung wandert. */
+nav.inhalt a[aria-current="true"] { color: var(--accent); font-weight: 600; }
+nav.inhalt a[aria-current="true"]::before {
+  content: "";
+  position: absolute;
+  left: -0.7rem;
+  top: 0.15em;
+  bottom: 0.15em;
+  border-left: 2px solid var(--accent);
+}
 
 nav.inhalt a {
   color: var(--muted);
