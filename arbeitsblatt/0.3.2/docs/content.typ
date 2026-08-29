@@ -146,6 +146,21 @@ Jeder Bogen zeigt dann zweimal dieselbe Spalte.
   will (Seite 1 | Seite 2), nutzt dafür den Druckdialog, nicht diese Variante.
 ]
 
+Explizite Seitenumbrüche gehen dabei nicht verloren: `pagebreak()` wird im
+Zweifach-Modus zu einem Spaltenumbruch, und weil eine Spalte eine A5-Seite
+ist, bricht das Blatt an derselben Stelle. Das gilt auch für `page[..]` ohne
+Argumente – intern sind das nur zwei schwache Seitenumbrüche um den Inhalt
+herum.
+
+#warning[
+  Nicht möglich ist `page()` mit Argumenten, also etwa `page(fill: aqua)[..]`.
+  Eine Seitenkonfiguration ist in Containern verboten, und Typst lässt darauf
+  keine Show-Rule zu – das Paket kann den Fall darum weder übersetzen noch
+  vorab erkennen; es bleibt bei Typsts Meldung `page configuration is not
+  allowed inside of containers`. Wer eine ganzseitige Fläche braucht, nimmt
+  `pagebreak()` und einen `block` in Seitenhöhe.
+]
+
 == Alle Varianten in der Vorschau
 
 Die Editor-Preview rendert das paged-Target und zeigt darum von Haus aus

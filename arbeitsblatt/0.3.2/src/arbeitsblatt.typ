@@ -174,6 +174,32 @@
 /// Nächstgrößeres Format – zwei davon ergeben einen Bogen der Zielgröße.
 #let _papier-groesser = (a6: "a5", a5: "a4", a4: "a3")
 
+/// Zählt die expliziten Seitenumbrüche in einem Inhaltsbaum.
+///
+/// Der Zweifach-Modus schätzt die Spaltenzahl aus der gemessenen Höhe. Ein
+/// `pagebreak()` ist aber höhenlos und schiebt den Inhalt trotzdem eine
+/// Spalte weiter – die Schätzung fiele also zu klein aus und der Überhang
+/// würde stillschweigend abgeschnitten. Jeder Umbruch zählt darum als eine
+/// zusätzliche Spalte. Umbrüche in `context`-Blöcken bleiben unsichtbar;
+/// dagegen sichert die Kontrolle nach der Sonde ab.
+#let _umbrueche-zaehlen(c) = {
+  if type(c) != content { return 0 }
+  if c.func() == pagebreak { return 1 }
+  let felder = c.fields()
+  let summe = 0
+  for name in ("children", "child", "body") {
+    if name in felder {
+      let wert = felder.at(name)
+      summe += if type(wert) == array {
+        wert.map(_umbrueche-zaehlen).sum(default: 0)
+      } else {
+        _umbrueche-zaehlen(wert)
+      }
+    }
+  }
+  summe
+}
+
 /// Löst die Margin-Angabe einer Seite zu allen vier Rändern auf.
 ///
 /// `set page(margin: ...)` erlaubt eine Länge, `x`/`y`, `left`/`right`,
@@ -613,48 +639,109 @@
       let kopf-h = measure(kopfzeile, width: ib).height
       let kopf-dy = rand.top - (if type(ascent) == ratio { ascent * rand.top } else { ascent }) - kopf-h
 
+      // Explizite Seitenumbrüche sind in Containern verboten – als
+      // Spaltenumbrüche wirken sie hier aber genau richtig, denn eine Spalte
+      // ist eine A5-Seite. Das deckt `page(..)` ohne Argumente gleich mit ab:
+      // Das ist intern nichts anderes als zwei schwache Seitenumbrüche um den
+      // Inhalt herum.
+      let inhalt-sp = {
+        show pagebreak: it => colbreak(weak: it.at("weak", default: false))
+        inhalt
+      }
+
       // Spalten in A5-Textmaßen brechen zeilengenau wie echte Seiten, also
       // entspricht jede Spalte einer A5-Seite. Wie viele es sind, verrät eine
       // unsichtbare Sonde mit Reserve: In welcher Spalte endet der Inhalt?
-      let nmax = calc.ceil(measure(block(width: ib, inhalt)).height / ih) + 2
+      let nmax = (
+        calc.ceil(measure(block(width: ib, inhalt-sp)).height / ih)
+          + _umbrueche-zaehlen(inhalt-sp)
+          + 2
+      )
       let sonde = place(
         top + left,
         box(width: 0pt, height: 0pt, clip: true, block(
           width: nmax * ib + (nmax - 1) * steg,
           height: ih,
-          columns(nmax, gutter: steg, {
-            inhalt
-            [#metadata(none)#std.label("_zweifach-ende")]
-          }),
+          {
+            // Referenz auf die Oberkante der Spalten. `place` steht außerhalb
+            // des Flusses und lässt die erste Spalte darum leer – ein
+            // führender schwacher Umbruch wird weiterhin verschluckt.
+            place(top + left, [#metadata(none)#std.label("_zweifach-oben")])
+            columns(nmax, gutter: steg, {
+              inhalt-sp
+              [#metadata(none)#std.label("_zweifach-ende")]
+            })
+          },
         )),
       )
 
       context {
         let treffer = query(std.label("_zweifach-ende"))
-        let n = if treffer.len() == 0 {
-          1
-        } else {
-          calc.floor(treffer.last().location().position().x / (ib + steg)) + 1
+        let oben = query(std.label("_zweifach-oben"))
+        let ende = if treffer.len() > 0 { treffer.last().location().position() } else { none }
+        let spalte = if ende == none { 1 } else { calc.floor(ende.x / (ib + steg)) + 1 }
+
+        // Die Sonde hat Reserve. Endet der Inhalt trotzdem in ihrer letzten
+        // Spalte, ist er dort angeschlagen und der Rest fiele ohne Warnung
+        // weg – lieber laut abbrechen als Material verlieren. Die Prüfung
+        // steht bewusst vor der Leerspalten-Korrektur: sonst könnte deren
+        // Abzug einen abgeschnittenen Inhalt unter die Schwelle drücken.
+        if spalte >= nmax {
+          panic(
+            "zweifach: Der Inhalt passt nicht in die Messsonde von "
+              + str(nmax)
+              + " Seiten und würde abgeschnitten. Seitenumbrüche innerhalb "
+              + "eines `context`-Blocks lassen sich vorab nicht zählen – "
+              + "steht einer dort, hilft es, ihn nach außen zu ziehen.",
+          )
         }
+
+        // Ein Seitenumbruch am Ende des Inhalts – etwa der, den `page(..)`
+        // hinter seinem Körper mitschickt – schiebt die Endmarke in eine
+        // frische Spalte. Im Seitenfluss verwirft Typst so einen Umbruch,
+        // hier bliebe sonst ein leerer Bogen übrig. Erkennbar ist der Fall
+        // daran, dass die Marke ganz oben in ihrer Spalte sitzt, also nichts
+        // vor ihr steht.
+        let n = if (
+          ende != none
+            and spalte > 1
+            and oben.len() > 0
+            and ende.y - oben.last().location().position().y < 1pt
+        ) { spalte - 1 } else { spalte }
 
         let spalten = block(
           width: n * ib + (n - 1) * steg,
           height: ih,
-          columns(n, gutter: steg, inhalt),
+          columns(n, gutter: steg, inhalt-sp),
         )
 
         // Ein A5-Rahmen: Kopfzeile plus das Fenster auf Spalte k.
+        //
+        // Das Fenster reicht über den Textbereich hinaus bis an die
+        // Seitenkanten: Unterlängen und `place(bottom: ..)` ragen auf einer
+        // echten Seite in den Rand, und ein Schnitt an der Textkante würde
+        // sie kappen. Nach unten ist das gefahrlos, dort liegt nichts mehr.
+        // Zur Seite reicht es höchstens bis zur Stegmitte, damit die
+        // Nachbarspalte nicht hereinlugt. Oben bleibt es an der Textkante,
+        // denn darüber sitzt die Kopfzeile.
+        let ueber-l = calc.min(rand.left, steg / 2)
+        let ueber-r = calc.min(rand.right, steg / 2)
         let rahmen(k) = block(width: blatt-b, height: blatt-h, {
           place(top + left, dx: rand.left, dy: kopf-dy, box(width: ib, kopfzeile))
           place(
             top + left,
-            dx: rand.left,
+            dx: rand.left - ueber-l,
             dy: rand.top,
-            box(width: ib, height: ih, clip: true, place(
-              top + left,
-              dx: -k * (ib + steg),
-              spalten,
-            )),
+            box(
+              width: ib + ueber-l + ueber-r,
+              height: ih + rand.bottom,
+              clip: true,
+              place(
+                top + left,
+                dx: ueber-l - k * (ib + steg),
+                spalten,
+              ),
+            ),
           )
         })
 
