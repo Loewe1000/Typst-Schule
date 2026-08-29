@@ -72,6 +72,23 @@ body {
   color: var(--accent);
 }
 
+/* Ein Zeichen statt des Namens: die Überschrift wird zur Zeile, in der das
+   Bild und die Version nebeneinander auf einer Grundlinie sitzen. Die Höhe
+   bindet an die Schriftgröße der Überschrift, damit das Zeichen mitwächst,
+   wenn jemand die Schrift größer stellt. */
+.kopf h1.mit-zeichen {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.kopf h1.mit-zeichen :is(img, svg) {
+  height: 2.6em;
+  width: auto;
+  display: block;
+}
+
 .kopf h1 .version {
   margin-left: 0.6rem;
   font-size: 0.95rem;

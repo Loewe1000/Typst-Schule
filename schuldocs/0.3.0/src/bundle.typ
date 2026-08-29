@@ -66,6 +66,7 @@
     #(o.reset)()
     #web-page(
       name: name,
+      logo: o.at("logo", default: none),
       version: version,
       description: description,
       license: license,
@@ -90,6 +91,7 @@
     #metadata("schuldocs") #pdf-mark
     #pdf-manual(
       name: name,
+      logo: o.at("logo", default: none),
       version: version,
       authors: autoren,
       license: license,
@@ -184,6 +186,7 @@
       #metadata(seite.datei)#seiten-marke
       #web-page(
         name: name,
+        logo: o.at("logo", default: none),
         version: version,
         description: description,
         license: license,
@@ -212,6 +215,7 @@
     #metadata(o.ordner + "alles.html")#seiten-marke
     #web-page(
       name: name,
+      logo: o.at("logo", default: none),
       version: version,
       description: description,
       license: license,
@@ -238,6 +242,7 @@
     #metadata("schuldocs") #pdf-mark
     #pdf-manual(
       name: name,
+      logo: o.at("logo", default: none),
       version: version,
       authors: autoren,
       license: license,
@@ -295,6 +300,11 @@
   notices: (),
   pdf-name: auto,
   html-name: "index.html",
+  // Ein Zeichen statt des Namens im Kopf. Inhalt, kein Pfad -- der Aufrufer
+  // weiss selbst, wie er sein Bild einbindet, und behaelt damit Breite,
+  // Alternativtext und Dateiformat in der Hand. `none` laesst den Namen
+  // stehen, so wie bisher.
+  logo: none,
   reset: () => none,
   split: false,
   // Wohin die Kapitelseiten gehen, wenn geteilt wird. Leer heisst: neben die
@@ -316,6 +326,7 @@
     links: links,
     notices: notices,
     pdf-name: pdf-name,
+    logo: logo,
     reset: reset,
     html-name: html-name,
     ordner: ordner,

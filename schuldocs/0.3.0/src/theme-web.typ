@@ -124,6 +124,10 @@
 /// -> content
 #let web-page(
   name: "",
+  // Ein Zeichen statt des Namens. Die Überschrift bleibt eine `h1` -- die
+  // Gliederung der Seite hängt daran, und ein Bild ohne Überschrift nähme
+  // jedem Vorleser den Einstieg.
+  logo: none,
   version: "",
   description: "",
   license: "",
@@ -162,8 +166,8 @@
 
     html.elem("body", {
       html.elem("header", attrs: (class: "kopf"), html.elem("div", attrs: (class: "kopf-inhalt"), {
-        html.elem("h1", {
-          name
+        html.elem("h1", attrs: if logo != none { (class: "mit-zeichen") } else { (:) }, {
+          if logo != none { logo } else { name }
           if version != "" {
             html.elem("span", attrs: (class: "version"), version)
           }

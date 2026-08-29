@@ -34,13 +34,17 @@
 }
 
 // Titelseite.
-#let _title-page(name, version, authors, license, description, abstract, links) = page(
+#let _title-page(name, version, authors, license, description, abstract, links,
+                 logo: none) = page(
   header: none,
   footer: none,
   {
     v(4.2cm)
     block(width: 100%, {
-      text(font: fonts.sans, size: 30pt, weight: 600, fill: colors.accent-deep, name)
+      // Das Zeichen steht an der Stelle des Namens, wenn eines da ist.
+      if logo != none { logo } else {
+        text(font: fonts.sans, size: 30pt, weight: 600, fill: colors.accent-deep, name)
+      }
       if version != "" {
         h(0.55em)
         text(font: fonts.sans, size: 13pt, fill: colors.muted, "Version " + version)
@@ -101,6 +105,7 @@
 /// -> content
 #let pdf-manual(
   name: "",
+  logo: none,
   version: "",
   authors: (),
   license: "",
@@ -165,7 +170,8 @@
 
   show figure.caption: set text(size: 9.5pt, fill: colors.muted)
 
-  _title-page(name, version, authors, license, description, abstract, links)
+  _title-page(name, version, authors, license, description, abstract, links,
+              logo: logo)
 
   counter(page).update(1)
 
