@@ -313,8 +313,11 @@
     document.querySelectorAll("main svg[viewBox]").forEach(function (s) {
       var vb = s.viewBox.baseVal;
       if (!vb || !vb.width) return;
+      // Nicht clientWidth: das ist bei SVG-Elementen immer 0.
       var st = getComputedStyle(s);
-      var breite = s.clientWidth - parseFloat(st.paddingLeft) - parseFloat(st.paddingRight);
+      var breite = s.getBoundingClientRect().width
+        - parseFloat(st.paddingLeft) - parseFloat(st.paddingRight)
+        - parseFloat(st.borderLeftWidth) - parseFloat(st.borderRightWidth);
       if (breite > 0) s.style.setProperty("height", (breite * vb.height / vb.width) + "px", "important");
     });
   }
