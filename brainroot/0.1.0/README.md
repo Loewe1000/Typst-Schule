@@ -1,138 +1,145 @@
 # brainroot
 
-`brainroot` zeichnet zweiseitige Mindmaps: die Wurzel in der Mitte, die Äste
-nach rechts und links, jeder Ast in seiner eigenen Farbe bis in die Blätter.
-Das Layout entsteht automatisch, die Kästen passen sich dem Text an.
+`brainroot` draws two-sided mind maps: the root in the middle, branches to
+the right and left, each branch in its own colour down to its leaves. The
+layout is automatic and the boxes size themselves to their text.
 
-## Verwendung
+## Usage
 
 ```typ
 #import "@schule/brainroot:0.1.0": brainroot, branch
 
-#brainroot(title: [Energiearten])[
-  - Bewegungsenergie
-    - Kinetische Energie
-    - Windenergie
-  - Spannenergie
-    - Dehnungsenergie
-  - Wärmeenergie
-    - Feuerenergie
-  - Höhenenergie
-    - Schwerkraftenergie
-    - Gewichtenergie
+#brainroot(title: [Forms of energy])[
+  - Kinetic energy
+    - Motion
+    - Wind
+  - Elastic energy
+    - Stretching
+  - Thermal energy
+    - Fire
+  - Potential energy
+    - Gravity
+    - Weight
 ]
 ```
 
-Jeder Listenpunkt wird zu einem Knoten, eingerückte Punkte zu seinen
-Kindern, beliebig tief. Wer Farbe oder Seite eines Astes bestimmen will,
-schreibt ihn als `branch(...)`:
+Every list item becomes a node, indented items become its children, to any
+depth. To set the colour or side of a branch, write it as `branch(...)`:
 
 ```typ
-#brainroot([Energiearten],
-  branch([Bewegungsenergie], [Kinetische Energie], [Windenergie], color: red),
-  branch([Spannenergie], [Dehnungsenergie], side: left),
+#brainroot([Forms of energy],
+  branch([Kinetic energy], [Motion], [Wind], color: red),
+  branch([Elastic energy], [Stretching], side: left),
 )
 ```
 
-Beide Formen lassen sich mischen; eine Liste und einzelne `branch`-Aufrufe
-dürfen nebeneinander als Argumente stehen.
+Both forms mix: a list and individual `branch` calls may stand side by side
+as arguments.
 
-## Parameter
+## Parameters
 
 `branch(label, ..kids, color: none, side: auto)`
 
-- `color`: Farbe des Astes; `none` nimmt die nächste Farbe der Palette.
-- `side`: `left` oder `right` erzwingt die Seite. Beides nur auf der ersten Ebene.
+- `color`: colour of the branch; `none` takes the next colour of the palette.
+- `side`: `left` or `right` forces the side. Both only on the first level.
 
 `brainroot(..branches, title: none, ...)`
 
-- `title`: Beschriftung der Wurzel. Fehlt sie, ist das erste positionale Argument die Wurzel.
+- `title`: label of the root. Without it, the first positional argument is the root.
+- `theme`: look of boxes and edges, see below. Default: `"soft"`.
+- `layout`: arrangement, see below. Default: `"both"`.
+- `start`: `radial` only, angle of the first branch. Default: `60deg`.
+- `wobble`: strength of the wobble in hand-drawn themes, a factor on the theme's `amplitude`. Default: `1`.
+- `palette`: name of a palette (see below), an array of colours, or `(colors: ..., root: ...)`. Default: `"poster"`.
+- `root-fill`: colour of the root. Default: `auto`, the palette's.
+- `tint`: how much the branch colour is lightened for the boxes. Default: `60%`.
+- `tint-min`: minimum luminance (0 to 1) of tinted fills; dark colours are lightened further. Default: `0.8`.
+- `ink`: text colour. Default: `auto`, then the fill's luminance decides between `ink-dark` (black) and `ink-light` (white); `ink-threshold` (0.55) is the boundary.
+- `scale`: font size per level relative to the surroundings. Default: `(1.3, 1.1, 1.0)`.
+- `bold-depth`: this many levels from the root are bold. Default: `2`.
+- `thickness`: line width per level. Default: `(3pt, 1.5pt)`.
+- `level-gap`, `root-gap`: distances along the direction of growth, parent to child and root to branch. Default: `40pt`, `80pt`.
+- `sibling-gap`, `branch-gap`: distances across, between siblings and between first-level branches. Default: `8pt`, `24pt`.
+- `max-width`: labels wider than this wrap. Default: `5cm`.
+- `inset`: padding of the boxes.
 
-- `palette`: Name einer Palette (siehe unten), ein Array von Farben oder `(colors: ..., root: ...)`. Standard: `"poster"`.
-- `root-fill`: Farbe der Wurzel. Standard: `auto`, die der Palette.
-- `tint`: Aufhellung der Astfarbe für die Kästen. Standard: `60%`.
-- `tint-min`: Mindesthelligkeit getönter Füllungen (0 bis 1), dunkle Farben werden weiter aufgehellt. Standard: `0.8`.
-- `scale`: Schriftgröße je Ebene relativ zur Umgebung. Standard: `(1.3, 1.1, 1.0)`.
-- `bold-depth`: So viele Ebenen ab der Wurzel werden fett. Standard: `2`.
-- `thickness`: Linienstärke je Ebene. Standard: `(3pt, 1.5pt)`.
-- `level-gap`, `root-gap`: Abstände in Wachstumsrichtung, Eltern zu Kind und Wurzel zu Ast. Standard: `40pt`, `80pt`.
-- `sibling-gap`, `branch-gap`: Abstände quer dazu, zwischen Geschwistern und zwischen den Ästen der ersten Ebene. Standard: `8pt`, `24pt`.
-- `max-width`: Ab dieser Breite wird umgebrochen. Standard: `5cm`.
-- `inset`: Innenabstand der Kästen.
-
-## Anordnungen
+## Layouts
 
 | `layout` | |
 | --- | --- |
-| `both` | Wurzel mittig, Äste rechts und links (Standard) |
-| `right`, `left` | alle Äste auf einer Seite |
-| `down`, `up` | Baum von oben nach unten bzw. von unten nach oben |
-| `radial` | Äste im Kreis um die Wurzel, Teilbäume wachsen nach außen |
+| `both` | root in the middle, branches right and left (default) |
+| `right`, `left` | all branches on one side |
+| `down`, `up` | tree from top to bottom or bottom to top |
+| `radial` | branches in a circle around the root, subtrees grow outward |
 
-Bei `both` gehen ohne Angabe von `side` die ersten Äste nach rechts, bis die
-rechte Seite etwa die Hälfte der Gesamthöhe erreicht hat; der Rest geht nach
-links. Die Reihenfolge von oben nach unten bleibt auf beiden Seiten erhalten.
-Bei `radial` beginnt der erste Ast bei `start`, die weiteren folgen im
-Uhrzeigersinn; der Radius wächst, bis sich keine Teilbäume überschneiden.
+With `both` and no `side` given, the first branches go right until the right
+side reaches about half the total height; the rest go left. The top-to-bottom
+order is kept on both sides. With `radial` the first branch sits at `start`,
+the others follow clockwise; the radius grows until no subtrees overlap.
 
-## Paletten
+## Palettes
 
 | `palette` | |
 | --- | --- |
-| `poster` | kräftig bunt, wie Filzstifte an der Tafel (Standard) |
-| `pastel` | zarte, gedämpfte Töne |
-| `grayscale` | nur Graustufen |
-| `mono` | ein Blau in wechselnder Helligkeit |
-| `plain` | eine dunkle Tinte für alles |
-| `earth` | Terrakotta, Ocker, Oliv, Sand |
-| `ocean` | Türkis, Petrol, Seegrün |
-| `sunset` | Rot, Orange, Rosa, Violett |
-| `forest` | Grün mit etwas Braun |
-| `neon` | grelle, gesättigte Farben |
+| `poster` | bright and bold, like markers on a whiteboard (default) |
+| `pastel` | soft, muted tones |
+| `grayscale` | greys only |
+| `mono` | one blue in varying lightness |
+| `plain` | one dark ink for everything |
+| `earth` | terracotta, ochre, olive, sand |
+| `ocean` | turquoise, teal, sea green |
+| `sunset` | red, orange, pink, violet |
+| `forest` | green with a little brown |
+| `neon` | loud, saturated colours |
 
-Eigene Farben: `palette: (red, blue, green)` oder mit Wurzelfarbe
+Your own colours: `palette: (red, blue, green)`, or with a root colour
 `palette: (colors: (red, blue), root: black)`.
 
 ## Themes
 
-Ein Theme legt fest, wie Kästen und Kanten aussehen. Die Farben kommen
-weiterhin aus der Palette.
+A theme decides how boxes and edges look. The colours still come from the
+palette.
 
-| Theme | Kästen | Kanten |
+| Theme | Boxes | Edges |
 | --- | --- | --- |
-| `soft` | pastell gefüllt, runde Ecken | weiche S-Kurven |
-| `outline` | weiß mit farbigem Rahmen | Kurven |
-| `blocks` | vollfarbig, weiße Schrift, eckig | rechte Winkel |
-| `lines` | kein Kasten, Text auf farbiger Linie | Kurven, die in die Linie münden |
-| `sketch` | dünner Rahmen, keine Füllung | gestrichelte Geraden |
-| `bubbles` | Pillen, pastell gefüllt | Geraden |
-| `hand` | wie `soft`, handgezeichnet | wackelnde Kurven |
-| `scribble` | ohne Füllung, zweimal gezogen | wackelnde Kurven |
-| `marker` | vollfarbig, Filzstift | breite wackelnde Geraden |
-| `pencil` | dünn, Bleistift | zitternde rechte Winkel |
+| `soft` | pastel fill, rounded corners | soft S-curves |
+| `outline` | white with coloured border | curves |
+| `blocks` | solid colour, white text, square | right angles |
+| `lines` | no box, text on a coloured line | curves flowing into the line |
+| `sketch` | thin border, no fill | dashed straight lines |
+| `bubbles` | pills, pastel fill | straight lines |
+| `hand` | like `soft`, hand-drawn | wobbly curves |
+| `scribble` | no fill, drawn twice | wobbly curves |
+| `marker` | solid colour, felt-tip | wide wobbly straight lines |
+| `pencil` | thin, pencil | shaky right angles |
 
-Die vier handgezeichneten Themes wackeln jede Linie nach dem Muster der
-TikZ-Dekoration `sketch`: entlang des Pfades, mit reproduzierbarem Zufall.
-Eine Handschrift wie "Patrick Hand" oder "Kalam" passt dazu, entweder per
-`set text(font: ...)` oder über das Theme-Feld `font`.
+The four hand-drawn themes wobble every line after the TikZ decoration
+`sketch`: along the path, with reproducible randomness. A handwriting font
+such as "Patrick Hand" or "Kalam" suits them, either via
+`set text(font: ...)` or the theme field `font`.
 
-Ein Dictionary überschreibt einzelne Felder eines Themes:
+A dictionary overrides individual fields of a theme:
 
 ```typ
-#brainroot(title: [Energiearten],
-  theme: (base: "outline", edge: "elbow", radius: 0pt), karte)
+#brainroot(title: [Forms of energy],
+  theme: (base: "outline", edge: "elbow", radius: 0pt), map)
 ```
 
-Felder: `edge` (`"curve"`, `"elbow"`, `"straight"`), `fill` (`"tint"`,
-`"solid"`, `"white"`, `"none"`), `stroke` (Rahmenstärke), `radius`,
-`underline`, `dash` (`"solid"`, `"dashed"`, `"dotted"`), `font`, `root` mit
-Überschreibungen nur für die Wurzel, und `hand`: `none` oder ein Dictionary
-mit `amplitude` (Ausschlag in pt), `wavelength` (Wellenlänge in pt),
-`randomness` (Unregelmäßigkeit, 1 = reiner Sinus), `segment` (Schrittweite
-in pt) und `passes` (wie oft jede Linie gezogen wird).
+Fields: `edge` (`"curve"`, `"elbow"`, `"straight"`), `fill` (`"tint"`,
+`"solid"`, `"white"`, `"none"`), `stroke` (border width), `radius`,
+`underline`, `dash` (`"solid"`, `"dashed"`, `"dotted"`), `font`, `root` with
+overrides for the root only, and `hand`: `none` or a dictionary with
+`amplitude` (excursion in pt), `wavelength` (in pt), `randomness`
+(irregularity, 1 is a pure sine), `segment` (step in pt) and `passes` (how
+often each line is drawn).
 
 ```typ
-#brainroot(title: [Energiearten], layout: "radial",
+#brainroot(title: [Forms of energy], layout: "radial",
   theme: (base: "blocks", hand: (amplitude: 1, wavelength: 60), font: "Kalam"),
-  karte)
+  map)
 ```
+
+## Manual
+
+The manual is available in [German](docs/) and English; both are built from
+`docs/`.

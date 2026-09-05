@@ -177,7 +177,7 @@ Wurzelfarbe als Dictionary, `palette: (colors: (red, blue), root: black)`.
 = Themes
 
 Ein Theme bestimmt, wie Kästen und Kanten aussehen; die Farben kommen
-weiterhin aus der Palette. Sechs sind eingebaut:
+weiterhin aus der Palette. Zehn sind eingebaut:
 
 #for (name, beschreibung) in (
   soft: [Pastellkästen mit runden Ecken, weiche S-Kurven. Die Vorlage von der Tafel.],

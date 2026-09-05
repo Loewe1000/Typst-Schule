@@ -1,21 +1,21 @@
-// brainroot -- zweiseitige Mindmaps mit farbigen Ästen.
+// brainroot -- two-sided mind maps with coloured branches.
 //
-// Die Wurzel steht in der Mitte, die Äste verteilen sich nach rechts und
-// links, jeder Ast trägt seine eigene Farbe bis in die Blätter. Das Layout
-// ist ein einfacher "tidy tree": jeder Teilbaum bekommt so viel Höhe, wie
-// seine Kinder brauchen, und wird am Elternknoten zentriert.
+// The root sits in the middle, the branches spread to the right and left,
+// and every branch carries its own colour down to its leaves. The layout is
+// a simple "tidy tree": every subtree gets as much room as its children
+// need and is centred on its parent.
 
 #import "@preview/cetz:0.4.2"
 
-/// Ein Ast der Mindmap.
+/// A branch of the mind map.
 ///
-/// - label: Beschriftung des Knotens (Content oder String).
-/// - ..kids: Kinder; entweder weitere `branch(...)` oder einfach Content,
-///   der dann als Blatt ohne eigene Kinder gilt.
-/// - color: Farbe des Astes. Nur auf der ersten Ebene ausgewertet, darunter
-///   erbt jeder Knoten die Farbe seines Elternknotens. `none` nimmt die
-///   nächste Farbe aus der Palette.
-/// - side: `left`, `right` oder `auto`. Nur auf der ersten Ebene ausgewertet.
+/// - label: label of the node (content or string).
+/// - ..kids: children; either further `branch(...)` calls or plain content,
+///   which then counts as a leaf without children of its own.
+/// - color: colour of the branch. Only read on the first level; below it
+///   every node inherits the colour of its parent. `none` takes the next
+///   colour from the palette.
+/// - side: `left`, `right` or `auto`. Only read on the first level.
 #let branch(label, ..kids, color: none, side: auto) = (
   brainroot-node: true,
   label: label,
@@ -24,21 +24,20 @@
   side: side,
 )
 
-// Alles, was kein branch ist, wird zu einem Blatt.
+// Anything that is not a branch becomes a leaf.
 #let _norm(k) = if type(k) == dictionary and k.at("brainroot-node", default: false) { k } else { branch(k) }
 
-// --- Listen als Eingabe ----------------------------------------------------
+// --- Lists as input --------------------------------------------------------
 //
-// Im Markup ist eine Liste eine Folge von `list.item`-Elementen; erst beim
-// Setzen werden sie zu einem `list`. Beide Formen werden hier verstanden.
+// In markup a list is a sequence of `list.item` elements; only when laid
+// out do they become a `list`. Both forms are understood here.
 
 #let _is-item(c) = type(c) == content and c.func() in (list.item, enum.item)
 #let _is-list(c) = type(c) == content and c.func() in (list, enum)
 #let _is-blank(c) = type(c) == content and c.func() in (parbreak, [ ].func())
 
-// Zerlegt den Rumpf eines Listenpunkts in Beschriftung und verschachtelte
-// Punkte: alles, was kein Listenpunkt ist, bleibt Beschriftung; jeder
-// verschachtelte Punkt wird zum Kind.
+// Splits the body of a list item into label and nested items: whatever is
+// not a list item stays label; every nested item becomes a child.
 #let _from-item(item) = {
   let body = item.body
   let parts = if body.func() == [].func() { body.children } else { (body,) }
@@ -53,14 +52,14 @@
       label.push(p)
     }
   }
-  // Leerraum am Rand der Beschriftung stört nur.
+  // Whitespace at the edges of the label only gets in the way.
   while label.len() > 0 and _is-blank(label.first()) { label = label.slice(1) }
   while label.len() > 0 and _is-blank(label.last()) { label = label.slice(0, -1) }
   branch(label.join(), ..kids)
 }
 
-// Ist das Argument eine Liste oder eine Folge von Listenpunkten, liefert es
-// deren Punkte als Äste; sonst das Argument selbst als einzelnen Ast.
+// If the argument is a list or a sequence of list items, yields its items
+// as branches; otherwise the argument itself as a single branch.
 #let _expand(arg) = {
   if _is-list(arg) {
     arg.children.map(_from-item)
@@ -73,47 +72,47 @@
   }
 }
 
-// --- Paletten --------------------------------------------------------------
+// --- Palettes --------------------------------------------------------------
 //
-// Jede Palette: acht Astfarben, der Reihe nach vergeben, und eine Farbe für
-// die Wurzel. Die Kästen bekommen die Astfarbe um `tint` aufgehellt.
+// Every palette: eight branch colours, handed out in order, and a colour for
+// the root. Boxes get the branch colour lightened by `tint`.
 
 #let palettes = (
-  // Kräftig bunt wie Filzstifte an der Tafel.
+  // Bright and bold, like markers on a whiteboard.
   poster: (colors: (rgb("#e8321e"), rgb("#f5a623"), rgb("#f2c230"), rgb("#3fc728"),
                     rgb("#1fc2ee"), rgb("#9b3fd6"), rgb("#f78fc0"), rgb("#2a7de1")),
            root: rgb("#7f9bff")),
-  // Zartes Pastell, gedämpfte Töne.
+  // Soft pastel, muted tones.
   pastel: (colors: (rgb("#e28f8f"), rgb("#e9b97a"), rgb("#d6cf7a"), rgb("#8fc79a"),
                     rgb("#7fb8d4"), rgb("#a99adb"), rgb("#d9a0c8"), rgb("#8fbfb5")),
            root: rgb("#9aa6d6")),
-  // Nur Grau: Stufen von dunkel bis mittel.
+  // Greys only: steps from dark to medium.
   grayscale: (colors: (rgb("#222222"), rgb("#555555"), rgb("#333333"), rgb("#777777"),
                        rgb("#444444"), rgb("#888888"), rgb("#2b2b2b"), rgb("#666666")),
               root: rgb("#111111")),
-  // Ein Farbton, Blau, in wechselnder Helligkeit.
+  // One hue, blue, in varying lightness.
   mono: (colors: (rgb("#0b3d91"), rgb("#2a62c2"), rgb("#1749a8"), rgb("#4d80d6"),
                   rgb("#0f2f6e"), rgb("#6e9be0"), rgb("#1f56b5"), rgb("#3a70cc")),
          root: rgb("#082a66")),
-  // Schlicht: eine dunkle Tinte für alles, wie mit dem Füller gezeichnet.
+  // Plain: one dark ink for everything, as if drawn with a fountain pen.
   plain: (colors: (rgb("#1a1a1a"),), root: rgb("#1a1a1a")),
-  // Erdtöne: Terrakotta, Ocker, Oliv, Sand.
+  // Earth tones: terracotta, ochre, olive, sand.
   earth: (colors: (rgb("#b5532a"), rgb("#c98b2e"), rgb("#7a7a2f"), rgb("#8c5a3c"),
                    rgb("#a3762b"), rgb("#5d6b3a"), rgb("#c47a54"), rgb("#6b4e35")),
           root: rgb("#4e3a2a")),
-  // Meer: Türkis, Petrol, Seegrün.
+  // Sea: turquoise, teal, sea green.
   ocean: (colors: (rgb("#0c7c8c"), rgb("#1ea8b5"), rgb("#155e75"), rgb("#2bb39a"),
                    rgb("#0e4d64"), rgb("#4cc3d2"), rgb("#1b8a7d"), rgb("#3b6fa0")),
           root: rgb("#0b3a4a")),
-  // Abendhimmel: Rot, Orange, Rosa, Violett.
+  // Evening sky: red, orange, pink, violet.
   sunset: (colors: (rgb("#c72c41"), rgb("#ee6f3b"), rgb("#f2a541"), rgb("#d9436b"),
                     rgb("#8e3b8f"), rgb("#f07f6f"), rgb("#b02a5c"), rgb("#e88d3a")),
            root: rgb("#5b1f4a")),
-  // Wald: Grün mit etwas Braun.
+  // Forest: green with a little brown.
   forest: (colors: (rgb("#2d6a4f"), rgb("#40916c"), rgb("#1b4332"), rgb("#74a57f"),
                     rgb("#6b8e23"), rgb("#8a6e3a"), rgb("#52b788"), rgb("#3e5c3a")),
            root: rgb("#1b4332")),
-  // Neon: grelle, gesättigte Farben.
+  // Neon: loud, saturated colours.
   neon: (colors: (rgb("#ff2079"), rgb("#00e5ff"), rgb("#aaff00"), rgb("#ffe600"),
                   rgb("#ff6a00"), rgb("#b026ff"), rgb("#00ff9c"), rgb("#ff3cac")),
          root: rgb("#1a1a2e")),
@@ -121,69 +120,69 @@
 
 #let _palette(p) = {
   if type(p) == str {
-    assert(p in palettes, message: "brainroot: unbekannte Palette \"" + p + "\", erwartet eine von " + palettes.keys().join(", "))
+    assert(p in palettes, message: "brainroot: unknown palette \"" + p + "\", expected one of " + palettes.keys().join(", "))
     palettes.at(p)
   } else if type(p) == array {
     (colors: p, root: rgb("#7f9bff"))
   } else if type(p) == dictionary {
     (colors: palettes.poster.colors, root: rgb("#7f9bff")) + p
   } else {
-    panic("brainroot: palette muss ein Name, ein Array von Farben oder ein Dictionary (colors, root) sein")
+    panic("brainroot: palette must be a name, an array of colours or a dictionary (colors, root)")
   }
 }
 
 // --- Themes ----------------------------------------------------------------
 //
-// Ein Theme bestimmt, wie Kästen und Kanten aussehen; die Farben kommen
-// weiterhin aus der Palette. Felder:
-//   edge      "curve" | "elbow" | "straight"   Kantenführung
-//   fill      "tint" | "solid" | "white" | "none"   Füllung der Kästen
-//   stroke    Rahmenstärke der Kästen (0pt = kein Rahmen)
-//   radius    Eckenradius (auch relativ, 50% = Pille)
-//   underline true: kein Kasten, der Text steht auf einer farbigen Linie,
-//             und die Kanten laufen in diese Linie hinein
-//   dash      Strichmuster der Kanten ("solid", "dashed", "dotted")
-//   font      Schrift der Beschriftungen; `none` erbt vom Dokument
-//   hand      `none`, oder ein Dictionary für handgezeichnete Linien:
-//               amplitude   Ausschlag des Wackelns in pt
-//               wavelength  Länge einer Welle in pt
-//               randomness  Unregelmäßigkeit des Rhythmus (1 = reiner Sinus)
-//               segment     Schrittweite entlang des Pfades in pt
-//               passes      wie oft jede Linie gezeichnet wird (2 = "gekritzelt")
-//   root      Überschreibungen nur für die Wurzel (fill, stroke, radius)
+// A theme decides how boxes and edges look; the colours still come from
+// the palette. Fields:
+//   edge      "curve" | "elbow" | "straight"   routing of the edges
+//   fill      "tint" | "solid" | "white" | "none"   fill of the boxes
+//   stroke    border width of the boxes (0pt = no border)
+//   radius    corner radius (may be relative, 50% = pill)
+//   underline true: no box, the text sits on a coloured line and the edges
+//             flow into that line
+//   dash      dash pattern of the edges ("solid", "dashed", "dotted")
+//   font      font of the labels; `none` inherits from the document
+//   hand      `none`, or a dictionary for hand-drawn lines:
+//               amplitude   excursion of the wobble in pt
+//               wavelength  length of one wave in pt
+//               randomness  irregularity of the rhythm (1 = pure sine)
+//               segment     step along the path in pt
+//               passes      how often each line is drawn (2 = "scribbled")
+//   root      overrides for the root only (fill, stroke, radius)
 
 #let themes = (
-  // Pastellkästen, weiche S-Kurven -- die Vorlage von der Tafel.
+  // Pastel boxes, soft S-curves -- the whiteboard original.
   soft: (edge: "curve", fill: "tint", stroke: 0pt, radius: 8pt, underline: false, dash: "solid",
          root: (fill: "solid")),
-  // Weiße Kästen mit farbigem Rahmen, Kurven.
+  // White boxes with a coloured border, curves.
   outline: (edge: "curve", fill: "white", stroke: 1pt, radius: 6pt, underline: false, dash: "solid",
             root: (fill: "solid", stroke: 0pt)),
-  // Volle Farbe, weiße Schrift, rechte Winkel: Organigramm-Optik.
+  // Solid colour, white text, right angles: org-chart look.
   blocks: (edge: "elbow", fill: "solid", stroke: 0pt, radius: 0pt, underline: false, dash: "solid",
            root: (:)),
-  // Keine Kästen: der Text steht auf seiner Linie, klassische Mindmap.
+  // No boxes: the text sits on its line, the classic mind map.
   lines: (edge: "curve", fill: "none", stroke: 0pt, radius: 0pt, underline: true, dash: "solid",
           root: (fill: "solid", radius: 6pt)),
-  // Skizze: gestrichelte Geraden, dünner Rahmen, keine Füllung.
+  // Sketch: dashed straight lines, thin border, no fill.
   sketch: (edge: "straight", fill: "none", stroke: 0.8pt, radius: 3pt, underline: false, dash: "dashed",
            root: (fill: "white", stroke: 1.5pt)),
-  // Pillen und gerade Verbindungen.
+  // Pills and straight connections.
   bubbles: (edge: "straight", fill: "tint", stroke: 1pt, radius: 50%, underline: false, dash: "solid",
             root: (fill: "solid")),
-  // Handgezeichnet: wie `soft`, aber jede Linie wackelt leicht.
+  // Hand-drawn: like `soft`, but every line wobbles slightly.
   hand: (edge: "curve", fill: "tint", stroke: 1pt, radius: 8pt, underline: false, dash: "solid",
          hand: (amplitude: 0.6, wavelength: 80, randomness: 2, segment: 1.5, passes: 1),
          root: (fill: "solid")),
-  // Gekritzelt: keine Füllung, jede Linie zweimal gezogen.
+  // Scribbled: no fill, every line drawn twice.
   scribble: (edge: "curve", fill: "none", stroke: 0.7pt, radius: 6pt, underline: false, dash: "solid",
              hand: (amplitude: 0.9, wavelength: 50, randomness: 2.5, segment: 1.5, passes: 2),
              root: (fill: "white", stroke: 1pt)),
-  // Filzstift: volle Farbe, breite gerade Striche mit langem Wackeln.
+  // Felt-tip: solid colour, wide straight strokes with a long wobble.
   marker: (edge: "straight", fill: "solid", stroke: 0pt, radius: 4pt, underline: false, dash: "solid",
            hand: (amplitude: 1.2, wavelength: 120, randomness: 2, segment: 2, passes: 1),
            root: (:)),
-  // Bleistift: dünne graue Linien mit feinem Zittern, rechte Winkel.
+  // Pencil: thin lines with a fine tremor, right angles.
   pencil: (edge: "elbow", fill: "white", stroke: 0.6pt, radius: 2pt, underline: false, dash: "solid",
            hand: (amplitude: 0.35, wavelength: 30, randomness: 3, segment: 1, passes: 1),
            root: (stroke: 1pt)),
@@ -193,33 +192,33 @@
 
 #let _theme(t) = {
   if type(t) == str {
-    assert(t in themes, message: "brainroot: unbekanntes Theme \"" + t + "\", erwartet eines von " + themes.keys().join(", "))
+    assert(t in themes, message: "brainroot: unknown theme \"" + t + "\", expected one of " + themes.keys().join(", "))
     _theme-defaults + themes.at(t)
   } else if type(t) == dictionary {
-    // Ein Dictionary überschreibt einzelne Felder von `soft`; `hand` und
-    // `root` werden feldweise zusammengeführt.
+    // A dictionary overrides individual fields of `soft`; `hand` and
+    // `root` are merged field by field.
     let base = _theme-defaults + themes.at(t.at("base", default: "soft"))
     let hand = if type(t.at("hand", default: none)) == dictionary {
       (if base.hand == none { (:) } else { base.hand }) + t.hand
     } else { t.at("hand", default: base.hand) }
     base + t + (root: base.root + t.at("root", default: (:)), hand: hand)
   } else {
-    panic("brainroot: theme muss ein String oder ein Dictionary sein")
+    panic("brainroot: theme must be a string or a dictionary")
   }
 }
 
-// --- Darstellung eines einzelnen Knotens -----------------------------------
+// --- Drawing a single node -------------------------------------------------
 
-// Wahrgenommene Helligkeit einer Farbe, 0 dunkel bis 1 hell.
+// Perceived luminance of a colour, 0 dark to 1 light.
 #let _luma(c) = {
   let (r, g, b, ..) = rgb(c).components().map(v => v / 100%)
   0.299 * r + 0.587 * g + 0.114 * b
 }
 
-// Füllung eines Kastens nach dem Theme-Feld `fill`. Getönte Füllungen
-// werden um `tint` aufgehellt und dann so weit weiter, bis sie mindestens
-// `tint-min` hell sind: aus einer fast schwarzen Tinte wird sonst nur ein
-// mittleres Grau, auf dem Schrift schlecht steht.
+// Fill of a box after the theme field `fill`. Tinted fills are lightened
+// by `tint` and then further until they are at least `tint-min` light:
+// otherwise an almost black ink only yields a medium grey on which text
+// reads poorly.
 #let _fill(mode, color, opts) = {
   if mode == "solid" { color }
   else if mode == "white" { white }
@@ -231,9 +230,9 @@
   } else { none }
 }
 
-// Schriftfarbe zu einer Füllung: `ink` gilt, wenn gesetzt; bei `auto`
-// entscheidet die Helligkeit der Füllung, ob dunkle oder helle Schrift
-// besser lesbar ist. Ohne Füllung ist es die dunkle.
+// Text colour for a fill: `ink` applies when set; with `auto` the luminance
+// of the fill decides whether dark or light text reads better. Without a
+// fill it is the dark one.
 #let _ink(fill, opts) = {
   if opts.ink != auto { opts.ink }
   else if fill == none { opts.ink-dark }
@@ -252,9 +251,9 @@
   let ink = _ink(fill, opts)
   let stroke = if spec.underline and not root { none }
     else if spec.stroke == 0pt { none } else { spec.stroke + color }
-  // Handgezeichnet: der Kasten selbst bleibt unsichtbar, seine Form zeichnet
-  // `_hand-shape` als wackelnden Pfad darunter. Maße und Innenabstand
-  // bleiben dieselben, damit das Layout stimmt.
+  // Hand-drawn: the box itself stays invisible, `_hand-shape` draws its
+  // outline as a wobbly path underneath. Size and padding stay the same so
+  // the layout holds.
   let drawn = th.hand == none
   let label = text(weight: weight, size: 1em * scale, fill: ink, node.label)
   let label = if th.font != none { text(font: th.font, label) } else { label }
@@ -268,15 +267,14 @@
   )
 }
 
-// CeTZ misst `content` mit eigenen Schriftkanten (cap-height, baseline)
-// und setzt den Kasten deshalb ein paar Punkt zu hoch. Ein Block mit der
-// hier gemessenen festen Größe nimmt CeTZ diese Entscheidung ab: er wird
-// genau dort zentriert, wo die Kanten und die handgezeichnete Form ihn
-// erwarten.
+// CeTZ measures `content` with its own text edges (cap-height, baseline)
+// and therefore places the box a few points too high. A block with the
+// fixed size measured here takes that decision away from CeTZ: it is
+// centred exactly where the edges and the hand-drawn shape expect it.
 #let _framed(t, body) = block(width: t.w, height: t.h, body)
 
-// Füllung und Rahmen eines Knotens, wie `_nodebox` sie wählt -- für den
-// handgezeichneten Pfad.
+// Fill and border of a node as `_nodebox` picks them -- for the hand-drawn
+// path.
 #let _node-paint(depth, color, opts) = {
   let th = opts.theme
   let root = depth == 0
@@ -288,15 +286,15 @@
   (fill: fill, stroke: stroke, radius: if spec.underline and not root { 0pt } else { spec.radius })
 }
 
-// --- Handgezeichnete Linien --------------------------------------------------
+// --- Hand-drawn lines ------------------------------------------------------
 //
-// Nach der TikZ-Dekoration `sketch` (tex.stackexchange.com/a/445690): ein
-// Pfad wird in Schritten von `segment` pt abgelaufen, jeder Punkt senkrecht
-// zum Pfad um `amplitude * sin(2πt/wavelength)` versetzt, wobei t einen
-// Zufallslauf mit Schrittweite `randomness^rand` macht. `rand` kommt aus dem
-// PGF-Generator (Park-Miller mit Schrage-Trick), also gibt derselbe Seed
-// dasselbe Wackeln wie in LaTeX. Alles in Typst gerechnet: eine Mindmap hat
-// nur einige Dutzend kurze Pfade, dafür braucht es kein Plugin.
+// After the TikZ decoration `sketch` (tex.stackexchange.com/a/445690): a
+// path is walked in steps of `segment` pt, every point is offset
+// perpendicular to the path by `amplitude * sin(2πt/wavelength)`, where t
+// performs a random walk with step `randomness^rand`. `rand` comes from the
+// PGF generator (Park-Miller with Schrage's trick), so the same seed gives
+// the same wobble as in LaTeX. All computed in Typst: a mind map has only a
+// few dozen short paths, which needs no plugin.
 
 #let _rng-next(z) = {
   let t = 69621 * calc.rem(z, 30845) - 23902 * calc.quo(z, 30845)
@@ -306,11 +304,11 @@
   let z = calc.rem(seed, 2147483647)
   if z <= 0 { z + 2147483646 } else { z }
 }
-// Gleichverteilt auf [-1, 1], auf fünf Stellen quantisiert wie in TeX.
+// Uniform on [-1, 1], quantised to five decimals as in TeX.
 #let _rng-rand(z) = (calc.rem(z, 200001) - 100000) / 100000
 
-// Wackelt einen Polygonzug (Punkte als (x, y) in pt, Zahlen). Liefert die
-// neuen Punkte. `closed` schließt am Startpunkt.
+// Wobbles a polyline (points as (x, y) in pt, plain numbers). Returns the
+// new points. `closed` closes at the start point.
 #let _wobble(pts, hand, seed, closed: false) = {
   let pts = if closed { pts + (pts.first(),) } else { pts }
   let total = range(1, pts.len()).map(i => {
@@ -321,8 +319,8 @@
   let z = _rng-seed(seed)
   let t = 0.0
   let out = (pts.first(),)
-  let carry = 0.0     // Rest der Schrittweite aus dem vorigen Segment
-  let done = 0.0      // bereits abgelaufene Länge
+  let carry = 0.0     // leftover step from the previous segment
+  let done = 0.0      // length walked so far
   let off = 0.0
   for i in range(1, pts.len()) {
     let (ax, ay) = pts.at(i - 1)
@@ -337,8 +335,8 @@
       z = _rng-next(z)
       t = calc.rem(t + calc.pow(hand.randomness, _rng-rand(z)), hand.wavelength)
       off = calc.sin(2 * calc.pi * t / hand.wavelength * 1rad) * hand.amplitude
-      // Geschlossene Pfade: der Versatz klingt vor dem Schließen aus, sonst
-      // bleibt am Startpunkt eine Kerbe.
+      // Closed paths: the offset fades out before closing, otherwise a notch
+      // remains at the start point.
       if closed { off *= calc.min(1, (total - done - d) / (4 * hand.segment)) }
       out.push((ax + tx * d + nx * off, ay + ty * d + ny * off))
       d += hand.segment
@@ -356,8 +354,8 @@
   out
 }
 
-// Ein Seed aus Koordinaten, damit jede Linie anders wackelt, der Lauf aber
-// reproduzierbar bleibt.
+// A seed from coordinates, so every line wobbles differently while the
+// result stays reproducible.
 #let _seed(..xs) = {
   let h = 7
   for x in xs.pos() { h = calc.rem(h * 31 + int(calc.round(calc.abs(x) * 10)), 1000003) }
@@ -366,7 +364,7 @@
 
 #let _pt(l) = if type(l) == length { l.pt() } else { float(l) }
 
-// Kubische Bézierkurve als Polygonzug.
+// Cubic Bézier curve as a polyline.
 #let _flatten-bezier(p0, c0, c1, p1, n: 24) = range(n + 1).map(i => {
   let t = i / n
   let u = 1 - t
@@ -375,7 +373,7 @@
    a * p0.at(1) + b * c0.at(1) + c * c1.at(1) + d * p1.at(1))
 })
 
-// Abgerundetes Rechteck um (cx, cy) als Polygonzug.
+// Rounded rectangle around (cx, cy) as a polyline.
 #let _rounded-rect(cx, cy, w, h, r, n: 6) = {
   let r = calc.min(r, w / 2, h / 2)
   if r <= 0.01 {
@@ -392,7 +390,7 @@
   out
 }
 
-// Zeichnet einen Polygonzug (Zahlen in pt) handgezeichnet, in `passes` Lagen.
+// Draws a polyline (numbers in pt) hand-drawn, in `passes` layers.
 #let _hand-line(pts, st, hand, seed, closed: false, fill: none) = {
   import cetz.draw: line
   for p in range(hand.passes) {
@@ -401,7 +399,7 @@
   }
 }
 
-// Die Form eines Knotens als wackelnder Pfad, bei (cx, cy) in Längen.
+// The outline of a node as a wobbly path, at (cx, cy) given as lengths.
 #let _hand-shape(cx, cy, t, depth, color, opts) = {
   let paint = _node-paint(depth, color, opts)
   let (w, h) = (_pt(t.w), _pt(t.h))
@@ -412,9 +410,9 @@
   _hand-line(pts, st, opts.theme.hand, _seed(_pt(cx), _pt(cy), w, h), closed: true, fill: paint.fill)
 }
 
-// Die Wörter einer Beschriftung, sofern sie nur aus Text besteht; sonst
-// `none`. Gebraucht, um die Breite des längsten Wortes zu kennen: darunter
-// darf ein Kasten nicht schrumpfen, sonst ragt das Wort heraus.
+// The words of a label, provided it consists of text only; otherwise
+// `none`. Needed to know the width of the longest word: a box must not
+// shrink below it, or the word sticks out.
 #let _words(c) = {
   if type(c) == str { return c.split() }
   if type(c) != content { return none }
@@ -433,14 +431,13 @@
   none
 }
 
-// Misst einen Knoten. Ist die Beschriftung breiter als `max-width`, wird sie
-// umgebrochen; danach sucht eine Intervallschachtelung die kleinste Breite,
-// bei der der Umbruch nicht weiter wächst, damit der Kasten nicht breiter ist
-// als sein längster Zeilenrest. Untere Grenze ist das längste Wort; lässt es
-// sich nicht bestimmen, bleibt der Kasten bei `max-width`. Ist schon das
-// längste Wort breiter als `max-width`, bleibt die natürliche Breite: ein
-// abgeschnittenes Wort wäre schlimmer als ein breiter Kasten.
-// Nur im context aufrufbar.
+// Measures a node. If the label is wider than `max-width` it wraps; a
+// bisection then finds the smallest width at which the wrapping does not
+// grow further, so the box is no wider than its longest line. The lower
+// bound is the longest word; if it cannot be determined the box stays at
+// `max-width`. If even the longest word is wider than `max-width`, the
+// natural width stays: a cut-off word would be worse than a wide box.
+// Must be called inside `context`.
 #let _measure-node(node, depth, color, opts) = {
   let natural = measure(_nodebox(node, depth, color, opts))
   if opts.max-width == none or natural.width <= opts.max-width {
@@ -466,36 +463,36 @@
 
 // --- Layout ----------------------------------------------------------------
 //
-// Alle Anordnungen rechnen in zwei Achsen: die Hauptachse m, in die der
-// Baum wächst, und die Querachse u, in der Geschwister nebeneinander
-// stehen. Waagerechte Anordnungen (both, right, left, radial) haben m = x
-// und u nach unten; senkrechte (down, up) haben m = y und u = x nach rechts.
-// `dir` ist das Vorzeichen der Wachstumsrichtung auf m.
+// All layouts work in two axes: the main axis m, along which the tree
+// grows, and the cross axis u, along which siblings stand side by side.
+// Horizontal layouts (both, right, left, radial) have m = x and u pointing
+// down; vertical ones (down, up) have m = y and u = x pointing right.
+// `dir` is the sign of the direction of growth on m.
 
-// Maße eines Kastens auf den beiden Achsen.
+// Size of a box on the two axes.
 #let _sizes(m, vertical) = if vertical { (m: m.h, u: m.w) } else { (m: m.w, u: m.h) }
 
-// Annotiert einen Teilbaum mit Maßen und legt seine Kinder. Ergebnis:
-//   w, h, width   Maße des eigenen Kastens
-//   size-m/-u     dieselben Maße auf den Achsen
-//   kids          die Kinder, jedes mit `du`: Versatz auf u zur Kastenmitte
-//   contour       je Tiefe unterhalb dieses Knotens (lo, hi): wie weit der
-//                 Teilbaum auf dieser Ebene auf u vor und hinter die Mitte
-//                 reicht (lo negativ)
-//   lo, hi        dasselbe über alle Ebenen; size = hi - lo
-//   extent        Ausdehnung des Teilbaums auf m, vom eigenen Kasten an
+// Annotates a subtree with sizes and places its children. Result:
+//   w, h, width   size of the node's own box
+//   size-m/-u     the same on the axes
+//   kids          the children, each with `du`: offset on u from the centre
+//   contour       per depth below this node (lo, hi): how far the subtree
+//                 reaches on u before and behind the centre on that level
+//                 (lo negative)
+//   lo, hi        the same over all levels; size = hi - lo
+//   extent        extent of the subtree on m, from its own box on
 //
-// Geschwister werden nicht als Blöcke gestapelt, sondern per Kontur: das
-// nächste Kind rückt so weit auf, wie es auf keiner Ebene mit dem vorigen
-// zusammenstößt. So bleibt ein Blatt ohne Kinder nah an seinem Nachbarn,
-// auch wenn der einen tiefen Teilbaum hat.
+// Siblings are not stacked as blocks but by contour: the next child moves
+// up as far as it collides with the previous one on no level. So a leaf
+// without children stays close to its neighbour, even if that one has a
+// deep subtree.
 #let _measure-tree(node, depth, color, opts, vertical) = {
   let m = _measure-node(node, depth, color, opts)
   let sz = _sizes(m, vertical)
   let kids = node.kids.map(k => _measure-tree(_norm(k), depth + 1, color, opts, vertical))
 
   let placed = ()
-  let merged = ()   // Kontur der bisher gelegten Kinder, absolut auf u
+  let merged = ()   // contour of the children placed so far, absolute on u
   for k in kids {
     let u = 0pt
     if placed.len() > 0 {
@@ -520,7 +517,7 @@
     }
   }
 
-  // Eltern mittig zwischen erstem und letztem Kind.
+  // Parent centred between first and last child.
   let shift = if placed.len() > 0 { (placed.first().du + placed.last().du) / 2 } else { 0pt }
   placed = placed.map(k => k + (du: k.du - shift))
   merged = merged.map(c => (lo: c.lo - shift, hi: c.hi - shift))
@@ -536,10 +533,10 @@
   )
 }
 
-// Verteilt die Äste der ersten Ebene auf rechts und links. Explizit gesetzte
-// Seiten bleiben; die übrigen füllen erst rechts auf, bis die rechte Seite
-// mindestens die Hälfte der Gesamthöhe hat, der Rest geht nach links.
-// Die Reihenfolge (oben nach unten) bleibt auf beiden Seiten erhalten.
+// Distributes the first-level branches to right and left. Explicitly set
+// sides stay; the others fill the right side first until it holds at least
+// half the total height, the rest goes left. The order (top to bottom) is
+// kept on both sides.
 #let _split(trees, gap, layout) = {
   if layout == "right" { return (right: trees, left: ()) }
   if layout == "left" { return (right: (), left: trees) }
@@ -563,7 +560,7 @@
   (right: right, left: left)
 }
 
-// --- Zeichnen --------------------------------------------------------------
+// --- Drawing ---------------------------------------------------------------
 
 #let _stroke(depth, color, opts) = (
   paint: color,
@@ -573,11 +570,11 @@
   dash: opts.theme.dash,
 )
 
-// Von Achsenkoordinaten (m, u) nach (x, y).
+// From axis coordinates (m, u) to (x, y).
 #let _xy(m, u, vertical) = if vertical { (u, m) } else { (m, -u) }
 
-// Zeichnet die Kante mit den Kontrollpunkten in der Führung des Themes;
-// handgezeichnet wird sie erst zum Polygonzug und dann gewackelt.
+// Draws the edge with the control points in the theme's routing; hand-drawn
+// it is first flattened to a polyline and then wobbled.
 #let _path(p0, c0, c1, p1, st, opts) = {
   import cetz.draw: bezier, line
   let hand = opts.theme.hand
@@ -602,9 +599,9 @@
   }
 }
 
-// Eine Kante von p0 nach p1 in der Führung des Themes; die Kurve verläuft
-// an beiden Enden parallel zur Hauptachse.
-// (`st` statt `stroke`: cetz.draw bringt eine Funktion dieses Namens mit.)
+// An edge from p0 to p1 in the theme's routing; the curve runs parallel to
+// the main axis at both ends.
+// (`st` instead of `stroke`: cetz.draw exports a function of that name.)
 #let _edge(p0, p1, st, opts, vertical) = {
   import cetz.draw: bezier, line
   let (x0, y0) = p0
@@ -619,9 +616,9 @@
   _path(p0, c0, c1, p1, st, opts)
 }
 
-// Zeichnet einen Teilbaum, dessen Kasten mit der inneren Kante bei m und
-// auf u zentriert bei u steht. Bei `underline` in waagerechter Anordnung
-// liegen die Kanten auf der Grundlinie des Textes, sonst in der Kastenmitte.
+// Draws a subtree whose box has its inner edge at m and is centred at u.
+// With `underline` in a horizontal layout the edges sit on the baseline of
+// the text, otherwise at the centre of the box.
 #let _draw-tree(t, m, u, dir, opts, vertical) = {
   import cetz.draw: *
   let ul = opts.theme.underline and not vertical
@@ -634,14 +631,14 @@
       _stroke(k.depth - 1, t.color, opts), opts, vertical)
     _draw-tree(k, m1, ku, dir, opts, vertical)
   }
-  // Der Kasten nach den Kanten, damit er über deren Enden liegt.
+  // The box after the edges, so it covers their ends.
   let (cx, cy) = _xy(m + dir * t.size-m / 2, u, vertical)
   if opts.theme.hand != none { _hand-shape(cx, cy, t, t.depth, t.color, opts) }
   content((cx, cy), _framed(t, _nodebox(t.node, t.depth, t.color, opts, width: t.width)))
   if opts.theme.underline {
-    // Die Unterstreichung ist eine eigene Linie in der Stärke der Kante, die
-    // in sie mündet; als Rahmen des Kastens hätte sie eine andere Stärke und
-    // läge um ihre halbe Dicke versetzt.
+    // The underline is a line of its own in the width of the edge flowing
+    // into it; as a box border it would have a different width and sit
+    // offset by half its thickness.
     let st = _stroke(t.depth - 1, t.color, opts) + (cap: "butt")
     let (a, b) = if vertical {
       ((cx - t.w / 2, cy - t.h / 2), (cx + t.w / 2, cy - t.h / 2))
@@ -653,12 +650,12 @@
   }
 }
 
-// Kante aus der Wurzel zu einem Ast: verlässt die Wurzel in Richtung des
-// Astes und kommt parallel zur Hauptachse an.
+// Edge from the root to a branch: leaves the root towards the branch and
+// arrives parallel to the main axis.
 #let _root-edge(p1, m-inner, st, opts, vertical) = {
   import cetz.draw: bezier
   if opts.theme.edge != "curve" or vertical {
-    // Senkrecht ist die S-Kurve mit Wendepunkt auf halber Höhe am ruhigsten.
+    // Vertically the S-curve with its inflection at half height is calmest.
     _edge((0pt, 0pt), p1, st, opts, vertical)
   } else {
     let (x1, y1) = p1
@@ -667,7 +664,7 @@
   }
 }
 
-// Stapelt Äste auf u, zentriert um 0, und zeichnet sie samt Wurzelkante.
+// Stacks branches on u, centred around 0, and draws them with their root edge.
 #let _draw-stack(side, dir, m-inner, m1, opts, vertical) = {
   let total = side.map(t => t.size).sum(default: 0pt) + opts.branch-gap * calc.max(side.len() - 1, 0)
   let cu = -total / 2
@@ -680,24 +677,23 @@
   }
 }
 
-// Kreisförmig: jeder Ast bekommt einen Winkel, sein Kasten liegt auf einem
-// Kreis um die Wurzel, sein Teilbaum wächst waagerecht nach außen. Der
-// Radius beginnt bei `root-gap` und wächst, bis sich keine zwei Teilbäume
-// mehr überschneiden.
+// Radial: every branch gets an angle, its box sits on a circle around the
+// root, its subtree grows horizontally outward. The radius starts at
+// `root-gap` and grows until no two subtrees overlap.
 #let _draw-radial(trees, rm, start, opts) = {
   let n = trees.len()
   if n == 0 { return }
   let angles = range(n).map(i => start - i * 360deg / n)
   let dirs = angles.map(a => if calc.cos(a) >= 0 { 1 } else { -1 })
-  // Innere Kante des Astkastens: seitlich liegt sie auf dem Kreispunkt; je
-  // näher der Ast an der Senkrechten steht, desto weiter rückt der Kasten
-  // über den Punkt, bis er direkt darüber bzw. darunter zentriert ist.
+  // Inner edge of the branch box: to the sides it sits on the circle point;
+  // the closer the branch is to vertical, the further the box moves over
+  // the point, until it is centred directly above or below it.
   let inner(i, r) = {
     let (a, d, t) = (angles.at(i), dirs.at(i), trees.at(i))
     let f = 1 - calc.min(1, calc.abs(calc.cos(a)) / 0.4)
     (px: r * calc.cos(a) - d * t.w / 2 * f, py: r * calc.sin(a))
   }
-  // Rechteck eines Teilbaums bei Radius r: (x0, x1, y0, y1)
+  // Rectangle of a subtree at radius r: (x0, x1, y0, y1)
   let rect(i, r) = {
     let (d, t) = (dirs.at(i), trees.at(i))
     let (px, py) = inner(i, r)
@@ -707,7 +703,7 @@
   let overlaps(r) = {
     let gap = opts.branch-gap
     let rects = range(n).map(i => rect(i, r))
-    // auch die Wurzel freihalten
+    // keep the root clear as well
     rects.push((x0: -rm.w / 2 - opts.root-gap / 2, x1: rm.w / 2 + opts.root-gap / 2,
                 y0: -rm.h / 2 - gap, y1: rm.h / 2 + gap))
     for i in range(rects.len()) {
@@ -729,8 +725,9 @@
     let (px, py) = inner(i, r)
     let st = _stroke(0, t.color, opts)
     if calc.abs(calc.cos(a)) < 0.2 and opts.theme.edge == "curve" {
-      // Ast fast senkrecht über oder unter der Wurzel: die Kante kommt von
-      // oben bzw. unten in der Kastenmitte an, statt seitlich einzuhaken.
+      // Branch almost straight above or below the root: the edge arrives at
+      // the centre of the box from above or below instead of hooking in
+      // from the side.
       let cx = px + d * t.w / 2
       let ty = if py < 0pt { py + t.h / 2 } else { py - t.h / 2 }
       _path((0pt, 0pt), (0pt, ty / 2), (cx, ty / 2), (cx, ty), st, opts)
@@ -742,48 +739,49 @@
   }
 }
 
-/// Zeichnet die Mindmap.
+/// Draws the mind map.
 ///
-/// - title: Beschriftung der Wurzel. Fehlt sie, gilt das erste positionale
-///   Argument als Wurzel.
-/// - ..branches: Äste der ersten Ebene, jeweils `branch(...)`, Content, oder
-///   eine Typst-Liste, deren Punkte zu Ästen und deren verschachtelte Listen
-///   zu Kindern werden.
-/// - theme: Name eines Themes (`soft`, `outline`, `blocks`, `lines`,
-///   `sketch`, `bubbles`, `hand`, `scribble`, `marker`, `pencil`) oder ein Dictionary, das einzelne Felder eines
-///   Themes überschreibt (`base:` wählt das Ausgangstheme, sonst `soft`).
-/// - layout: Anordnung der Äste um die Wurzel:
-///   `"both"` rechts und links, `"right"` oder `"left"` einseitig,
-///   `"down"` oder `"up"` als Baum von oben bzw. unten, `"radial"` im Kreis.
-/// - start: Nur `radial`: Winkel des ersten Astes; die weiteren folgen im
-///   Uhrzeigersinn.
-/// - wobble: Stärke des Wackelns der handgezeichneten Themes als Faktor auf
-///   deren `amplitude`; `0` zeichnet gerade, `2` doppelt so unruhig.
-/// - palette: Name einer Palette (`poster`, `pastel`, `grayscale`, `mono`,
-///   `plain`, `earth`, `ocean`, `sunset`, `forest`, `neon`), ein Array von
-///   Farben oder ein Dictionary `(colors: ..., root: ...)`. Die Farben
-///   gehen der Reihe nach an Äste ohne eigene `color`.
-/// - root-fill: Farbe der Wurzel; `auto` nimmt die der Palette.
-/// - tint: Wie stark die Astfarbe für die Kästen aufgehellt wird.
-/// - tint-min: Mindesthelligkeit (0 bis 1) getönter Füllungen; dunkle
-///   Palettenfarben werden so weit weiter aufgehellt.
-/// - ink: Schriftfarbe; `auto` wählt je Kasten nach der Helligkeit seiner
-///   Füllung zwischen `ink-dark` und `ink-light`.
-/// - ink-dark, ink-light: Schrift auf heller bzw. dunkler Füllung.
-/// - ink-threshold: Helligkeit (0 bis 1), unter der die helle Schrift gilt.
-/// - scale: Schriftgröße relativ zur Umgebung, je Ebene (Wurzel, Äste,
-///   Blätter, ...); der letzte Wert gilt für alle tieferen Ebenen.
-/// - bold-depth: Ebenen (ab der Wurzel), die fett gesetzt werden.
-/// - thickness: Linienstärke je Ebene der Verbindung (Wurzel→Ast, Ast→Blatt,
-///   ...); der letzte Wert gilt für alle tieferen Ebenen.
-/// - level-gap: Abstand zwischen Eltern- und Kindkasten in Wachstumsrichtung.
-/// - root-gap: Abstand zwischen Wurzel und Ästen; bei `radial` der
-///   Mindestradius.
-/// - sibling-gap: Abstand zwischen Geschwistern quer zur Wachstumsrichtung.
-/// - branch-gap: Abstand zwischen den Ästen der ersten Ebene.
-/// - max-width: Ab dieser Breite wird eine Beschriftung umgebrochen;
-///   `none` bricht nie um.
-/// - inset: Innenabstand der Kästen.
+/// - title: label of the root. Without it, the first positional argument
+///   is the root.
+/// - ..branches: first-level branches, each a `branch(...)`, content, or a
+///   Typst list whose items become branches and whose nested lists become
+///   children.
+/// - theme: name of a theme (`soft`, `outline`, `blocks`, `lines`, `sketch`,
+///   `bubbles`, `hand`, `scribble`, `marker`, `pencil`) or a dictionary that
+///   overrides individual fields of a theme (`base:` picks the starting
+///   theme, otherwise `soft`).
+/// - layout: arrangement of the branches around the root: `"both"` right
+///   and left, `"right"` or `"left"` one-sided, `"down"` or `"up"` as a tree
+///   from the top or bottom, `"radial"` in a circle.
+/// - start: `radial` only: angle of the first branch; the others follow
+///   clockwise.
+/// - wobble: strength of the wobble in hand-drawn themes as a factor on
+///   their `amplitude`; `0` draws straight, `2` twice as restless.
+/// - palette: name of a palette (`poster`, `pastel`, `grayscale`, `mono`,
+///   `plain`, `earth`, `ocean`, `sunset`, `forest`, `neon`), an array of
+///   colours or a dictionary `(colors: ..., root: ...)`. The colours go in
+///   order to branches without a `color` of their own.
+/// - root-fill: colour of the root; `auto` takes the palette's.
+/// - tint: how much the branch colour is lightened for the boxes.
+/// - tint-min: minimum luminance (0 to 1) of tinted fills; dark palette
+///   colours are lightened further to reach it.
+/// - ink: text colour; `auto` picks per box between `ink-dark` and
+///   `ink-light` by the luminance of its fill.
+/// - ink-dark, ink-light: text on light and dark fills respectively.
+/// - ink-threshold: luminance (0 to 1) below which the light text applies.
+/// - scale: font size relative to the surroundings, per level (root,
+///   branches, leaves, ...); the last value holds for all deeper levels.
+/// - bold-depth: levels (from the root) set in bold.
+/// - thickness: line width per level of connection (root→branch,
+///   branch→leaf, ...); the last value holds for all deeper levels.
+/// - level-gap: distance between parent and child box along the direction
+///   of growth.
+/// - root-gap: distance between root and branches; with `radial` the
+///   minimum radius.
+/// - sibling-gap: distance between siblings across the direction of growth.
+/// - branch-gap: distance between the first-level branches.
+/// - max-width: labels wider than this wrap; `none` never wraps.
+/// - inset: padding of the boxes.
 #let brainroot(
   ..branches,
   title: none,
@@ -810,7 +808,7 @@
   inset: (x: 10pt, y: 6pt),
 ) = context {
   let layouts = ("both", "right", "left", "down", "up", "radial")
-  assert(layout in layouts, message: "brainroot: layout muss eines von " + layouts.join(", ") + " sein")
+  assert(layout in layouts, message: "brainroot: layout must be one of " + layouts.join(", "))
   let vertical = layout in ("down", "up")
   let theme = _theme(theme)
   if theme.hand != none {
@@ -828,7 +826,7 @@
   let args = branches.pos()
   let root = title
   if root == none {
-    assert(args.len() > 0, message: "brainroot: Wurzel fehlt (title: ... oder erstes Argument)")
+    assert(args.len() > 0, message: "brainroot: root missing (title: ... or first argument)")
     root = args.first()
     args = args.slice(1)
   }
@@ -854,7 +852,7 @@
         _draw-stack(side, dir, rm.w / 2, dir * (rm.w / 2 + root-gap), opts, false)
       }
     }
-    // Die Wurzel zuletzt, damit sie über den Linien liegt.
+    // The root last, so it lies on top of the lines.
     if opts.theme.hand != none { _hand-shape(0pt, 0pt, rm, 0, black, opts) }
     content((0, 0), _framed(rm, _nodebox(root-node, 0, black, opts, width: rm.width)))
   })
