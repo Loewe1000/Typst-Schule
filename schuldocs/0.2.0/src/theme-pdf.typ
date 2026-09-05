@@ -103,6 +103,7 @@
 /// -> content
 #let pdf-manual(
   name: "",
+  lang: "de",
   version: "",
   authors: (),
   license: "",
@@ -117,7 +118,7 @@
     header: _header(name, version),
     footer: _footer(),
   )
-  set text(font: fonts.serif, size: sizes.text, fill: colors.ink, lang: "de")
+  set text(font: fonts.serif, size: sizes.text, fill: colors.ink, lang: lang)
   set par(justify: true, leading: sizes.leading, spacing: sizes.par-spacing)
   set list(indent: 0.6em, spacing: 0.7em)
   set enum(indent: 0.6em, spacing: 0.7em)

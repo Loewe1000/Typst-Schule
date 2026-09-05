@@ -64,6 +64,7 @@
     #target-state.update("web")
     #_reset-counters()
     #(o.reset)()
+    #set text(lang: o.at("lang", default: "de"))
     #web-page(
       name: name,
       logo: o.at("logo", default: none),
@@ -90,6 +91,7 @@
     #(o.reset)()
     #metadata("schuldocs") #pdf-mark
     #pdf-manual(
+      lang: o.at("lang", default: "de"),
       name: name,
       logo: o.at("logo", default: none),
       version: version,
@@ -184,6 +186,7 @@
       #_reset-counters()
       #(o.reset)()
       #metadata(seite.datei)#seiten-marke
+      #set text(lang: o.at("lang", default: "de"))
       #web-page(
         name: name,
         logo: o.at("logo", default: none),
@@ -213,6 +216,7 @@
     #_reset-counters()
     #(o.reset)()
     #metadata(o.ordner + "alles.html")#seiten-marke
+    #set text(lang: o.at("lang", default: "de"))
     #web-page(
       name: name,
       logo: o.at("logo", default: none),
@@ -241,6 +245,7 @@
     #(o.reset)()
     #metadata("schuldocs") #pdf-mark
     #pdf-manual(
+      lang: o.at("lang", default: "de"),
       name: name,
       logo: o.at("logo", default: none),
       version: version,
@@ -298,6 +303,10 @@
   abstract: [],
   links: (),
   notices: (),
+  /// Sprache der Vorlage: Inhaltsverzeichnis, Hinweiskästen, Titelseite
+  /// und Fußzeile folgen ihr, ebenso Trennung und Anführungszeichen des
+  /// Textes. `"de"` oder `"en"`, auch `"fr"`.
+  lang: "de",
   pdf-name: auto,
   html-name: "index.html",
   // Ein Zeichen statt des Namens im Kopf. Inhalt, kein Pfad -- der Aufrufer
@@ -325,6 +334,7 @@
     abstract: abstract,
     links: links,
     notices: notices,
+    lang: lang,
     pdf-name: pdf-name,
     logo: logo,
     reset: reset,
