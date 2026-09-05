@@ -194,7 +194,7 @@
         html.elem("p", {
           titel
           if license != "" [ #sym.dot.c #license]
-          [ #sym.dot.c Mit Typst gesetzt]
+          [ #sym.dot.c #word("typeset")]
         })
       })
       // Safari setzt die Hoehe eines SVG mit `height: auto` beim ersten Aufbau

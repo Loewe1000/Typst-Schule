@@ -247,7 +247,7 @@
         html.elem("p", {
           titel
           if license != "" [ #sym.dot.c #license]
-          [ #sym.dot.c Mit Typst gesetzt]
+          [ #sym.dot.c #word("typeset")]
         })
       })
 

@@ -64,17 +64,19 @@
 
     v(1fr)
 
-    // Angaben zum Paket, links beschriftet.
-    let zeile(label, wert) = (
-      text(font: fonts.sans, size: 9pt, fill: colors.muted, upper(label)),
+    // Angaben zum Paket, links beschriftet. Die Beschriftungen folgen der
+    // Sprache des Dokuments wie die Wörter der Website, deshalb im
+    // `context`: ein englisches Handbuch trug sonst "AUTOREN" und "LIZENZ".
+    let zeile(key, wert) = (
+      context text(font: fonts.sans, size: 9pt, fill: colors.muted, upper(word(key))),
       text(size: 10pt, wert),
     )
     let zeilen = ()
-    if authors.len() > 0 { zeilen += zeile("Autoren", _join-authors(authors)) }
-    if license != "" { zeilen += zeile("Lizenz", license) }
+    if authors.len() > 0 { zeilen += zeile("authors", _join-authors(authors)) }
+    if license != "" { zeilen += zeile("license", license) }
     if links.len() > 0 {
       zeilen += zeile(
-        "Verweise",
+        "links",
         links.map(l => link(l.at("url", default: ""), l.at("name", default: ""))).join(sym.space.en + sym.dot.c + sym.space.en),
       )
     }

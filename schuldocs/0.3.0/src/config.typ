@@ -15,13 +15,19 @@
 #let _woerter = (
   de: (contents: "Inhalt", docs: "Dokumentation",
        tip: "Tipp", info: "Hinweis", warning: "Achtung",
-       caution: "Vorsicht", note: "Notiz"),
+       caution: "Vorsicht", note: "Notiz",
+       authors: "Autoren", license: "Lizenz", links: "Verweise",
+       typeset: "Mit Typst gesetzt"),
   en: (contents: "Contents", docs: "Documentation",
        tip: "Tip", info: "Note", warning: "Careful",
-       caution: "Caution", note: "Aside"),
+       caution: "Caution", note: "Aside",
+       authors: "Authors", license: "License", links: "Links",
+       typeset: "Typeset with Typst"),
   fr: (contents: "Sommaire", docs: "Documentation",
        tip: "Astuce", info: "Remarque", warning: "Attention",
-       caution: "Prudence", note: "Note"),
+       caution: "Prudence", note: "Note",
+       authors: "Auteurs", license: "Licence", links: "Liens",
+       typeset: "Composé avec Typst"),
 )
 
 /// Ein Wort der Vorlage in der Sprache des Dokuments.
