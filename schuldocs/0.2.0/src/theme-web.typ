@@ -197,6 +197,29 @@
           [ #sym.dot.c Mit Typst gesetzt]
         })
       })
+      // Safari setzt die Hoehe eines SVG mit `height: auto` beim ersten Aufbau
+      // der Seite falsch und holt das erst bei einem Neuaufbau nach, etwa beim
+      // Zoomen: bis dahin ragt die Zeichnung oben aus ihrem Kasten. Hier wird
+      // die Hoehe aus Breite und viewBox ausgerechnet und ausdruecklich
+      // gesetzt -- mit `important`, weil die Stilvorlage `height: auto` selbst
+      // so setzt. Ohne JavaScript bleibt alles wie vorher.
+      html.elem("script", ```
+(function () {
+  function messen() {
+    document.querySelectorAll("main svg[viewBox]").forEach(function (s) {
+      var vb = s.viewBox.baseVal;
+      if (!vb || !vb.width) return;
+      var st = getComputedStyle(s);
+      var breite = s.clientWidth - parseFloat(st.paddingLeft) - parseFloat(st.paddingRight);
+      if (breite > 0) s.style.setProperty("height", (breite * vb.height / vb.width) + "px", "important");
+    });
+  }
+  messen();
+  addEventListener("load", messen);
+  addEventListener("resize", messen);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(messen);
+})();
+```.text)
     })
   })
 }
