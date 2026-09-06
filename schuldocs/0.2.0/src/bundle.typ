@@ -64,6 +64,7 @@
     #target-state.update("web")
     #_reset-counters()
     #(o.reset)()
+    #set text(lang: o.at("lang", default: "de"))
     #web-page(
       name: name,
       version: version,
@@ -87,6 +88,7 @@
     #(o.reset)()
     #metadata("schuldocs") #pdf-mark
     #pdf-manual(
+      lang: o.at("lang", default: "de"),
       name: name,
       version: version,
       authors: autoren,
@@ -143,6 +145,10 @@
   abstract: [],
   links: (),
   notices: (),
+  /// Sprache der Vorlage: Inhaltsverzeichnis, Hinweiskästen, Titelseite
+  /// und Fußzeile folgen ihr, ebenso Trennung und Anführungszeichen des
+  /// Textes. `"de"` oder `"en"`, auch `"fr"`.
+  lang: "de",
   pdf-name: auto,
   html-name: "index.html",
   reset: () => none,
@@ -154,6 +160,7 @@
     abstract: abstract,
     links: links,
     notices: notices,
+    lang: lang,
     pdf-name: pdf-name,
     reset: reset,
     html-name: html-name,

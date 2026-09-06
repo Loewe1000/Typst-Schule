@@ -4,7 +4,7 @@
 // Abhängigkeiten und darf von allen anderen Modulen geladen werden.
 
 /// Version des Pakets.
-#let version = "0.2.0"
+#let version = "0.3.0"
 
 // ─── Wörter der Vorlage ─────────────────────────────────────────────────────
 //

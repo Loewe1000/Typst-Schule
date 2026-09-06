@@ -7,6 +7,9 @@ Leerzeichen oder Umlauten nicht über die Kommandozeile müssen.
     BSP_PAKET=typstage BSP_VERSION=0.1.0 BSP_NAMEN="theme-default theme-night" \
         beispiele-index.py ziel/index.html
 
+`BSP_SPRACHE` ist `de` oder `en` und steht auf `de`, wenn nichts gesagt wird --
+ein Paket, das die Seite nur auf Deutsch will, ruft weiter auf wie bisher.
+
 Absichtlich eine einzelne Datei ohne Abhängigkeiten: die Seite liegt neben
 Dokumenten, die ihre Stilvorlage mitbringen, und soll nichts nachladen.
 """
@@ -18,7 +21,39 @@ import sys
 paket = os.environ.get("BSP_PAKET", "")
 version = os.environ.get("BSP_VERSION", "")
 namen = os.environ.get("BSP_NAMEN", "").split()
+sprache = os.environ.get("BSP_SPRACHE", "de")
 ziel = sys.argv[1]
+
+# Die Beispiele selbst sind englisch -- sie sind Vorträge, keine Oberfläche.
+# Was hier steht, ist die Übersicht darüber, und die gibt es in beiden
+# Sprachen: wer aus dem englischen Handbuch kommt, soll nicht plötzlich auf
+# einer deutschen Seite stehen.
+WORTE = {
+    "de": dict(
+        zurueck="← Handbuch", zurueck_ziel="../",
+        titel="Beispiele", oeffnen="öffnen →",
+        unter="je ein kurzer Vortrag in jedem mitgelieferten Theme, mit "
+              "Einblendungen, Magic Move und verschiedenen Folienübergängen. "
+              "Jede Folie ist von Typst gesetzt und als SVG eingebettet; "
+              "bewegt wird sie erst im Browser.",
+        tasten=[(["→", "←"], "einen Schritt weiter oder zurück"),
+                (["Pos 1", "Ende"], "erste und letzte Folie"),
+                (["o"], "Übersicht"), (["f"], "Vollbild"),
+                (["n"], "Sprecheransicht"), (["?"], "Tastenhilfe")],
+    ),
+    "en": dict(
+        zurueck="← Manual", zurueck_ziel="../en.html",
+        titel="Examples", oeffnen="open →",
+        unter="one short talk in each bundled theme, with reveals, magic move "
+              "and a range of slide transitions. Every slide is typeset by "
+              "Typst and embedded as SVG; only the browser moves it.",
+        tasten=[(["→", "←"], "one step forward or back"),
+                (["Home", "End"], "first and last slide"),
+                (["o"], "overview"), (["f"], "full screen"),
+                (["n"], "speaker view"), (["?"], "key help")],
+    ),
+}
+w = WORTE.get(sprache, WORTE["de"])
 
 
 def beschriften(name):
@@ -33,16 +68,24 @@ karten = "\n".join(
     '        <span class="name">{titel}</span>\n'
     '        <span class="hin">öffnen →</span>\n'
     "      </a>".format(datei=html.escape(n + ".html"),
-                       titel=html.escape(beschriften(n)))
+                       titel=html.escape(beschriften(n)),
+                       hin=html.escape(w["oeffnen"]))
     for n in namen
 )
 
+# Nur Tasten, auf die die Laufzeit auch hört. `s` und `p` standen hier einmal
+# und griffen ins Leere: zu beiden gibt es keinen Zweig.
+tasten = "      " + " ·\n      ".join(
+    " ".join("<kbd>%s</kbd>" % html.escape(t) for t in tt) + " " + html.escape(was)
+    for tt, was in w["tasten"]
+)
+
 seite = """<!doctype html>
-<html lang="de">
+<html lang="{sprache}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Beispiele — {paket} {version}</title>
+<title>{titel} — {paket} {version}</title>
 <style>
   :root {{
     --grund: #ffffff; --tinte: #18181b; --leise: #71717a;
@@ -87,23 +130,23 @@ seite = """<!doctype html>
 </head>
 <body>
   <main>
-    <a class="zurueck" href="../">← Handbuch</a>
-    <h1>Beispiele</h1>
-    <p class="unter">{paket} {version} — dieselbe Präsentation in jedem
-    mitgelieferten Theme. Jede Folie ist von Typst gesetzt und als SVG
-    eingebettet; bewegt wird sie erst im Browser.</p>
+    <a class="zurueck" href="{zurueck_ziel}">{zurueck}</a>
+    <h1>{titel}</h1>
+    <p class="unter">{paket} {version} — {unter}</p>
     <div class="gitter">
 {karten}
     </div>
     <p class="tasten">
-      <kbd>→</kbd> <kbd>←</kbd> einen Schritt weiter oder zurück ·
-      <kbd>o</kbd> Übersicht · <kbd>f</kbd> Vollbild ·
-      <kbd>s</kbd> Notizen · <kbd>p</kbd> Druckansicht
+{tasten}
     </p>
   </main>
 </body>
 </html>
-""".format(paket=html.escape(paket), version=html.escape(version), karten=karten)
+""".format(paket=html.escape(paket), version=html.escape(version), karten=karten,
+           sprache=html.escape(sprache), titel=html.escape(w["titel"]),
+           zurueck=html.escape(w["zurueck"]),
+           zurueck_ziel=html.escape(w["zurueck_ziel"]),
+           unter=html.escape(w["unter"]), tasten=tasten)
 
 with open(ziel, "w", encoding="utf-8") as f:
     f.write(seite)

@@ -1,0 +1,48 @@
+---
+name: Processing
+file_extensions:
+  - pde
+scope: source.processing
+contexts:
+  main:
+    - match: //.*
+      scope: comment.line.double-slash.processing
+    - match: /\*
+      scope: comment.block.processing
+      push: block-comment
+    - match: \b(void|int|float|boolean|char|String|color|if|else|while|return|new|break|continue|this|true|false|null|class|extends|implements|interface|import|package|try|catch|finally|throw|throws|public|protected|private|static|final|abstract|native|synchronized|volatile|transient|strictfp|instanceof)\b
+      scope: keyword.control.processing
+    - match: \b(for)\b
+      scope: string.quoted.double.processing
+    - match: \b([a-zA-Z_]\w*)\s*(?=\()
+      scope: entity.name.function.processing
+    - match: \b\d+\.\d+f?\b
+      scope: constant.numeric.float.processing
+    - match: \b\d+f?\b
+      scope: constant.numeric.integer.processing
+    - match: '"'
+      scope: string.quoted.double.processing
+      push: double-quoted-string
+    - match: \'
+      scope: string.quoted.single.processing
+      push: single-quoted-string
+  block-comment:
+    - meta_scope: comment.block.processing
+    - match: \*/
+      pop: true
+    - match: .+
+      scope: comment.block.processing
+  double-quoted-string:
+    - meta_scope: string.quoted.double.processing
+    - match: '"'
+      pop: true
+    - match: \\.
+      scope: constant.character.escape.processing
+    - match: '[^"\\]+'
+      scope: string.quoted.double.processing
+  single-quoted-string:
+    - meta_scope: string.quoted.single.processing
+    - match: \'
+      pop: true
+    - match: \\.
+      scope: constant.character.escape.processing

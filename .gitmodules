@@ -1,5 +1,5 @@
 [submodule "typstage/0.1.0"]
-	path = typstage/0.1.0
+	path = typstage/0.1.1
 	url = https://github.com/Loewe1000/typstage.git
 [submodule "typstage-geogebra/0.1.0"]
 	path = typstage-geogebra/0.1.0

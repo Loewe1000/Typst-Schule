@@ -33,10 +33,18 @@
 // Alle Überschriften dieser Ausgabe mit eindeutigem Anker, in Reihenfolge.
 // Die Marke `pdf-mark` steht am Anfang des Handbuchs; alles davor gehört zur
 // Website. Ohne diese Trennung mischen sich die Überschriften beider Ausgaben.
+#let seiten-marke = <schuldocs-seite>
+
 #let _entries() = {
   let vergeben = (:)
   let liste = ()
-  for h in query(selector(heading).before(pdf-mark)) {
+  let datei = ""
+  for el in query(selector.or(heading, seiten-marke).before(pdf-mark)) {
+    if el.func() == metadata {
+      datei = el.value
+      continue
+    }
+    let h = el
     let anker = _slug(_plain(h.body))
     if anker in vergeben {
       vergeben.at(anker) += 1
@@ -48,6 +56,7 @@
       level: h.level,
       body: h.body,
       slug: anker,
+      datei: datei,
       loc: h.location(),
       outlined: h.outlined,
     ))
@@ -56,14 +65,14 @@
 }
 
 // Verschachtelte Liste für das Inhaltsverzeichnis.
-#let _toc-list(eintraege, von, ebene) = {
+#let _toc-list(eintraege, von, ebene, wurzel: "") = {
   let punkte = ()
   let i = von
   while i < eintraege.len() and eintraege.at(i).level >= ebene {
     let e = eintraege.at(i)
-    let unten = _toc-list(eintraege, i + 1, e.level + 1)
+    let unten = _toc-list(eintraege, i + 1, e.level + 1, wurzel: wurzel)
     punkte.push(html.elem("li", {
-      html.elem("a", attrs: (href: "#" + e.slug), e.body)
+      html.elem("a", attrs: (href: wurzel + e.datei + "#" + e.slug), e.body)
       unten.content
     }))
     i = unten.next
@@ -74,15 +83,29 @@
   )
 }
 
-#let _toc(eintraege, tiefe) = {
+#let _toc(eintraege, tiefe, dateien, wurzel: "", hier: none) = {
   let sichtbar = eintraege.filter(e => e.outlined and e.level <= tiefe)
+  // Die Gesamtseite steht neben den Kapiteln im selben Introspektionsraum;
+  // ihre Ueberschriften gehoeren nicht ins Verzeichnis.
+  if dateien.len() > 0 { sichtbar = sichtbar.filter(e => dateien.contains(e.datei)) }
+  // Aufgeklappt statt aufgezaehlt: alle Kapitel stehen da, ihre Abschnitte aber
+  // nur fuer das Kapitel, auf dem man ist. Sonst traegt jede Seite das
+  // Verzeichnis aller anderen mit -- an typstage gemessen 91 Eintraege, von
+  // denen hoechstens dreizehn zur gelesenen Seite gehoerten.
+  //
+  // Nebenbei sagt die Liste damit, *wo* man ist; vorher sahen alle zwoelf
+  // Seiten gleich aus. `hier: none` heisst "alles zeigen" und gilt fuer die
+  // Gesamtseite und fuer ein ungeteiltes Handbuch.
+  if hier != none {
+    sichtbar = sichtbar.filter(e => e.level == 1 or e.datei == hier)
+  }
   if sichtbar.len() == 0 { return none }
   html.elem(
     "nav",
     attrs: (class: "inhalt", "aria-label": "Inhaltsverzeichnis"),
     {
       context html.elem("h2", attrs: (class: "inhalt-titel"), word("contents"))
-      _toc-list(sichtbar, 0, sichtbar.first().level).content
+      _toc-list(sichtbar, 0, sichtbar.first().level, wurzel: wurzel).content
     },
   )
 }
@@ -101,6 +124,10 @@
 /// -> content
 #let web-page(
   name: "",
+  // Ein Zeichen statt des Namens. Die Überschrift bleibt eine `h1` -- die
+  // Gliederung der Seite hängt daran, und ein Bild ohne Überschrift nähme
+  // jedem Vorleser den Einstieg.
+  logo: none,
   version: "",
   description: "",
   license: "",
@@ -108,6 +135,13 @@
   links: (),
   notices: (),
   depth: 3,
+  seiten: (),
+  aktuell: -1,
+  // Wie weit diese Seite von der Wurzel der Website entfernt liegt, als
+  // Praefix: "" fuer eine Seite oben, "../" fuer eine in einem Ordner. Alle
+  // Verweise gehen durch ihn hindurch. Ohne das zeigte ein Verweis aus
+  // `en/geogebra.html` auf `en/index.html`, obwohl `index.html` oben liegt.
+  wurzel: "",
   body,
 ) = {
   let titel = if version != "" { name + " " + version } else { name }
@@ -127,13 +161,13 @@
       }
       html.elem("meta", attrs: (name: "generator", content: "schuldocs " + schuldocs-version))
       html.elem("meta", attrs: (name: "color-scheme", content: "light dark"))
-      html.elem("link", attrs: (rel: "stylesheet", href: css-name))
+      html.elem("link", attrs: (rel: "stylesheet", href: wurzel + css-name))
     })
 
     html.elem("body", {
       html.elem("header", attrs: (class: "kopf"), html.elem("div", attrs: (class: "kopf-inhalt"), {
-        html.elem("h1", {
-          name
+        html.elem("h1", attrs: if logo != none { (class: "mit-zeichen") } else { (:) }, {
+          if logo != none { logo } else { name }
           if version != "" {
             html.elem("span", attrs: (class: "version"), version)
           }
@@ -160,7 +194,11 @@
       }))
 
       html.elem("div", attrs: (class: "rahmen"), {
-        context _toc(_entries(), depth)
+        context _toc(
+          _entries(), depth, seiten.map(s => s.datei),
+          wurzel: wurzel,
+          hier: if aktuell >= 0 and seiten.len() > 1 { seiten.at(aktuell).datei },
+        )
 
         html.elem("main", {
           // Überschriften bekommen einen sprechenden Anker und einen
@@ -190,6 +228,21 @@
         })
       })
 
+      if seiten.len() > 1 and aktuell >= 0 {
+        html.elem("nav", attrs: (class: "blaettern", "aria-label": "Kapitel"), {
+          if aktuell > 0 {
+            let v = seiten.at(aktuell - 1)
+            html.elem("a", attrs: (class: "zurueck", rel: "prev", href: wurzel + v.datei),
+              "\u{2190} " + v.titel)
+          }
+          if aktuell + 1 < seiten.len() {
+            let w = seiten.at(aktuell + 1)
+            html.elem("a", attrs: (class: "weiter", rel: "next", href: wurzel + w.datei),
+              w.titel + " \u{2192}")
+          }
+        })
+      }
+
       html.elem("footer", {
         html.elem("p", {
           titel
@@ -197,6 +250,57 @@
           [ #sym.dot.c #word("typeset")]
         })
       })
+
+      // Wo man gerade steht, in der Liste links. Nicht als Stilfrage, sondern
+      // als Orientierung: auf einer Seite mit dreizehn Abschnitten sagt sonst
+      // nichts, an welcher Stelle man liest.
+      //
+      // Inline und nicht als eigene Datei: es sind vierzig Zeilen, und eine
+      // zweite Anfrage dafuer waere teurer als sie selbst. Ohne JavaScript
+      // bleibt alles wie vorher -- die Liste steht, nur ohne Markierung.
+      html.elem("script", ```
+(function () {
+  var nav = document.querySelector("nav.inhalt");
+  if (!nav) return;
+  var zuId = {};
+  nav.querySelectorAll("a[href]").forEach(function (a) {
+    var i = a.getAttribute("href").indexOf("#");
+    if (i >= 0) zuId[a.getAttribute("href").slice(i + 1)] = a;
+  });
+  // Nur Marken, die auch in der Liste stehen. `main [id]` faengt sonst auch
+  // Anker, die dort nichts zu suchen haben.
+  var marken = [].slice.call(document.querySelectorAll("main [id]"))
+    .filter(function (e) { return zuId[e.id]; });
+  if (!marken.length) return;
+
+  var jetzt = null;
+  function stellen() {
+    // Die oberste Ueberschrift, die noch ueber der Grenze steht. Nicht die
+    // naechste darunter: beim Lesen steht der Abschnitt, in dem man ist,
+    // gerade *oberhalb* des Blickfelds.
+    var grenze = 120, treffer = marken[0];
+    for (var i = 0; i < marken.length; i++) {
+      if (marken[i].getBoundingClientRect().top <= grenze) treffer = marken[i];
+      else break;
+    }
+    var a = zuId[treffer.id];
+    if (a === jetzt) return;
+    if (jetzt) jetzt.removeAttribute("aria-current");
+    a.setAttribute("aria-current", "true");
+    jetzt = a;
+    // Mitziehen, aber nur wenn der Eintrag aus dem Sichtfeld der Liste
+    // gelaufen ist. Eine Liste, die bei jedem Rollen selbst mitspringt, ist
+    // unruhiger als eine, die stehen bleibt.
+    var nr = nav.getBoundingClientRect(), ar = a.getBoundingClientRect();
+    if (ar.top < nr.top + 8 || ar.bottom > nr.bottom - 8) {
+      nav.scrollTop += ar.top - nr.top - nr.height / 3;
+    }
+  }
+  addEventListener("scroll", stellen, { passive: true });
+  addEventListener("resize", stellen);
+  stellen();
+})();
+```.text)
       // Safari setzt die Hoehe eines SVG mit `height: auto` beim ersten Aufbau
       // der Seite falsch und holt das erst bei einem Neuaufbau nach, etwa beim
       // Zoomen: bis dahin ragt die Zeichnung oben aus ihrem Kasten. Hier wird
@@ -223,6 +327,7 @@
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(messen);
 })();
 ```.text)
+
     })
   })
 }
