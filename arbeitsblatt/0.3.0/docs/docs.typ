@@ -1,4 +1,4 @@
-#import "@schule/schuldocs:0.2.0": *
+#import "@schule/schuldocs:0.3.0": *
 
 #let pkg = toml("../typst.toml")
 

@@ -279,7 +279,7 @@
 /// Körper und wird für beide Ausgaben gesetzt.
 ///
 /// ```typ
-/// #import "@schule/schuldocs:0.2.0": docs, show-example, show-module
+/// #import "@schule/schuldocs:0.3.0": docs, show-example, show-module
 ///
 /// #show: docs.with(
 ///   toml: toml("../typst.toml"),

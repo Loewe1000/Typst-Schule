@@ -405,8 +405,13 @@ thead th, tr:first-child th { background: var(--flaeche); font-weight: 620; }
 /* Typst legt Breite und Höhe als Inline-Stil fest; für schmale Fenster muss
    das überschrieben werden. Der helle Grund bleibt auch im dunklen Modus,
    weil die Zeichnungen schwarze Linien mitbringen. */
+/* Auch die Rahmen aus `html.frame` (Blöcke, Zeichnungen in Tabellen) landen
+   hier. Ihre Breite steht als Inline-Stil am Element; mit `border-box`
+   fräße der Innenabstand sie auf, und der Inhalt schrumpfte auf den Rest —
+   deshalb `content-box`, und der Höchstwert lässt Rand und Abstand Platz. */
 main svg {
-  max-width: 100% !important;
+  box-sizing: content-box;
+  max-width: calc(100% - 1.8rem - 2px) !important;
   height: auto !important;
   background: #ffffff;
   border: 1px solid var(--flaeche-rand);

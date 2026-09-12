@@ -1,4 +1,4 @@
-#import "@schule/schuldocs:0.2.0": *
+#import "@schule/schuldocs:0.3.0": *
 #import "../aufgaben.typ": reset-aufgaben
 
 #let pkg = toml("../typst.toml")

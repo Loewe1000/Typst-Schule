@@ -1,4 +1,4 @@
-#import "@schule/schuldocs:0.2.0": doc-target, info, show-code, show-example, show-module, tip, warning
+#import "@schule/schuldocs:0.3.0": doc-target, info, show-code, show-example, show-module, tip, warning
 
 = Über dieses Paket
 
