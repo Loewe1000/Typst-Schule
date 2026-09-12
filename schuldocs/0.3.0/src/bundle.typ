@@ -208,6 +208,7 @@
         seiten: seiten,
         aktuell: i,
         wurzel: _wurzel-zu(seite.datei),
+        kapitel: seite.titel,
         kap.join(),
       )
     ]

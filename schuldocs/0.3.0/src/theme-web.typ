@@ -151,6 +151,9 @@
   uebersicht: none,
   beispiele: none,
   pdf: none,
+  // Der Kapiteltitel einer Seite des geteilten Handbuchs, fuer den
+  // Fenstertitel: "blockst 0.4.0 — MakeCode" statt auf jeder Seite dasselbe.
+  kapitel: none,
   body,
 ) = {
   let titel = if version != "" { name + " " + version } else { name }
@@ -199,7 +202,7 @@
     html.elem("head", {
       html.elem("meta", attrs: (charset: "utf-8"))
       html.elem("meta", attrs: (name: "viewport", content: "width=device-width, initial-scale=1"))
-      html.elem("title", titel + " — " + word("docs"))
+      html.elem("title", titel + " — " + (if kapitel != none { kapitel } else { word("docs") }))
       if description != "" {
         html.elem("meta", attrs: (name: "description", content: description))
       }
