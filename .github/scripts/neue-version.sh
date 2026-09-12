@@ -12,7 +12,7 @@
 #   - ein gewöhnlicher Ordner wird kopiert, typst.toml bekommt die neue
 #     Nummer, Importe des eigenen Pakets (`@schule/<paket>:<alt>`) in
 #     Beispielen und Doku werden umgestellt;
-#   - ein Submodul (typstage, typstage-geogebra, blockst) wird als neues
+#   - ein Submodul (typstage, blockst) wird als neues
 #     Submodul unter der neuen Nummer eingebunden, auf dem Hauptzweig des
 #     Paket-Repos — dort muss typst.toml die neue Nummer tragen.
 # Die Website baut die neue Version beim nächsten Lauf von selbst mit.

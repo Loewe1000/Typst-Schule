@@ -11,8 +11,8 @@ Namensraum `@schule`, und die Website mit den Handbüchern:
     <paket>/<version>/examples/      Beispiele, bei typstage auch als Website
     schuldocs/<version>/             die Vorlage, aus der Handbuch und Website entstehen
 
-Ein Paket, das in einem eigenen Repo lebt (typstage, typstage-geogebra,
-blockst), liegt als Submodul unter seiner Versionsnummer — nach dem Klonen
+Ein Paket, das in einem eigenen Repo lebt (typstage, blockst),
+liegt als Submodul unter seiner Versionsnummer — nach dem Klonen
 `git submodule update --init --recursive`.
 
 Zum Arbeiten das Repo als Paketpfad einhängen, dann findet Typst
