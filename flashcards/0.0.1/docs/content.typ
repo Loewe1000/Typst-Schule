@@ -1,4 +1,4 @@
-#import "@schule/schuldocs:0.2.0": show-example, show-module, show-code
+#import "@schule/schuldocs:0.3.0": show-example, show-module, show-code
 
 = Über dieses Paket
 

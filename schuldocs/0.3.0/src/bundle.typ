@@ -75,6 +75,10 @@
       links: o.links,
       depth: o.toc-depth,
       notices: o.notices,
+      versionen: o.versionen,
+      uebersicht: o.uebersicht,
+      beispiele: o.beispiele,
+      pdf: pdf-datei,
       body,
     )
   ]
@@ -197,6 +201,10 @@
         links: o.links,
         depth: o.toc-depth,
         notices: o.notices,
+      versionen: o.versionen,
+      uebersicht: o.uebersicht,
+      beispiele: o.beispiele,
+      pdf: pdf-datei,
         seiten: seiten,
         aktuell: i,
         wurzel: _wurzel-zu(seite.datei),
@@ -227,6 +235,10 @@
       links: o.links,
       depth: o.toc-depth,
       notices: o.notices,
+      versionen: o.versionen,
+      uebersicht: o.uebersicht,
+      beispiele: o.beispiele,
+      pdf: pdf-datei,
       seiten: seiten,
       aktuell: -1,
       wurzel: _wurzel-zu(o.ordner + "alles.html"),
@@ -267,7 +279,7 @@
 /// Körper und wird für beide Ausgaben gesetzt.
 ///
 /// ```typ
-/// #import "@schule/schuldocs:0.2.0": docs, show-example, show-module
+/// #import "@schule/schuldocs:0.3.0": docs, show-example, show-module
 ///
 /// #show: docs.with(
 ///   toml: toml("../typst.toml"),
@@ -326,8 +338,28 @@
   // jedes Kapitel seine eigene Seite hat und die dritte Ebene die Uebersicht
   // nur laenger macht. An typstage gemessen: 141 Eintraege gegen 91.
   toc-depth: 3,
+  /// Alle Versionen des Pakets auf der Website, die neueste zuerst, für die
+  /// Versionsleiste über dem Kopf. `auto` liest sie aus der Eingabe
+  /// `schuldocs-versionen` (`--input schuldocs-versionen=0.4.0,0.3.0`), die
+  /// der Website-Build setzt; ohne Eingabe gibt es keine Leiste. Jede Version
+  /// liegt in einem Geschwisterordner mit ihrer Nummer (`../0.3.0/`).
+  versions: auto,
+  /// Verweis von der Einstiegsseite zur Paketübersicht, etwa `"../../"`;
+  /// `auto` liest die Eingabe `schuldocs-uebersicht`.
+  overview: auto,
+  /// Verweis zu den Beispielen, etwa `"beispiele/"`; `auto` liest die
+  /// Eingabe `schuldocs-beispiele`.
+  examples: auto,
   ..rest,
 ) = {
+  let eingabe(name) = {
+    let wert = sys.inputs.at(name, default: "").trim()
+    if wert == "" { none } else { wert }
+  }
+  let versionen = if versions == auto {
+    let wert = eingabe("schuldocs-versionen")
+    if wert == none { () } else { wert.split(",").map(v => v.trim()).filter(v => v != "") }
+  } else if versions == none { () } else { versions.map(v => str(v)) }
   let einstellungen = (
     toml: toml,
     authors: authors,
@@ -341,6 +373,9 @@
     html-name: html-name,
     ordner: ordner,
     toc-depth: toc-depth,
+    versionen: versionen,
+    uebersicht: if overview == auto { eingabe("schuldocs-uebersicht") } else { overview },
+    beispiele: if examples == auto { eingabe("schuldocs-beispiele") } else { examples },
   )
   let bauen = if split { _build-multi } else { _build }
   if rest.pos().len() == 0 {

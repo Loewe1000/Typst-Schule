@@ -1,0 +1,48 @@
+name: Versionen prüfen
+
+# Zwei Regeln für die Versionsordner `<paket>/<version>/`:
+#  1. typst.toml und Ordnername nennen dieselbe Version.
+#  2. Eine auf Typst Universe veröffentlichte Version ist eingefroren — was
+#     sich danach ändert, gehört in eine neue Version
+#     (bash .github/scripts/neue-version.sh <paket> <version>).
+# Siehe README.md, Abschnitt „Versionen“.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pruefen:
+    name: Versionsordner prüfen
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Die ganze Geschichte, damit der Vergleich mit dem Basis-Stand
+          # möglich ist; die Submodule, damit jede typst.toml da ist.
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Basis bestimmen
+        id: basis
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "ref=origin/${{ github.base_ref }}" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" = "push" ] && [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
+            echo "ref=${{ github.event.before }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Prüfen
+        run: |
+          if [ -n "${{ steps.basis.outputs.ref }}" ]; then
+            python3 .github/scripts/versionen-pruefen.py --basis "${{ steps.basis.outputs.ref }}"
+          else
+            python3 .github/scripts/versionen-pruefen.py
+          fi

@@ -9,6 +9,9 @@
 # Funktionsweise:
 #   - Auto-Discovery: Jeder Versionsordner {paket}/{version}/ mit einer
 #     docs/docs.typ wird gebaut – Versionen müssen hier NICHT gepflegt werden.
+#     Jede Version bleibt auf der Website, solange ihr Ordner im Register
+#     liegt; eine veröffentlichte Version wird nicht mehr angefasst (siehe
+#     README.md, „Versionen“), ihr Handbuch ändert sich also nicht mehr.
 #   - Ein Lauf je Version erzeugt über den Bündel-Export von Typst 0.15
 #     gleichzeitig Website, Handbuch und Stilvorlage:
 #         .docs-site/{paket}/{version}/index.html
@@ -17,10 +20,16 @@
 #     Eine Nachbearbeitung entfällt damit; früher brauchte es dafür zwei
 #     getrennte Einstiegsdateien (docs/web.typ für HTML, docs/manual.typ für
 #     PDF) und mantys, das unter Typst 0.15 nicht mehr lädt.
-#   - Die neueste Version liegt zusätzlich unversioniert unter
-#     .docs-site/{paket}/, dazu {paket}/versions.json (absteigend) für das
-#     Versions-Dropdown.
-#   - Pagefind indexiert nur Startseite + {paket}/index.html, damit
+#   - Die Versionsleiste (Übersicht, Versions-Dropdown, Handbuch als PDF,
+#     Beispiele): Seiten aus schuldocs 0.3.0 bauen sie selbst, aus den
+#     Eingaben --input schuldocs-versionen=… / schuldocs-uebersicht=… /
+#     schuldocs-beispiele=…. Seiten älterer schuldocs-Fassungen bekommen sie
+#     hier per Skript angehängt (DROPDOWN_JS), das versions.json liest.
+#   - Die Adresse einer Doku trägt immer ihre Version. Unversioniert liegt
+#     unter .docs-site/{paket}/ nur eine Weiterleitung auf die neueste
+#     Version, dazu {paket}/versions.json (absteigend) und, für alte Verweise,
+#     das neueste Handbuch als {paket}/{paket}.pdf.
+#   - Pagefind indexiert nur Startseite + die neueste Version je Paket, damit
 #     Suchtreffer nicht über alle Versionen dupliziert werden.
 #
 # Anforderungen:
@@ -52,10 +61,11 @@ echo "Typst-Paketpfad: $TYPST_PACKAGE_ROOT"
 typst --version
 echo ""
 
-# Navigationsleiste (Übersicht, Versions-Dropdown, Handbuch als PDF). Die
-# Seiten aus schuldocs 0.2.0 bringen sie nicht selbst mit: welche Versionen es
-# gibt, weiß erst dieser Build. Der Platzhalter __PDF__ wird je Paket ersetzt.
-DROPDOWN_JS="(function(){if(document.getElementById('schuldocs-nav')){return;}var p=location.pathname.replace(/index\\.html\$/,'');if(p.slice(-1)!=='/'){p+='/';}var vm=p.match(/\\/(\\d+\\.\\d+\\.\\d+)\\/\$/);var root=vm?p.slice(0,p.length-vm[1].length-1):p;var current=vm?vm[1]:null;var home=root.replace(/[^/]+\\/\$/,'');var style=document.createElement('style');style.textContent='#schuldocs-nav{position:fixed;top:.75rem;right:.75rem;z-index:50;display:flex;gap:.4rem;align-items:center;}#schuldocs-nav a,#schuldocs-nav select{padding:.3rem .5rem;border:1px solid rgb(212,212,216);border-radius:.375rem;background:rgba(255,255,255,.92);font:500 .8rem/1.2 Inter,system-ui,sans-serif;color:rgb(63,63,70);cursor:pointer;text-decoration:none;}@media (prefers-color-scheme:dark){#schuldocs-nav a,#schuldocs-nav select{background:rgba(39,39,42,.92);color:rgb(212,212,216);border-color:rgb(63,63,70);}}';document.head.appendChild(style);var nav=document.createElement('div');nav.id='schuldocs-nav';var back=document.createElement('a');back.href=home;back.title='Zur Paketübersicht';back.setAttribute('aria-label','Zur Paketübersicht');back.textContent='\\u2190 Übersicht';nav.appendChild(back);var pdf=document.createElement('a');pdf.href='__PDF__';pdf.title='Handbuch als PDF';pdf.textContent='PDF';nav.appendChild(pdf);var demos='__DEMOS__';if(demos){var dm=document.createElement('a');dm.href=demos;dm.title='Beispielpr\u00e4sentationen im Browser';dm.textContent='Beispiele';nav.appendChild(dm);}document.body.appendChild(nav);fetch(root+'versions.json').then(function(r){if(!r.ok){throw 0;}return r.json();}).then(function(versions){if(!Array.isArray(versions)||versions.length<2){return;}var sel=document.createElement('select');sel.id='schuldocs-versionen';sel.title='Dokumentations-Version';sel.setAttribute('aria-label','Dokumentations-Version wählen');versions.forEach(function(v,i){var o=document.createElement('option');o.value=v;o.textContent=i===0?v+' (neueste)':v;sel.appendChild(o);});sel.value=current||versions[0];sel.onchange=function(){location.href=root+sel.value+'/';};nav.appendChild(sel);}).catch(function(){});})();"
+# Navigationsleiste (Übersicht, Versions-Dropdown, Handbuch als PDF) für Seiten
+# aus schuldocs 0.2.0 und älter: die bringen sie nicht selbst mit. Seiten, die
+# schon ein Element `schuldocs-nav` haben (schuldocs ab 0.3.0), bleiben
+# unberührt. Der Platzhalter __PDF__ wird je Paket ersetzt.
+DROPDOWN_JS="(function(){if(document.getElementById('schuldocs-nav')){return;}var p=location.pathname.replace(/index\\.html\$/,'');if(p.slice(-1)!=='/'){p+='/';}var vm=p.match(/\\/(\\d+\\.\\d+\\.\\d+)\\/\$/);var root=vm?p.slice(0,p.length-vm[1].length-1):p;var current=vm?vm[1]:null;var home=root.replace(/[^/]+\\/\$/,'');var style=document.createElement('style');style.textContent='#schuldocs-nav{position:fixed;top:.75rem;right:.75rem;z-index:50;display:flex;gap:.4rem;align-items:center;}#schuldocs-nav a,#schuldocs-nav select{padding:.3rem .5rem;border:1px solid rgb(212,212,216);border-radius:.375rem;background:rgba(255,255,255,.92);font:500 .8rem/1.2 Inter,system-ui,sans-serif;color:rgb(63,63,70);cursor:pointer;text-decoration:none;}@media (prefers-color-scheme:dark){#schuldocs-nav a,#schuldocs-nav select{background:rgba(39,39,42,.92);color:rgb(212,212,216);border-color:rgb(63,63,70);}}';document.head.appendChild(style);var nav=document.createElement('div');nav.id='schuldocs-nav';var back=document.createElement('a');back.href=home;back.title='Zur Paketübersicht';back.setAttribute('aria-label','Zur Paketübersicht');back.textContent='\\u2190 Übersicht';nav.appendChild(back);var pdf=document.createElement('a');pdf.href='__PDF__';pdf.title='Handbuch als PDF';pdf.textContent='PDF';nav.appendChild(pdf);var demos='__DEMOS__';if(demos){var dm=document.createElement('a');dm.href=demos;dm.title='Beispielpräsentationen im Browser';dm.textContent='Beispiele';nav.appendChild(dm);}document.body.appendChild(nav);fetch(root+'versions.json').then(function(r){if(!r.ok){throw 0;}return r.json();}).then(function(versions){if(!Array.isArray(versions)||versions.length<2){return;}var sel=document.createElement('select');sel.id='schuldocs-versionen';sel.title='Dokumentations-Version';sel.setAttribute('aria-label','Dokumentations-Version wählen');versions.forEach(function(v,i){var o=document.createElement('option');o.value=v;o.textContent=i===0?v+' (neueste)':v;sel.appendChild(o);});sel.value=current||versions[0];sel.onchange=function(){location.href=root+sel.value+'/';};nav.appendChild(sel);}).catch(function(){});})();"
 
 # Ausgabe-Verzeichnis vorbereiten: alles außer dem Pagefind-Index verwerfen,
 # damit keine Datei einer entfernten Version stehenbleibt.
@@ -104,12 +114,68 @@ for pkg_dir in "$PACKAGES_DIR"/*/; do
   echo "--- $pkg_name (${versions[*]}) ---"
   out_pkg_dir="$SITE_DIR/$pkg_name"
   mkdir -p "$out_pkg_dir"
+  versionen_liste="$(IFS=,; echo "${versions[*]}")"
 
   gebaut=()
   for version in "${versions[@]}"; do
     out_dir="$out_pkg_dir/$version"
     mkdir -p "$out_dir"
 
+    # Beispielpräsentationen zuerst: jede examples/*.typ als eigenständige
+    # HTML-Datei neben die Doku. Sie sind der einzige Weg, das Paket
+    # auszuprobieren, ohne Typst zu installieren — ein Deck ist eine Datei,
+    # ohne Server und ohne Nachladen. Gefunden wird wie bei der Doku von
+    # selbst; wo es keinen examples-Ordner gibt, passiert nichts. Vor der Doku,
+    # weil deren Versionsleiste wissen muss, ob es Beispiele gibt.
+    beispiele_href=""
+    if [[ -d "$pkg_dir$version/examples" ]]; then
+      beispiel_namen=()
+      for bsp in "$pkg_dir$version/examples"/*.typ; do
+        [[ -e "$bsp" ]] || continue
+        # Nur Decks: eine beliebige Beispieldatei nach HTML zu exportieren
+        # ergibt eine Seite, auf der Typst Raster und Abstände verworfen hat.
+        # typstage baut die Folien dagegen selbst als SVG ein, deshalb ist der
+        # Import das ehrliche Kennzeichen. Andere Pakete bleiben unberührt.
+        grep -q '@schule/typstage' "$bsp" || continue
+        bsp_name="$(basename "${bsp%.typ}")"
+        mkdir -p "$out_dir/beispiele"
+        if (
+          cd "$pkg_dir$version/examples"
+          typst compile \
+            --format html \
+            --features html \
+            --package-path "$TYPST_PACKAGE_ROOT" \
+            --root "$PACKAGES_DIR" \
+            "$(basename "$bsp")" \
+            "$out_dir/beispiele/$bsp_name.html" \
+            2>&1 | awk '!/^warning: html export/ && !/^= hint:/ { print }'
+          exit "${PIPESTATUS[0]}"
+        ) && [[ -s "$out_dir/beispiele/$bsp_name.html" ]]; then
+          beispiel_namen+=("$bsp_name")
+        else
+          echo "    WARNUNG: Beispiel $pkg_name/$version/$bsp_name ließ sich nicht bauen"
+          rm -f "$out_dir/beispiele/$bsp_name.html"
+        fi
+      done
+      if [[ ${#beispiel_namen[@]} -gt 0 ]]; then
+        # Medien neben einem Beispiel reisen mit: `video("demo.mp4")` verweist
+        # auf eine Datei, die neben der HTML-Seite liegen muss.
+        for bei in "$pkg_dir$version/examples"/*; do
+          case "$bei" in *.typ) continue;; esac
+          [ -f "$bei" ] && cp "$bei" "$out_dir/beispiele/"
+        done
+        BSP_PAKET="$pkg_name" BSP_VERSION="$version" \
+        BSP_NAMEN="${beispiel_namen[*]}" python3 "$SCRIPT_DIR/beispiele-index.py" \
+          "$out_dir/beispiele/index.html"
+        beispiele_href="beispiele/"
+        echo "    → $pkg_name/$version/beispiele/ (${#beispiel_namen[@]} Präsentationen)"
+      else
+        rmdir "$out_dir/beispiele" 2>/dev/null || true
+      fi
+    fi
+
+    # Die Doku. Die drei Eingaben speisen die Versionsleiste von schuldocs
+    # ab 0.3.0; ältere Fassungen kennen sie nicht und lassen sie liegen.
     if (
       cd "$pkg_dir$version/docs"
       typst compile \
@@ -117,6 +183,9 @@ for pkg_dir in "$PACKAGES_DIR"/*/; do
         --features bundle,html \
         --package-path "$TYPST_PACKAGE_ROOT" \
         --root "$PACKAGES_DIR" \
+        --input "schuldocs-versionen=$versionen_liste" \
+        --input "schuldocs-uebersicht=../../" \
+        --input "schuldocs-beispiele=$beispiele_href" \
         docs.typ \
         "$out_dir" \
         2>&1 | awk '!/^warning: bundle export is experimental/ && !/^warning: html export/ && !/^= hint:/ { print }'
@@ -135,6 +204,9 @@ for pkg_dir in "$PACKAGES_DIR"/*/; do
             --features bundle,html \
             --package-path "$TYPST_PACKAGE_ROOT" \
             --root "$PACKAGES_DIR" \
+            --input "schuldocs-versionen=$versionen_liste" \
+            --input "schuldocs-uebersicht=../../" \
+            --input "schuldocs-beispiele=$beispiele_href" \
             manual-en.typ \
             "$out_dir" \
             2>&1 | awk '!/^warning: bundle export is experimental/ && !/^warning: html export/ && !/^= hint:/ { print }'
@@ -143,57 +215,6 @@ for pkg_dir in "$PACKAGES_DIR"/*/; do
           echo "FEHLER: $pkg_name/$version: englisches Handbuch ließ sich nicht bauen" >&2
           exit 1
         }
-      fi
-      # Beispielpräsentationen: jede examples/*.typ als eigenständige HTML-Datei
-      # neben die Doku. Sie sind der einzige Weg, das Paket auszuprobieren, ohne
-      # Typst zu installieren — ein Deck ist eine Datei, ohne Server und ohne
-      # Nachladen. Gefunden wird wie bei der Doku von selbst; wo es keinen
-      # examples-Ordner gibt, passiert nichts.
-      beispiele_href=""
-      if [[ -d "$pkg_dir$version/examples" ]]; then
-        beispiel_namen=()
-        for bsp in "$pkg_dir$version/examples"/*.typ; do
-          [[ -e "$bsp" ]] || continue
-          # Nur Decks: eine beliebige Beispieldatei nach HTML zu exportieren
-          # ergibt eine Seite, auf der Typst Raster und Abstände verworfen hat.
-          # typstage baut die Folien dagegen selbst als SVG ein, deshalb ist der
-          # Import das ehrliche Kennzeichen. Andere Pakete bleiben unberührt.
-          grep -q '@schule/typstage' "$bsp" || continue
-          bsp_name="$(basename "${bsp%.typ}")"
-          mkdir -p "$out_dir/beispiele"
-          if (
-            cd "$pkg_dir$version/examples"
-            typst compile \
-              --format html \
-              --features html \
-              --package-path "$TYPST_PACKAGE_ROOT" \
-              --root "$PACKAGES_DIR" \
-              "$(basename "$bsp")" \
-              "$out_dir/beispiele/$bsp_name.html" \
-              2>&1 | awk '!/^warning: html export/ && !/^= hint:/ { print }'
-            exit "${PIPESTATUS[0]}"
-          ) && [[ -s "$out_dir/beispiele/$bsp_name.html" ]]; then
-            beispiel_namen+=("$bsp_name")
-          else
-            echo "    WARNUNG: Beispiel $pkg_name/$version/$bsp_name ließ sich nicht bauen"
-            rm -f "$out_dir/beispiele/$bsp_name.html"
-          fi
-        done
-        if [[ ${#beispiel_namen[@]} -gt 0 ]]; then
-          # Medien neben einem Beispiel reisen mit: `video("demo.mp4")` verweist
-          # auf eine Datei, die neben der HTML-Seite liegen muss.
-          for bei in "$pkg_dir$version/examples"/*; do
-            case "$bei" in *.typ) continue;; esac
-            [ -f "$bei" ] && cp "$bei" "$out_dir/beispiele/"
-          done
-          BSP_PAKET="$pkg_name" BSP_VERSION="$version" \
-          BSP_NAMEN="${beispiel_namen[*]}" python3 "$SCRIPT_DIR/beispiele-index.py" \
-            "$out_dir/beispiele/index.html"
-          beispiele_href="beispiele/"
-          echo "    → $pkg_name/$version/beispiele/ (${#beispiel_namen[@]} Präsentationen)"
-        else
-          rmdir "$out_dir/beispiele" 2>/dev/null || true
-        fi
       fi
 
       # Handbuch-Dateiname für den PDF-Verweis in der Navigationsleiste
@@ -236,11 +257,34 @@ open(pfad, "w", encoding="utf-8").write(html)
     printf ']\n'
   } > "$out_pkg_dir/versions.json"
 
-  # Neueste Version zusätzlich unversioniert: alle drei Dateien, damit die
-  # Seite auch dort ihre Stilvorlage und ihr Handbuch findet.
-  cp -R "$out_pkg_dir/${gebaut[0]}"/* "$out_pkg_dir/"
-  neueste_versionen_json+="\"$pkg_name\":\"${gebaut[0]}\","
-  echo "    → $pkg_name/ (= ${gebaut[0]})"
+  # Unversioniert nur eine Weiterleitung: die Adresse einer Doku trägt ihre
+  # Version, damit ein Verweis auch nach dem nächsten Release noch auf das
+  # zeigt, was er meinte. Das neueste Handbuch liegt für alte Verweise
+  # zusätzlich als {paket}/{paket}.pdf.
+  neueste="${gebaut[0]}"
+  NEUESTE="$neueste" PAKET="$pkg_name" VERSIONEN="$(IFS=,; echo "${gebaut[*]}")" python3 -c '
+import os, sys
+neueste, paket = os.environ["NEUESTE"], os.environ["PAKET"]
+versionen = os.environ["VERSIONEN"].split(",")
+liste = "".join(f"<li><a href=\"{v}/\">{paket} {v}</a></li>" for v in versionen)
+open(sys.argv[1], "w", encoding="utf-8").write(
+    "<!DOCTYPE html><html lang=\"de\"><head><meta charset=\"utf-8\">"
+    f"<meta http-equiv=\"refresh\" content=\"0; url={neueste}/\">"
+    f"<link rel=\"canonical\" href=\"{neueste}/\">"
+    f"<title>{paket} — Dokumentation</title>"
+    "<style>body{font-family:Inter,system-ui,sans-serif;margin:3rem auto;max-width:40rem;padding:0 1rem;line-height:1.6}</style>"
+    f"</head><body><p>Weiter zur <a href=\"{neueste}/\">aktuellen Dokumentation von {paket} ({neueste})</a> …</p>"
+    f"<p>Alle Versionen:</p><ul>{liste}</ul></body></html>\n"
+)
+' "$out_pkg_dir/index.html"
+  for pdf in "$out_pkg_dir/$neueste"/*.pdf; do
+    [[ -f "$pdf" ]] && cp "$pdf" "$out_pkg_dir/"
+  done
+  # Nur die neueste Version kommt in den Suchindex: Pagefind indexiert, sobald
+  # eine Seite `data-pagefind-body` trägt, ausschließlich solche Seiten.
+  python3 "$SCRIPT_DIR/suchbar.py" "$out_pkg_dir/$neueste/index.html"
+  neueste_versionen_json+="\"$pkg_name\":\"$neueste\","
+  echo "    → $pkg_name/ (→ $neueste)"
 done
 
 # Startseite kopieren und die Paket-Versionsnummern auf den jeweils neuesten
@@ -271,13 +315,15 @@ open(pfad, "w", encoding="utf-8").write(html)
   echo "--- Startseite kopiert (Versionen aktualisiert) ---"
 fi
 
-# Pagefind-Index generieren – nur Startseite und die unversionierten
-# Paket-Seiten indexieren, damit Treffer nicht pro Version dupliziert werden
+# Pagefind-Index generieren – nur Startseite und die neueste Version je Paket
+# (die Seiten mit `data-pagefind-body`, siehe suchbar.py), damit Treffer nicht
+# pro Version dupliziert werden. Ein --glob mit aufgezählten Pfaden taugt dafür
+# nicht: die Aufzählung in geschweiften Klammern kommt zerlegt bei Pagefind an.
 echo ""
 echo "--- Generiere Pagefind-Index ---"
 if command -v npx &>/dev/null; then
-  npx pagefind --site "$SITE_DIR" --output-path "$SITE_DIR/pagefind" --force-language de \
-    --glob "{index.html,*/index.html}"
+  [[ -f "$SITE_DIR/index.html" ]] && python3 "$SCRIPT_DIR/suchbar.py" "$SITE_DIR/index.html"
+  npx pagefind --site "$SITE_DIR" --output-path "$SITE_DIR/pagefind" --force-language de
   echo "    → Pagefind-Index in $SITE_DIR/pagefind/"
 else
   echo "WARNUNG: npx nicht gefunden. Pagefind wird übersprungen."

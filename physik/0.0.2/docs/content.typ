@@ -1,4 +1,4 @@
-#import "@schule/schuldocs:0.2.0": show-example, show-module, show-code
+#import "@schule/schuldocs:0.3.0": show-example, show-module, show-code
 #import "@preview/gentle-clues:1.2.0": tip, info
 
 = Über dieses Paket

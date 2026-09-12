@@ -142,9 +142,56 @@
   // Verweise gehen durch ihn hindurch. Ohne das zeigte ein Verweis aus
   // `en/geogebra.html` auf `en/index.html`, obwohl `index.html` oben liegt.
   wurzel: "",
+  // Die Versionsleiste ueber dem Kopf. `versionen` sind alle Versionen des
+  // Pakets auf der Website, die neueste zuerst; jede liegt in einem
+  // Geschwisterordner, der ihre Nummer traegt (`../0.3.0/`). Leer heisst:
+  // keine Leiste. `uebersicht` und `beispiele` sind Verweise relativ zur
+  // Einstiegsseite, `pdf` der Dateiname des Handbuchs daneben.
+  versionen: (),
+  uebersicht: none,
+  beispiele: none,
+  pdf: none,
   body,
 ) = {
   let titel = if version != "" { name + " " + version } else { name }
+
+  // Die Leiste traegt die Kennung `schuldocs-nav`: der Build der Website
+  // haengt Seiten aelterer schuldocs-Fassungen eine solche per Skript an und
+  // laesst Seiten in Ruhe, die sie schon haben.
+  let versionsleiste = context if versionen.len() > 0 or uebersicht != none {
+    let neueste = if versionen.len() > 0 { versionen.first() } else { none }
+    html.elem("nav", attrs: (class: "versionen", id: "schuldocs-nav", "aria-label": word("versions")), {
+      if uebersicht != none {
+        html.elem("a", attrs: (class: "uebersicht", href: wurzel + uebersicht), "\u{2190} " + word("overview"))
+      }
+      if versionen.len() > 0 {
+        html.elem("label", {
+          word("version") + " "
+          html.elem(
+            "select",
+            attrs: (onchange: "location.href=this.value", "aria-label": word("choose-version")),
+            versionen.map(v => html.elem(
+              "option",
+              attrs: (value: wurzel + "../" + v + "/") + (if v == version { (selected: "selected") } else { (:) }),
+              v + (if v == neueste { " (" + word("newest") + ")" } else { "" }),
+            )).join(),
+          )
+        })
+      }
+      if pdf != none {
+        html.elem("a", attrs: (href: wurzel + pdf), word("manual-pdf"))
+      }
+      if beispiele != none {
+        html.elem("a", attrs: (href: wurzel + beispiele), word("examples"))
+      }
+      if neueste != none and version != "" and version != neueste {
+        html.elem("span", attrs: (class: "veraltet"), {
+          word("outdated") + " \u{2014} "
+          html.elem("a", attrs: (href: wurzel + "../" + neueste + "/"), word("to-newest") + " " + neueste)
+        })
+      }
+    })
+  }
 
   // Die Sprache steht am Dokument und nicht fest im Gerüst: eine Seite, die
   // englisch geschrieben ist, soll sich auch englisch ankündigen.
@@ -165,6 +212,7 @@
     })
 
     html.elem("body", {
+      versionsleiste
       html.elem("header", attrs: (class: "kopf"), html.elem("div", attrs: (class: "kopf-inhalt"), {
         html.elem("h1", attrs: if logo != none { (class: "mit-zeichen") } else { (:) }, {
           if logo != none { logo } else { name }

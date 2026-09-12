@@ -1,4 +1,4 @@
-# schuldocs 0.2.0
+# schuldocs 0.3.0
 
 Dokumentation für das Schule-Paket-Ökosystem: Handbuch (PDF) und Website (HTML)
 entstehen aus einer Quelle, in einem einzigen Lauf.
@@ -6,6 +6,10 @@ entstehen aus einer Quelle, in einem einzigen Lauf.
 Gegenüber 0.1.0 entfallen `mantys` und `manifesto` als Abhängigkeiten. Beide
 Ausgaben kommen aus dem Bündel-Export von Typst 0.15; eine Nachbearbeitung der
 erzeugten Dateien ist nicht mehr nötig.
+
+Seit 0.3.0: geteilte Handbücher (`split`), aufklappendes Verzeichnis mit
+Scrollspy, `lang`, ein Zeichen statt des Namens (`logo`) — und die
+Versionsleiste über dem Kopf der Website, siehe „Versionen“.
 
 ## Bauen
 
@@ -22,7 +26,7 @@ Im Zielverzeichnis liegen danach:
 `docs/docs.typ` — die einzige Quelldatei:
 
 ```typ
-#import "@schule/schuldocs:0.2.0": docs, doc-target, show-code, show-example, show-module
+#import "@schule/schuldocs:0.3.0": docs, doc-target, show-code, show-example, show-module
 
 #show: docs.with(
   toml: toml("../typst.toml"),
@@ -59,8 +63,40 @@ wird zweimal gesetzt — einmal je Ausgabe.
   notices: (),            // kurze Hinweise für den Kopf der Website
   pdf-name: auto,         // Vorgabe: "<paketname>.pdf"
   html-name: "index.html",
+  lang: "de",             // Sprache der Vorlage: "de", "en", "fr"
+  logo: none,             // ein Zeichen statt des Namens im Kopf
+  split: false,           // ein Kapitel je Seite
+  ordner: "",             // wohin die Kapitelseiten gehen ("en/")
+  toc-depth: 3,
+  reset: () => none,      // eigene Zähler vor jeder Ausgabe zurücksetzen
+  versions: auto,         // Versionsleiste, siehe unten
+  overview: auto,
+  examples: auto,
 ) = …
 ```
+
+### Versionen
+
+Die Website liegt je Paket in Ordnern `<paket>/<version>/`, und jedes Handbuch
+trägt über dem Kopf eine Leiste: ein Menü aller Versionen, das Handbuch als
+PDF, ein Verweis zur Paketübersicht und — auf einer älteren Version — der Weg
+zur aktuellen. Welche Versionen es gibt, weiß nur der Build der Website; er
+übergibt sie als Eingaben, die `docs()` bei `auto` liest:
+
+    typst compile docs/docs.typ build --format bundle --features bundle,html --root / \
+      --input schuldocs-versionen=0.4.0,0.3.0 \   # alle Versionen, die neueste zuerst
+      --input schuldocs-uebersicht=../../ \       # Verweis zur Übersicht
+      --input schuldocs-beispiele=beispiele/       # Verweis zu den Beispielen, falls es welche gibt
+
+Ohne diese Eingaben gibt es keine Leiste. Wer sie fest setzen will, gibt
+`versions: ("0.4.0", "0.3.0")`, `overview: "../../"` und `examples: …` direkt
+an; `none` schaltet den jeweiligen Teil ab. Jede Version wird unter
+`../<version>/` verlinkt, also als Geschwisterordner der Einstiegsseite; in
+geteilten Handbüchern gehen die Verweise durch die Wurzel der Seite.
+
+Die Leiste trägt die Kennung `schuldocs-nav`. Der Build der Website hängt
+Seiten aus älteren schuldocs-Fassungen eine Leiste per Skript an und lässt
+Seiten in Ruhe, die schon eine haben.
 
 Beide Schreibweisen der Show-Regel sind zulässig: `#show: docs.with(toml: …)`
 und `#show: docs(toml: …)`.
@@ -105,6 +141,7 @@ Nicht `target()` benutzen: innerhalb von `html.frame` meldet es fälschlich
 Das Aussehen kommt aus `docs.css`. Wer in `display.typ` oder `api.typ` neue
 Klassen vergibt, muss sie dort ergänzen. Belegt sind:
 
+    nav.versionen .uebersicht .veraltet
     .kopf .kopf-inhalt .version .beschreibung .hinweise .verweise
     .rahmen  nav.inhalt  .inhalt-titel  .anker
     .sd-code  .sd-example  .sd-example--split
