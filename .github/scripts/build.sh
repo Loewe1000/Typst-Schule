@@ -281,8 +281,13 @@ open(sys.argv[1], "w", encoding="utf-8").write(
     [[ -f "$pdf" ]] && cp "$pdf" "$out_pkg_dir/"
   done
   # Nur die neueste Version kommt in den Suchindex: Pagefind indexiert, sobald
-  # eine Seite `data-pagefind-body` trägt, ausschließlich solche Seiten.
-  python3 "$SCRIPT_DIR/suchbar.py" "$out_pkg_dir/$neueste/index.html"
+  # eine Seite `data-pagefind-body` trägt, ausschließlich solche Seiten. Ein
+  # geteiltes Handbuch hat eine Seite je Kapitel — alle, bis auf die
+  # Gesamtseite alles.html, die dieselben Texte noch einmal enthält.
+  for seite in "$out_pkg_dir/$neueste"/*.html; do
+    [[ "$(basename "$seite")" == "alles.html" ]] && continue
+    python3 "$SCRIPT_DIR/suchbar.py" "$seite"
+  done
   neueste_versionen_json+="\"$pkg_name\":\"$neueste\","
   echo "    → $pkg_name/ (→ $neueste)"
 done
