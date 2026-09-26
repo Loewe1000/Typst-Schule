@@ -26,6 +26,7 @@
   zap,
   // Komponenten
   source,
+  simple-source,
   multimeter,
   lamp,
   amperemeter,
@@ -42,9 +43,28 @@
 #import "@preview/colorful-boxes:1.4.3": *
 #import "@preview/unify:0.8.1": add-unit, num as unify-num, qty as unify-qty, unit as unify-unit
 
+// Klartext eines Inhalts: [ A] -> " A", [$Omega$] -> "Ω". repr() lieferte für
+// solche Inhalte Strukturtext, den unify nicht kennt - die Einheit fehlte dann still.
+#let _klartext(value) = {
+  if type(value) == str { return value }
+  if type(value) != content { return str(value) }
+  if value.has("text") { return value.text }
+  if value.has("children") { return value.children.map(_klartext).join(default: "") }
+  if value.has("body") { return _klartext(value.body) }
+  if value.func() == [ ].func() { return " " }
+  none
+}
+
+// Schreibweisen, die unify ohne Meldung weglässt, auf seine Namen abbilden.
+#let _unify-einheit(s) = {
+  s.trim().replace("°C", "dC").replace("Ω", "Ohm").replace("µ", "u").replace("μ", "u")
+}
+
 #let _to-unify-str(value) = {
   if type(value) in (str, int, float) {
     str(value)
+  } else if type(value) == content and _klartext(value) != none {
+    _klartext(value).trim()
   } else if type(value) == content {
     let rendered = repr(value)
     if rendered.starts-with("[") and rendered.ends-with("]") and rendered.len() >= 2 {
@@ -75,9 +95,11 @@
 /// - light-color (color): Hintergrundfarbe der hellen QR-Felder. Standard: vollständig transparent.
 /// - dark-color (color): Vordergrundfarbe der dunklen QR-Felder. Standard: `black`.
 /// - alt (string): Alternativtext für Barrierefreiheit.
+/// - background (color): Alter Name für `light-color` (frühere Versionen).
 /// -> content
-#let qr-code(..args, light-color: white.transparentize(100%), dark-color: black, alt: "") = {
-  qr-code-zebra(..args, fill: dark-color, background-fill: light-color)
+#let qr-code(..args, light-color: white.transparentize(100%), dark-color: black, alt: "", background: none) = {
+  let hell = if background != none { background } else { light-color }
+  qr-code-zebra(..args, fill: dark-color, background-fill: hell)
 }
 
 /// Wrapper um `unify`'s `qty` mit Rückwärtskompatibilität zu `fancy-units`.
@@ -99,7 +121,7 @@
   let named = _named-with-default-per(args.named())
   if positional.len() == 2 {
     let value = _to-unify-str(positional.at(0))
-    let unit = _to-unify-str(positional.at(1))
+    let unit = _unify-einheit(_to-unify-str(positional.at(1)))
     return unify-qty(value, unit, ..named)
   } else {
     return unify-qty(..positional, ..named)
@@ -146,7 +168,7 @@
   let positional = args.pos()
   let named = _named-with-default-per(args.named())
   if positional.len() == 1 {
-    let value = _to-unify-str(positional.at(0))
+    let value = _unify-einheit(_to-unify-str(positional.at(0)))
     return unify-unit(value, ..named)
   } else {
     return unify-unit(..positional, ..named)
@@ -343,10 +365,12 @@
         link(el.location(), nummer)
       }
     } else if el != none and el.func() == figure and (el.kind == image or el.kind == table) {
+      // Wie in der Beschriftung: Abbildungen "A", Tabellen "T".
+      let kuerzel = if el.kind == table { "T" } else { "A" }
       if scope == none {
-        "A" + it
+        kuerzel + it
       } else {
-        link(el.location(), "A" + str(counter(figure.where(kind: el.kind)).at(el.location()).first()))
+        link(el.location(), kuerzel + str(counter(figure.where(kind: el.kind)).at(el.location()).first()))
       }
     } else if scope != none and el != none and el.func() == heading {
       // Dokumentlokale Überschriften-Referenz im Bundle
@@ -515,6 +539,8 @@
     // innerhalb, damit jede Kopie wieder bei Aufgabe 1 beginnt.
     let inhalt = {
       reset-aufgaben()
+      // Lückentexte je Fassung wie in einem einzelnen Dokument mischen.
+      iaword-neu()
       // Setting captions and numberings for figures
       set figure(numbering: "1", supplement: none)
 
@@ -1299,21 +1325,30 @@
     #qr-code(url, width: 0.75 * width, light-color: white.transparentize(100%), quiet-zone: false, alt: "QR-Code")
     #align(
       center,
-      context {
+      layout(platz => {
+        // Zielbreite: 80 % der Box, höchstens aber der Platz innerhalb des
+        // Innenabstands der stickybox - sonst trennte der Linktext ("App-let").
+        let ziel = calc.min(0.8 * width, platz.width)
+        let mit-icon(s) = text(s, hyphenate: false, icon-link(url, name))
+        let ohne-icon(s) = text(s, blue, hyphenate: false, link(url, name))
         let text-size = 12pt
-        let content-link = text(text-size, icon-link(url, name))
+        let content-link = mit-icon(text-size)
         let icon = true
-        while measure(text(size: text-size, icon-link(url, name))).width > 0.8 * width and text-size > 10pt {
+        while measure(mit-icon(text-size)).width > ziel and text-size > 10pt {
           text-size = text-size - 0.1pt
-          content-link = text(text-size, icon-link(url, name))
+          content-link = mit-icon(text-size)
         }
         if text-size <= 10pt {
-          content-link = text(text-size, blue, link(url, name))
           icon = false
-          while measure(text(size: text-size, link(url, name))).width < 0.8 * width and text-size < 12pt {
+          while measure(ohne-icon(text-size)).width < ziel and text-size < 12pt {
             text-size = text-size + 0.1pt
-            content-link = text(text-size, blue, link(url, name))
           }
+          // Passt der Name auch ohne Icon nicht, bis 8 pt verkleinern; danach
+          // bricht er an Leerzeichen oder Bindestrich um, getrennt wird nicht.
+          while measure(ohne-icon(text-size)).width > ziel and text-size > 8pt {
+            text-size = text-size - 0.1pt
+          }
+          content-link = ohne-icon(text-size)
         }
         text(
           size: text-size,
@@ -1324,7 +1359,7 @@
             #if icon { v(0.05 * width) }
           ],
         )
-      },
+      }),
     )
   ]
 }

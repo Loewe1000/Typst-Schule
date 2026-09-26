@@ -10,6 +10,21 @@
 // Definiert einen Zustand für einheitliche Lückengrößen
 #let iaword-uniform = state("iaword-uniform", false)
 
+// Zählerstand zu Beginn des aktuellen Dokuments. Die Mischreihenfolge hängt an
+// der Nummer des Blocks im Dokument, nicht an der laufenden Nummer - sonst
+// mischte jede Fassung eines Bundles anders.
+#let iaword-start = state("iaword-start", 0)
+
+// Ob der gerade gesetzte Block die Lösung zeigt.
+#let iaword-show = state("iaword-show", false)
+
+/// Beginnt die Zählung der Lückentexte neu, z. B. zu Beginn jeder Fassung eines
+/// Bundles. Die Wortlisten bleiben getrennt, gemischt wird wie in einem
+/// einzelnen Dokument. `arbeitsblatt` ruft das selbst auf.
+///
+/// -> content
+#let iaword-neu() = context iaword-start.update(iaword-counter.get().at(0))
+
 // Funktion zur Erstellung eines Wort-Elements
 /// Markiert ein Wort für die Lückentext-Aufgabe.
 ///
@@ -44,7 +59,7 @@
     }
 
     box()[
-      #if iaword-solution.final().at(position.at(0) - 1) [
+      #if iaword-show.get() [
         // Wenn Lösung angezeigt werden soll, wird das Wort sichtbar gemacht
         #move(dy: 4pt)[
           // Zeichnet eine Linie unter dem Wort basierend auf der berechneten Breite
@@ -104,12 +119,14 @@
       solution.insert(position, show-solution) // Speichert, ob die Lösung angezeigt werden soll
       solution
     })
+    iaword-show.update(show-solution)
+    let seed = position - iaword-start.get()
     // Filtert Wörter, die zur nächsten Position gehören
     let words = iaword-list.final().filter(word => word.at(0) == position + 1)
 
     if not hide-words and words.len() > 0 {
-      let shuffled = shuffle(words, position) // Zufällige Reihenfolge der Wörter
-      let shuffled-colors = shuffle(colors, position) // Zufällige Reihenfolge der Farben
+      let shuffled = shuffle(words, seed) // Zufällige Reihenfolge der Wörter
+      let shuffled-colors = shuffle(colors, seed) // Zufällige Reihenfolge der Farben
 
       align(
         center,

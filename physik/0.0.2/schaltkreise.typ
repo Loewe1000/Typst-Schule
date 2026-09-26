@@ -22,9 +22,10 @@
 /// - current (string): Stromtyp: `"dc"` (Gleichstrom) oder `"ac"` (Wechselstrom)
 /// - variant (string): Darstellungsstil: `"symbol"` (Kreis mit ±) oder `"lines"` (Striche)
 /// - flipped (bool): Polarität umkehren
+/// - flipped-side (bool): Die Zeichen + und − unter statt über das Symbol setzen
 /// - ..params (any): Weitere zap-Komponentenparameter
 /// -> content
-#let source(name, node, current: "dc", variant: "symbol", flipped: false, ..params) = {
+#let source(name, node, current: "dc", variant: "symbol", flipped: false, flipped-side: false, ..params) = {
   assert(current in ("dc", "ac"), message: "current must be ac or dc")
   assert(variant in ("symbol", "lines"), message: "variant must be 'symbol' or 'lines'")
 
@@ -67,8 +68,9 @@
       if current == "dc" {
         // Standard DC: + und - Symbole
         let flipped-multiplier = if flipped { -1 } else { 1 }
-        zap.draw.content((flipped-multiplier * style.width * 0.4, style.height), text(top-edge: "bounds", bottom-edge: "bounds", 12pt, $+$))
-        zap.draw.content((flipped-multiplier * -style.width * 0.4, style.height), text(top-edge: "x-height", bottom-edge: "bounds", 12pt, $-$))
+        let hoehe = if flipped-side { -style.height } else { style.height }
+        zap.draw.content((flipped-multiplier * style.width * 0.4, hoehe), text(top-edge: "bounds", bottom-edge: "bounds", 12pt, $+$))
+        zap.draw.content((flipped-multiplier * -style.width * 0.4, hoehe), text(top-edge: "x-height", bottom-edge: "bounds", 12pt, $-$))
       } else if current == "ac" {
         // AC: Tilde (~)
         zap.draw.content((0, 0), text(12pt, $tilde$))
@@ -86,6 +88,11 @@
 /// - node (any): Knotenverbindung (zap-Syntax)
 /// - ..params (any): Weitere zap-Komponentenparameter
 /// -> content
+/// Alter Name aus physik 0.0.1: eine Quelle in der Kreis-Darstellung.
+///
+/// -> content
+#let simple-source(name, node, ..params) = source(name, node, variant: "symbol", ..params)
+
 #let multimeter(name, node, ..params) = {
   // New component style
   let style = (

@@ -195,6 +195,11 @@
 /// Die `formel` wird mit den Rohwerten (in Basiseinheiten) aufgerufen und das Ergebnis
 /// wird anschließend in die Zieleinheit umgerechnet. Unterstützt bis zu fünf Eingabe-Datensätze.
 ///
+/// Achtung bei Blättern aus älteren Versionen: Die Eingabewerte werden schon vor
+/// der Formel in Basiseinheiten umgerechnet (`"uC"` → C, `"mA"` → A). Eine Formel,
+/// die selbst noch mit `1e-6` o. Ä. umrechnet, rechnet dadurch doppelt. Einheiten
+/// mit `/`, `^`, `·`, `²`, `³` (z. B. `"C^2/m^2"`) werden nicht skaliert.
+///
 /// - name (string): Bezeichnung der Datenreihe
 /// - einheit (string, content): Zieleinheit der berechneten Werte
 /// - datensaetze (array, dictionary): Ein Datensatz oder ein Array von Datensätzen als Eingabe
@@ -376,6 +381,19 @@
   )
 }
 
+// Einheit im Tabellenkopf. prefix "e14" steht für den Faktor 10^14, ein
+// führendes "u" für Mikro (fancy-units gab "e14Hz" und "uC" sonst wörtlich aus).
+#let _kopf-einheit(prefix, einheit) = {
+  let mikro(s) = if type(s) == str and s.len() > 1 and s.starts-with("u") { "µ" + s.slice(1) } else { s }
+  if prefix == "1" {
+    unit(per-mode: "fraction")[#mikro(einheit)]
+  } else if prefix.starts-with("e") {
+    [$10^(#prefix.slice(1))$ #unit(per-mode: "fraction")[#mikro(einheit)]]
+  } else {
+    unit(per-mode: "fraction")[#mikro(prefix + einheit)]
+  }
+}
+
 // Funktion zur Erstellung der Tabelle mit Styling für mehrere Datensätze
 #let p_messwerttabelle(
   datensatze,
@@ -446,12 +464,10 @@
           " in " + if type(datensatz.einheit) == content {
             // Bei content (z.B. $Omega$) direkt ausgeben ohne qty
             datensatz.einheit
-          } else if datensatz.prefix == "1" { 
-            unit(per-mode: "fraction")[#datensatz.einheit] 
-          } else { 
-            // Bei prefix != "1": Verwende unit[] mit manuell kombiniertem Prefix
-            // statt qty[], um fancy-units Fehler zu vermeiden
-            unit(per-mode: "fraction")[#(datensatz.prefix + datensatz.einheit)]
+          } else {
+            // unit[] mit manuell kombiniertem Präfix statt qty[], um
+            // fancy-units-Fehler zu vermeiden
+            _kopf-einheit(datensatz.prefix, datensatz.einheit)
           } 
         }),
         ..datensatz.werte.map(x => {

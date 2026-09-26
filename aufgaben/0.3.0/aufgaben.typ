@@ -8,6 +8,10 @@
 #let _state_in_loesung = state("in_loesung", false)
 #let _state_current_aufgabe_index = state("current_aufgabe_index", -1)
 #let _state_loesungen_gezeigt = state("loesungen_gezeigt", 0)
+// Ob gerade der Rumpf einer aufgabe() bzw. teilaufgabe() gesetzt wird - für
+// loesung() an Stellen, an denen sonst keine Lösungsausgabe mehr folgt.
+#let _state_in_aufgabe = state("in_aufgabe", false)
+#let _state_in_teilaufgabe = state("in_teilaufgabe", false)
 #let _state_options = state(
   "options",
   (
@@ -147,7 +151,11 @@
       _state_in_loesung.update(true)
       // Sub-solutions
       let loesung-bodies = aufg.loesung.filter(l => l.teil == teil).map(l => l.body)
-      let teil-label = if opts.teilaufgabe-numbering == "a)" {
+      // teil == 0: Lösung zur ganzen Aufgabe; numbering("a)", 0) gäbe die
+      // Warnung "latin cannot represent zero".
+      let teil-label = if teil == 0 {
+        none
+      } else if opts.teilaufgabe-numbering == "a)" {
         numbering("a)", teil)
       } else {
         numbering("1.1", aufg.nummer, teil)
@@ -790,6 +798,7 @@
     })
     _state_current_aufgabe_index.update(i => i + 1)
   }
+  _state_in_aufgabe.update(true)
 
   if (actual-title != none and actual-title != []) or number {
     context {
@@ -883,6 +892,7 @@
       }
     }
   }
+  _state_in_aufgabe.update(false)
   // Abstand nach der Aufgabe (nach allem: Workspace, Materialien, Lösungen)
   v(1cm, weak: true)
 }
@@ -915,6 +925,7 @@
     })
   }
   
+  _state_in_teilaufgabe.update(true)
   // Rendering in separatem context-Block
   context {
     let curr_aufg = _counter_aufgaben.get().at(0)
@@ -951,7 +962,10 @@
         }
       ],
       {
-        box(
+        // block statt box: Die Nummer steht an der ersten Zeile, auch wenn die
+        // Teilaufgabe mit einer Tabelle oder Abbildung beginnt (mit box stand
+        // sie an deren Unterkante).
+        block(
           width: 100%,
           {
             align(left, {
@@ -1025,6 +1039,7 @@
       ta-fig
     }
   }
+  _state_in_teilaufgabe.update(false)
   context if _state_options.get().loesungen == "sofort" {
     let curr_aufg = _counter_aufgaben.get().at(0)
     let curr_teil = if _counter_aufgaben.get().len() > 1 {
@@ -1043,9 +1058,28 @@
 /// -> none
 #let loesung(body) = {
   context {
+    let opts = _state_options.get()
     let curr_teil = if _counter_aufgaben.get().len() > 1 {
       _counter_aufgaben.get().at(1)
     } else { 0 }
+    let in-aufgabe = _state_in_aufgabe.get()
+    let in-teil = _state_in_teilaufgabe.get()
+
+    // Außerhalb jeder Aufgabe, oder im Aufgabenrumpf nach einer Teilaufgabe
+    // (dann ist deren Lösungsausgabe schon vorbei): an Ort und Stelle zeigen,
+    // statt die Lösung einer Aufgabe zuzuordnen, deren Ausgabe schon lief.
+    let frei = not in-aufgabe and not in-teil and (
+      opts.loesungen in ("sofort", "folgend") or (opts.loesungen == "nur" and _state_aufgaben.get().len() == 0)
+    )
+    let nach-teil = in-aufgabe and not in-teil and curr_teil > 0 and opts.loesungen == "sofort"
+    if frei or nach-teil {
+      let titel = if nach-teil {
+        let aufg-nr = _counter_aufgaben.get().at(0)
+        [Lösung #if opts.teilaufgabe-numbering == "a)" { numbering("a)", curr_teil) } else { numbering("1.1", aufg-nr, curr_teil) }]
+      } else [Lösung]
+      goal(title: titel, accent-color: gray, breakable: true, body)
+      return
+    }
 
     // Store solution
     _state_aufgaben.update(all => {
