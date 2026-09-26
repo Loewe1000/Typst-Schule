@@ -5,7 +5,7 @@
 #import "@schule/patterns:0.0.2": *
 #import "@preview/eqalc:0.1.3": *
 #import "@preview/zero:0.5.0": *
-#import "@schule/mathematik:0.0.2": geogebra-algebra, geogebra-cell, graphen, kreisdiagramm, steckbrief, teilaufgaben
+#import "@schule/mathematik:0.0.2": geogebra-algebra, geogebra-cell, graphen, kreisdiagramm, steckbrief
 #import "@schule/informatik:0.0.2": *
 #import "@schule/physik:0.0.2": (
   // Tabellen und Daten
@@ -37,7 +37,7 @@
 #import "@preview/fontawesome:0.6.0": *
 #import "@preview/zebra:0.1.0": qrcode as qr-code-zebra
 #import "@preview/cetz:0.4.2": *
-#import "@preview/cetz-plot:0.1.2": *
+#import "@preview/cetz-plot:0.1.3": *
 #import "@preview/codly:1.3.0": *
 #import "@preview/colorful-boxes:1.4.3": *
 #import "@preview/unify:0.8.1": add-unit, num as unify-num, qty as unify-qty, unit as unify-unit
@@ -1037,6 +1037,107 @@
     ),
   )
 }
+
+/// Ob gerade eine Lösungsfassung gesetzt wird (`loesungen` nicht `"keine"`/`"false"`).
+///
+/// Für Stellen, an denen `lsg` nicht passt, weil kein Inhalt entsteht –
+/// etwa zusätzliche Beschriftungen in einem cetz-Plot. Braucht `context`.
+///
+/// ```typ
+/// #context canvas({
+///   plot.plot({
+///     plot.add(x => x * x, domain: (-2, 2))
+///     if loesungsmodus() { plot.annotate({ draw.content((1, 1), [$f$]) }) }
+///   })
+/// })
+/// ```
+/// -> boolean
+#let loesungsmodus() = {
+  state("options", (:)).get().at("loesungen", default: "keine") not in ("keine", "false", false, none)
+}
+
+/// Inhalt, der nur in den Lösungsfassungen erscheint – etwa ausgefüllte
+/// Tabellenwerte oder die Nummern einer Zuordnung.
+///
+/// Anders als `loesung[...]` steht der Inhalt an Ort und Stelle, nicht in einem
+/// Lösungskasten. Ohne Lösungsmodus (`loesungen: "keine"`/`"false"`) bleibt der
+/// Platz frei, damit sich das Layout zwischen Blatt und Lösung nicht verschiebt;
+/// mit `platz: false` fällt er weg (für Beschriftungen wie „2:“). Mit `sonst:`
+/// steht im Blatt stattdessen anderer Inhalt – etwa Schreiblinien, wo die
+/// Lösung einen Satz oder eine Skizze zeigt.
+///
+/// ```typ
+/// #table(columns: 3, [$x$], [1], [2], [$x^2$], lsg[1], lsg[4])
+/// #box[#lsg(platz: false)[*2:* ]$f(x) = x^8$]
+/// #lsg(sonst: linien(2))[Die Graphen sind gespiegelt.]
+/// ```
+///
+/// - body (content): Der Lösungsinhalt.
+/// - platz (boolean): Platz im Blatt freihalten. Standard: `true`.
+/// - sonst (content, none): Inhalt nur für das Blatt; ersetzt den freien Platz. Standard: `none`.
+/// -> content
+#let lsg(body, platz: true, sonst: none) = context {
+  if loesungsmodus() { body } else if sonst != none { sonst } else if platz {
+    hide(body)
+  }
+}
+
+/// Rendert Teilaufgaben in einem mehrspaltigen Raster.
+///
+/// Wie `teilaufgaben` aus `@schule/mathematik:0.0.2`, aber mit `loesung` und
+/// `teilaufgabe` aus `@schule/aufgaben:0.3.0`. Die Fassung in mathematik bindet
+/// fest `aufgaben:0.1.2` ein (passend zu arbeitsblatt 0.2.x); deren `loesung`
+/// zeigt die Lösung sofort an - im Blatt stünden dann die Lösungen, ganz gleich,
+/// welcher Lösungsmodus gesetzt ist.
+///
+/// ```typ
+/// #teilaufgaben(columns: 2, tasks: ([$2 + 3$], [$5 times 7$]), loesungen: ([$5$], [$35$]))
+/// ```
+///
+/// - tasks (array): Aufgaben. Kann leer sein, wenn ein Enum-Body übergeben wird.
+/// - columns (auto, int): Anzahl der Spalten. Bei `auto` die Aufgabenanzahl.
+/// - numbering (string): `"a)"` = echte Teilaufgaben; jedes andere Schema (z. B. `"i)"`) setzt
+///   schlichte, so nummerierte Einträge, die den Teilaufgabenzähler nicht verändern.
+/// - gutter (length): Abstände zwischen den Zellen.
+/// - loesungen (array): Lösungen in derselben Reihenfolge wie die Aufgaben.
+/// - ..args (arguments): Weitere benannte Argumente gehen an `table()`.
+/// -> content
+#let teilaufgaben(
+  tasks: (),
+  columns: auto,
+  numbering: "a)",
+  gutter: 1.25em,
+  loesungen: (),
+  ..args,
+) = {
+  tasks = if tasks.len() == 0 and args.pos().len() > 0 {
+    args.pos().at(0).children.filter(it => it.func() == enum.item).map(it => it.body)
+  } else { tasks }
+  let spalten = if columns != auto { columns } else { tasks.len() }
+  let zellen = ()
+  for (key, task) in tasks.enumerate() {
+    let loes = if loesungen.len() > key [#loesung[#loesungen.at(key)]]
+    if numbering == "a)" {
+      zellen.push(teilaufgabe()[#task #loes])
+    } else {
+      // Eigene Nummerierung (etwa "i)" für eine Liste innerhalb einer
+      // Teilaufgabe): schlichte Einträge, die keine Teilaufgabe mitzählen.
+      zellen.push(grid(columns: (auto, 1fr), column-gutter: 0.4em, std.numbering(numbering, key + 1), [#task #loes]))
+    }
+  }
+  table(
+    stroke: none,
+    inset: 0mm,
+    columns: (1fr,) * spalten,
+    column-gutter: gutter,
+    row-gutter: gutter,
+    ..zellen,
+    ..args.named(),
+  )
+}
+
+/// Früherer Name von `teilaufgaben` (arbeitsblatt bis 0.2.x).
+#let tasks = teilaufgaben
 
 #let c_canvas = canvas
 #let canvas(..args, body) = {

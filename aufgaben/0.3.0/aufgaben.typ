@@ -245,7 +245,7 @@
 #let show-loesungen(curr: false, teil: false, inline: false) = {
   context {
     let all = _state_aufgaben.get()
-    if curr { all = (all.last(),) }
+    if curr { all = if all.len() > 0 { (all.last(),) } else { () } } // ohne umgebende aufgabe(): nichts
 
     if not inline and _state_options.get().loesungen == "seite" {
       pagebreak(weak: true)
@@ -658,7 +658,7 @@
 #let show-materialien(curr: false) = {
   context {
     let all = _state_aufgaben.get()
-    if curr { all = (all.last(),) }
+    if curr { all = if all.len() > 0 { (all.last(),) } else { () } } // ohne umgebende aufgabe(): nichts
     if _state_options.get().materialien == "seite" {
       pagebreak(weak: true)
     }
