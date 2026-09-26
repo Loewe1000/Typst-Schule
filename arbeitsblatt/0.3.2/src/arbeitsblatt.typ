@@ -543,6 +543,13 @@
       iaword-neu()
       // Setting captions and numberings for figures
       set figure(numbering: "1", supplement: none)
+      // Digitale Fassung mit automatischer Seitenhöhe: Typst 0.15 lässt die
+      // Blöcke um ein v(1fr) überlappen, statt den Abstand wegfallen zu lassen.
+      // Blätter für den Druck nutzen v(1fr) oft - digital wird daraus ein
+      // kleiner Abstand.
+      show v: it => if not print and not landscape and not zweifach and type(it.amount) == fraction {
+        v(0.65em, weak: true)
+      } else { it }
 
       show figure.where(kind: image).or(figure.where(kind: table)): it => {
         let type = repr(it.kind)
