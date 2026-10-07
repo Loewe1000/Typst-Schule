@@ -1,0 +1,582 @@
+#import "@schule/patterns:0.0.1": kariert
+
+/// Erstellt personalisierte Klausurbögen im A3-Querformat für eine ganze Klasse.
+///
+/// Für jeden Schüler im `students`-Array wird ein eigener Klausurbogen erzeugt.
+/// Das karierte Schreibfeld wird automatisch aus `@schule/patterns` importiert.
+///
+/// ```typ
+/// #klausurbögen(
+///   exam: "Mathematik", class: "10a", date: "15.03.2025",
+///   students: ("Max Mustermann", "Erika Musterfrau"),
+/// )
+/// ```
+///
+/// - exam (string): Fachname der Klausur. Standard: `""`.
+/// - subexam (string): Untertitel / Thema der Klausur. Standard: `""`.
+/// - teacher (string): Kürzel oder Name der Lehrkraft. Standard: `"SLZ"`.
+/// - class (string): Klassenbezeichnung. Standard: `"PH1"`.
+/// - date (string): Datum der Klausur. Standard: `"09.10.2023"`.
+/// - students (array): Array mit Schülernamen. Standard: `()`.
+/// - sek1 (bool): Sek-I-Modus (kleineres Feld). Standard: `false`.
+/// - result (bool): Ergebnisseite generieren. Standard: `false`.
+/// - rand (length): Randbreite für das Schreibfeld. Standard: `5cm`.
+/// - scale (float): Skalierungsfaktor. Standard: `1`.
+/// - sub (bool): Unterpunkt-Modus. Standard: `false`.
+/// - numbering (string): Nummerierungsformat für Unterpunkte. Standard: `"a)"`.
+/// - mv (dictionary): Verschiebung `(dx: ..., dy: ...)`. Standard: `(dx: 0cm, dy: 0cm)`.
+/// - weißer-rand (bool): Weißen Rand verwenden (für farbige Seiten). Standard: `true`.
+/// - result-table (bool): Ergebnistabelle anzeigen. Standard: `true`.
+/// - vorschlag (bool): Korrekturvorschlag-Modus. Standard: `false`.
+/// - line-stroke (stroke): Strichstärke und Farbe der Linien. Standard: `1pt + rgb("FF0613")`.
+/// - muster (string): Schreibfeld `"kariert"` oder `"liniert"`. Standard: `"kariert"`.
+/// - linienabstand (length): Zeilenabstand bei `muster: "liniert"`. Standard: `8mm`.
+/// - korrekturrand (string): Lage des Korrekturrands, `"innen"` (an der Falz,
+///   geschrieben wird außen) oder `"aussen"` (am Blattrand). Standard: `"innen"`.
+/// -> content
+#let klausurbögen(
+  exam: "",
+  subexam: "",
+  teacher: "SLZ",
+  class: "PH1",
+  date: "09.10.2023",
+  students: (),
+  sek1: false,
+  result: false,
+  rand: 5cm,
+  scale: 1,
+  sub: false,
+  numbering: "a)",
+  mv: (dx: 0cm, dy: 0cm),
+  weißer-rand: true,
+  result-table: true,
+  vorschlag: false,
+  line-stroke: 1pt + rgb("FF0613"),
+  muster: "kariert",
+  linienabstand: 8mm,
+  korrekturrand: "innen",
+) = [
+  #assert(muster in ("kariert", "liniert"), message: "klausurbögen: muster muss \"kariert\" oder \"liniert\" sein, nicht " + repr(muster))
+  #let korrekturrand = if korrekturrand == "außen" { "aussen" } else { korrekturrand }
+  #assert(korrekturrand in ("innen", "aussen"), message: "klausurbögen: korrekturrand muss \"innen\" oder \"aussen\" sein, nicht " + repr(korrekturrand))
+
+  #set page(paper: "a3", margin: 0cm, flipped: true, header: none, footer: none)
+  #set text(12pt, font: "Myriad Pro")
+
+  #let real-rand = rand
+  #if not weißer-rand {
+    rand = 0cm
+  }
+
+  #let klausurbogen(result: false, name: "", note-content: [], student-table: [], grade-table: [], mv: mv, sub: sub, vorschlag: vorschlag, line-stroke: line-stroke) = [
+    #let insetPageNumber = 6mm
+
+    #let header(title: "", subtitle: "", class: "", date: "", teacher: "", logo: []) = {
+      set text(font: "Myriad Pro", hyphenate: true, lang: "de")
+      import "@preview/tablex:0.0.9": cellx, rowspanx, tablex
+      tablex(
+        columns: (2.5cm, 1fr, 2.5cm),
+        row: (1fr,) * 2,
+        align: center + horizon,
+        stroke: none,
+        inset: 3pt,
+        ..if logo != [] {
+          (
+            rowspanx(2, align: left + horizon, inset: 0pt)[#text(16pt, weight: "semibold")[#box(height: 1cm)[#logo]]],
+            rowspanx(2)[#stack(spacing: 2mm, text(16pt, weight: "semibold")[#title], text(12pt, weight: "regular")[#subtitle])],
+            cellx(align: right + horizon)[#date],
+            cellx(align: right + horizon)[#class - #teacher],
+          )
+        } else {
+          (
+            [],
+            rowspanx(2)[#text(16pt, weight: "semibold")[#title]],
+            cellx(align: right + horizon)[#date],
+            [],
+            cellx(align: right + horizon)[#class - #teacher],
+          )
+        },
+      )
+
+      if result {
+        move(dy: -1em, line(length: 100%, stroke: 0.5pt + white))
+      } else {
+        move(dy: -1em, line(length: 100%, stroke: 0.5pt + luma(200)))
+      }
+    }
+
+    #let heigth = if sub and result-table {
+      6cm
+    } else if sub {
+      3cm
+    } else {
+      8cm
+    }
+
+    // Seiten des gefalteten Bogens: links außen 4, rechts außen 1 (Vorderseite),
+    // innen links 2, innen rechts 3. Die Falz liegt bei 1 und 3 links, bei 2 und 4 rechts.
+    #let falz-links(seite) = seite in (1, 3)
+    #let rand-links(seite) = if korrekturrand == "innen" { falz-links(seite) } else { not falz-links(seite) }
+
+    // Schreibfeld der Höhe `hoehe`, an der Falz ausgerichtet
+    #let schreibfeld(seite, hoehe) = place(
+      top + if falz-links(seite) { left } else { right },
+      if muster == "liniert" {
+        let anzahl = calc.floor((hoehe - 1cm) / linienabstand)
+        box(width: 100%, height: hoehe, for i in range(1, anzahl + 1) {
+          place(top + left, dy: i * linienabstand, line(length: 100%, stroke: 0.5pt + luma(150)))
+        })
+      } else {
+        kariert(height: hoehe + 0.3cm, grid-size: scale * 0.5cm)
+      },
+    )
+
+    // Eine Hälfte des A3-Bogens: Schreibfeld ab `oben`, Korrekturrand, Seitenzahl
+    #let halbseite(seite, oben: 0cm, kopf: none, nummer: true) = block(width: 100%, height: 100%, {
+      let links = rand-links(seite)
+      kopf
+      if not result {
+        place(top + left, dy: oben, grid(
+          columns: if links { (rand, 1fr) } else { (1fr, rand) },
+          rows: 29.7cm - oben,
+          ..if links { ([], schreibfeld(seite, 29.7cm - oben)) } else { (schreibfeld(seite, 29.7cm - oben), []) },
+        ))
+        if not weißer-rand {
+          let x = if links { real-rand } else { 21cm - real-rand }
+          place(top + left, line(stroke: line-stroke, start: (x, oben), end: (x, 100%)))
+        }
+      }
+      if nummer and exam != "" {
+        place(
+          bottom + if falz-links(seite) { right } else { left },
+          box(inset: insetPageNumber, box(fill: white, text(size: 16pt, [*#seite*]))),
+        )
+      }
+    })
+
+    #let kopf = if exam != "" {
+      box(
+        inset: (top: 7mm, left: 4mm, right: 10mm),
+        height: heigth,
+        [
+          #if result {
+            hide(header(title: exam, subtitle: subexam, date: date, class: class, teacher: teacher, logo: image("logo.svg")))
+          } else {
+            header(title: exam, subtitle: subexam, date: date, class: class, teacher: teacher, logo: image("logo.svg"))
+          }
+          #box(inset: (top: -1mm))[
+            #table(
+              inset: (top: 0pt, left: 0pt, right: 0pt, bottom: 3mm),
+              stroke: none,
+              columns: (auto, 1fr, auto, 1fr),
+              align: (left, left, left, center),
+              [#if not result [#text(14pt, weight: "semibold")[Name:]]],
+              ..if not result {
+                ([],)
+              },
+              [#text(14pt, weight: "semibold")[
+                #if not sub [#if not result [Ergebnis:]] else if not vorschlag == false [#if not result [#h(1fr)#vorschlag:]#h(2cm)]
+              ]],
+              if not result {
+                table.hline(stroke: 0.5pt + gray)
+              },
+              [#if result and not sub [#note-content] ],
+            )
+          ]
+          #student-table
+          #if not sub [
+            #grade-table
+          ]
+        ],
+      )
+    }
+
+    #grid(
+      columns: (21cm, 21cm),
+      rows: 1fr,
+      halbseite(4, nummer: not result),
+      halbseite(1, oben: if exam != "" { heigth + 5mm } else { 0cm }, kopf: kopf, nummer: not result),
+    )
+    #if not result {
+      grid(
+        columns: (21cm, 21cm),
+        rows: 1fr,
+        halbseite(2), halbseite(3),
+      )
+    }
+  ]
+
+  #let print-color = white
+  #if result {
+    print-color = black
+  }
+  //#set text(12pt, fill: print-color, font: "Myriad Pro")
+
+  #let gradeBoundaries(maxPoints: 100) = {
+    import "@preview/tablex:0.0.9": tablex, vlinex
+    let gradeBordersSek1 = (0.875, 0.75, 0.625, 0.5, 0.2, 0)
+    let gradeBordersSek2 = (0.95, 0.90, 0.85, 0.80, 0.75, 0.70, 0.65, 0.60, 0.55, 0.50, 0.45, 0.40, 0.33, 0.27, 0.20, 0)
+    let gradeRegions = ()
+    let lastLowerBound = 0
+    let gradeBorders = ()
+    let grades = ()
+
+    if sek1 {
+      gradeBorders = gradeBordersSek1
+      grades = range(1, 7).map(x => [*#x*])
+    } else {
+      gradeBorders = gradeBordersSek2
+      grades = range(0, 16).map(x => [*#x*]).rev()
+    }
+
+    let seperationLines = ()
+
+    for (index, value) in gradeBorders.enumerate() {
+      let calculatedBorder = value * maxPoints
+      let roundedBorder = calc.round(2 * value * maxPoints, digits: 0) / 2
+
+      if (roundedBorder < calculatedBorder) {
+        roundedBorder += 0.5
+      }
+
+      let upperBound
+      let lowerBound
+
+      if (index == 0) {
+        upperBound = maxPoints
+      } else {
+        upperBound = lastLowerBound - 0.5
+      }
+
+      lowerBound = roundedBorder
+      lastLowerBound = lowerBound
+
+
+      if sek1 {
+        gradeRegions.push(text(fill: black, (str(upperBound) + " - " + str(lowerBound)).replace(".", ",")))
+      } else {
+        gradeRegions.push(text(fill: black, size: 9pt, par(leading: 0.6em, [#str(lowerBound).replace(".", ",")])))
+        seperationLines = (1, 4, 7, 10, 13, 16).map(x => vlinex(
+          x: x,
+          stroke: if result {
+            black.lighten(50%)
+          } else {
+            white
+          }
+            + 2pt,
+        ))
+      }
+    }
+
+    set text(9pt)
+    if result {
+      move(
+        ..mv,
+        tablex(
+          columns: (auto,) + (1fr,) * gradeBorders.len(),
+          inset: 6pt,
+          stroke: if result {
+            print-color
+          } else {
+            print-color
+          }
+            + 1pt,
+          align: center + horizon,
+          ..seperationLines,
+          [*Note*],
+          ..grades,
+          [#if sek1 [*Punktegrenzen*] else [*Punktegrenze $>=$*] ],
+          ..if result {
+            gradeRegions
+          },
+        ),
+      )
+    }
+  }
+
+  #let note-display(percentage: 0.9462, note: 6) = {
+    if not sub {
+      let finelinerRed = rgb("E90817")
+
+      let grade
+      if (sek1) {
+        let grades = ("sehr gut", "gut", "befriedigend", "ausreichend", "mangelhaft", "ungenügend")
+        grade = grades.at(int(note) - 1)
+      } else {
+        if (int(note) < 10) {
+          grade = note
+        } else {
+          grade = note
+        }
+
+        if (int(note) == 1) {
+          grade += [ Punkt]
+        } else {
+          grade += [ Punkte]
+        }
+      }
+
+      let gradeInPercent = calc.round(percentage * 100, digits: 2)
+      let stringGradeInPercent = str(gradeInPercent).replace(".", ",")
+      let nachkomma = stringGradeInPercent.split(",")
+      if (nachkomma.len() == 1) {
+        stringGradeInPercent += ",00"
+      } else {
+        if (nachkomma.at(1).len() == 1) {
+          stringGradeInPercent += "0"
+        }
+      }
+      move(..mv, text(14pt, finelinerRed, weight: "bold")[#stringGradeInPercent % #h(2mm) $eq.est$ #h(2mm) #grade])
+    }
+  }
+
+  #let studentHeader(name: "Max Mustermann", percentage: 0.8462, note: 6) = {
+    grid(
+      gutter: 10pt,
+      [#text(12pt)[#name]],
+      [#grid(
+          columns: (auto, 1fr, auto),
+          text(12pt)[#exam], [], text(12pt, gray, weight: "semibold")[#date],
+        )
+        #if not sub [
+          #place(center, dy: -1em, note-display(percentage: percentage, note: note))]
+      ],
+    )
+  }
+
+  #let createTable(cols: none, maxPoints: none, achievedPoints: none, result: false) = {
+    import "@preview/tablex:0.0.9": cellx, colspanx, rowspanx, tablex
+    let headerRow = ()
+    let subtaskRow = ()
+    let numberOfColumns = 0
+    let alphabet-i = "abcdefghijklmnopqrstuvwxyz"
+
+    let subtasks = cols.values().filter(x => x != 0).len() > 0
+    for (key, value) in cols {
+      if (value > 1) {
+        headerRow.push(colspanx(value)[*#key*])
+        for subtask in range(0, value) {
+          if sek1 {
+            subtaskRow.push(alphabet-i.at(subtask) + ")")
+          } else {
+            if numbering == "a)" {
+              subtaskRow.push([#{ alphabet-i.at(subtask) })])
+            } else {
+              subtaskRow.push([#{
+                subtask + 1
+              }])
+            }
+          }
+        }
+      } else {
+        if subtasks {
+          headerRow.push(rowspanx(2)[*#key*])
+        } else {
+          headerRow.push([*#key*])
+        }
+      }
+
+      if (value == 0) {
+        numberOfColumns += 1
+      }
+      numberOfColumns += value
+    }
+    if result {
+      if not subtasks {
+        move(
+          ..mv,
+          tablex(
+            columns: (auto,) + (1fr,) * (numberOfColumns + 1),
+            inset: 6pt,
+            stroke: if result {
+              print-color + 1pt
+            } else {
+              print-color + 1pt
+            },
+            align: horizon + center,
+            [*Aufgabe*],
+            ..headerRow,
+            [$sum$],
+            ..subtaskRow.map(x => [*#x*]),
+            text(size: 8pt, [*mögliche Punkte*]),
+            ..maxPoints.map(x => if result {
+              cellx(inset: 0mm, text(size: 10pt, fill: black, str(x).replace(".", ",")))
+            }),
+            if result {
+              cellx(inset: 0mm, text(size: 10pt, fill: black, str(maxPoints.sum()).replace(".", ",")))
+            },
+            text(size: 8pt, [*erreichte Punkte*]),
+            ..if result {
+              achievedPoints.map(x => cellx(inset: 0mm, text(size: 10pt, fill: black, str(x).replace(".", ","))))
+            },
+            if result {
+              cellx(inset: 0mm, text(size: 10pt, fill: black, str(achievedPoints.sum()).replace(".", ",")))
+            },
+          ),
+        )
+      } else {
+        import "@preview/tablex:0.0.9": tablex
+        move(
+          ..mv,
+          tablex(
+            columns: (auto,) + (1fr,) * (numberOfColumns + 1),
+            inset: 6pt,
+            stroke: if result {
+              print-color + 1pt
+            } else {
+              print-color + 1pt
+            },
+            align: horizon + center,
+            map-cols: (col, cells) => cells.map(c => if c == none {
+              c
+            } else {
+              (
+                ..c,
+                fill: if col > numberOfColumns {
+                  if result {
+                    print-color.lighten(90%)
+                  } else {
+                    print-color
+                  }
+                },
+              )
+            }),
+            rowspanx(2)[*Aufgabe*],
+            ..headerRow,
+            rowspanx(2)[$sum$],
+            ..subtaskRow.map(x => [*#x*]),
+            text(size: 8pt, [*mögliche Punkte*]),
+            ..maxPoints.map(x => if result {
+              cellx(inset: 0mm, text(size: 10pt, fill: black, str(x).replace(".", ",")))
+            }),
+            if result {
+              cellx(inset: 0mm, text(size: 10pt, fill: black, str(maxPoints.sum()).replace(".", ",")))
+            },
+            text(size: 8pt, [*erreichte Punkte*]),
+            ..if result {
+              achievedPoints.map(x => cellx(inset: 0mm, text(size: 10pt, fill: black, str(x).replace(".", ","))))
+            },
+            if result {
+              cellx(inset: 0mm, text(size: 10pt, fill: black, str(achievedPoints.sum()).replace(".", ",")))
+            },
+          ),
+        )
+      }
+    }
+  }
+
+  #v(1fr)
+  #{
+    let cols = (:)
+    let maxPoints = ()
+    if exam != "" {
+      if students.len() == 0 {
+        klausurbogen(result: result, name: "", note-content: [], student-table: createTable(cols: cols, maxPoints: 1, achievedPoints: 1, result: result), grade-table: gradeBoundaries(maxPoints: 1))
+      } else {
+        // Erste Zeile: Header-Analyse für Spaltenstruktur
+        if students.len() > 0 {
+          let headerRow = students.at(0)
+          let n = 2
+          while (n < headerRow.len()) {
+            let headerCell = headerRow.at(n)
+
+            // Erkenne Teilaufgaben durch verschiedene Muster
+            let isSubtask = false
+            let mainTask = ""
+
+            // Muster: "A1 a)", "A2 b)", etc. - alle Buchstaben von a) bis z)
+            if headerCell.contains(" ") and headerCell.match(regex("[a-z]\)$")) != none {
+              isSubtask = true
+              mainTask = headerCell.split(" ").at(0)
+            } // Muster: "A1.1", "A2.2", etc.
+            else if headerCell.contains(".") and headerCell.split(".").len() == 2 {
+              let parts = headerCell.split(".")
+              if parts.at(1).match(regex("^\d+$")) != none {
+                isSubtask = true
+                mainTask = parts.at(0)
+              }
+            }
+
+            if isSubtask and mainTask != "" {
+              // Ist eine Teilaufgabe
+              if mainTask not in cols {
+                cols.insert(mainTask, 1)
+              } else {
+                cols.at(mainTask) = cols.at(mainTask) + 1
+              }
+            } else {
+              // Ist eine Hauptaufgabe ohne Teilaufgaben
+              cols.insert(headerCell, 0)
+            }
+            n = n + 1
+          }
+        }
+
+        for (key, value) in students.enumerate() {
+          if (key == 1) {
+            // Zweite Zeile: Maximalpunkte - nur für Spalten sammeln, die auch in der Struktur verwendet werden
+            let headerRow = students.at(0)
+            let n = 2
+            let tempPoints = ()
+            while (n < value.len() and n < headerRow.len()) {
+              let headerCell = headerRow.at(n)
+
+              // Nur Punkte für Spalten sammeln, die keine Hauptaufgaben mit Teilaufgaben sind
+              let isMainTaskWithSubtasks = false
+              for (taskName, subtaskCount) in cols {
+                if subtaskCount > 0 and headerCell == taskName {
+                  isMainTaskWithSubtasks = true
+                  break
+                }
+              }
+
+              if not isMainTaskWithSubtasks and not value.at(n).contains(" ") {
+                tempPoints.push(float(value.at(n)))
+              }
+              n += 1
+            }
+            maxPoints = tempPoints
+          } else if (key > 1) {
+            // Ab dritter Zeile: Schülerdaten - gleiche Logik wie bei Maximalpunkten
+            let name = value.at(0)
+            let note = value.at(1)
+            let headerRow = students.at(0)
+            let n = 2
+            let tempPoints = ()
+
+            while (n < value.len() and n < headerRow.len()) {
+              let headerCell = headerRow.at(n)
+
+              // Nur Punkte für Spalten sammeln, die keine Hauptaufgaben mit Teilaufgaben sind
+              let isMainTaskWithSubtasks = false
+              for (taskName, subtaskCount) in cols {
+                if subtaskCount > 0 and headerCell == taskName {
+                  isMainTaskWithSubtasks = true
+                  break
+                }
+              }
+
+              if not isMainTaskWithSubtasks and not value.at(n).contains(" ") and value.at(n) != "" {
+                tempPoints.push(float(value.at(n)))
+              } else if not isMainTaskWithSubtasks and not value.at(n).contains(" ") {
+                tempPoints.push(0)
+              }
+              n += 1
+            }
+
+            klausurbogen(
+              result: result,
+              name: name,
+              mv: mv,
+              note-content: note-display(percentage: tempPoints.sum() / maxPoints.sum(), note: note),
+              student-table: createTable(cols: cols, maxPoints: maxPoints, achievedPoints: tempPoints, result: result),
+              grade-table: gradeBoundaries(maxPoints: maxPoints.sum()),
+            )
+          }
+        }
+      }
+    } else {
+      klausurbogen(result: false)
+    }
+  }
+]

@@ -433,6 +433,7 @@ Parameter:
   [`grouped`], [`false`], [Gruppiert Erwartungen pro Teilaufgabe],
   [`new-page`], [`false`], [Startet auf einer neuen Seite],
   [`erreicht`], [`false`], [Zeigt `__ / X` statt `X` für eintragbare Punktzahlen],
+  [`erreicht-spalte`], [`false`], [Leere Spalte „erreicht“ zum Eintragen der Punkte von Hand],
 )
 
 == Bewertungstabelle
