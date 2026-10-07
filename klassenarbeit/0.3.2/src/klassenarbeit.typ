@@ -324,8 +324,8 @@
 /// - name-repeat (boolean): Whether to repeat the student name field in the page header on every page.
 /// - erwartungen (boolean, dictionary): Erwartungshorizont anzeigen (im Bundle: nur im
 ///   Lösungsdokument). Als Dictionary mit Einstellungen für `show-erwartungen()`,
-///   z. B. `(erreicht-spalte: true)` für eine leere Spalte zum Eintragen der
-///   erreichten Punkte oder `(grouped: true)`; `show: false` blendet ihn aus.
+///   z. B. `(erreicht: true)` für „_ / X“ zum Eintragen der erreichten
+///   Punkte oder `(grouped: true)`; `show: false` blendet ihn aus.
 /// - page-numbering (boolean, string): Page numbering mode:
 ///   - `true` or `"reset"`: Show page numbers, reset counter for each klassenarbeit (default).
 ///   - `"continuous"`: Show page numbers, continue numbering across multiple klassenarbeiten.

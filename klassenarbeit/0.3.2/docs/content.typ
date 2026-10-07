@@ -323,13 +323,13 @@ Ende die Tabelle daraus:
 ```)
 
 Für die Korrektur bekommt der Erwartungshorizont mit
-`erwartungen: (erreicht-spalte: true)` rechts eine leere Spalte „erreicht“, in die
-die erreichten Punkte von Hand eingetragen werden. Das Dictionary nimmt alle
+`erwartungen: (erreicht: true)` in der BE-Spalte „`_ / X`“, davor werden die
+erreichten Punkte von Hand eingetragen. Das Dictionary nimmt alle
 Einstellungen von `show-erwartungen()`, etwa auch `grouped: true`:
 
 #show-code(```typ
 #show: klassenarbeit.with(
-  erwartungen: (erreicht-spalte: true),
+  erwartungen: (erreicht: true),
   // ...
 )
 ```)

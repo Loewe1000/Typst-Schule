@@ -68,8 +68,8 @@ sein.
 
 - Klausurbögen liniert: `klausurboegen: (muster: "liniert")`, Zeilenabstand mit `linienabstand`
 - Korrekturrand der Klausurbögen standardmäßig innen an der Falz (`korrekturrand: "innen" | "aussen"`)
-- Erwartungshorizont mit leerer Spalte für die erreichten Punkte:
-  `erwartungen: (erreicht-spalte: true)`
+- `erwartungen` nimmt Einstellungen für `show-erwartungen()`, z. B.
+  `erwartungen: (erreicht: true)` für „_ / X“ zum Eintragen der Punkte
 
 ## Dokumentation
 

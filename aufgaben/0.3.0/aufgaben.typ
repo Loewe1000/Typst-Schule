@@ -315,9 +315,8 @@
 /// - grouped (boolean): Wenn `true`, werden alle Erwartungen einer Teilaufgabe in einer Zeile zusammengefasst. Default: `false`
 /// - new-page (boolean): Wenn `true`, wird der Erwartungshorizont auf einer neuen Seite gestartet. Default: `false`
 /// - erreicht (boolean): Wenn `true`, wird `__ / X` statt `X` angezeigt (für eintragbare Punktzahlen). Default: `false`
-/// - erreicht-spalte (boolean): Wenn `true`, steht rechts eine leere Spalte „erreicht“, in die die erreichten Punkte von Hand eingetragen werden. Default: `false`
 /// -> content
-#let show-erwartungen(grouped: false, new-page: false, erreicht: false, erreicht-spalte: false) = {
+#let show-erwartungen(grouped: false, new-page: false, erreicht: false) = {
   context {
     let all = _state_aufgaben.final()
     let opts = _state_options.get()
@@ -446,28 +445,16 @@
       rows.push(table.cell(fill: gray.lighten(70%), stroke: stroke-summe, strong[#if erreicht {[#h(1em) / #gesamt-punkte]} else {[#gesamt-punkte]}]))
     }
 
-    // Leere Spalte zum Eintragen: Linien und Hintergrund wie die BE-Zelle derselben Zeile
-    if erreicht-spalte {
-      rows = rows.chunks(3).map(((nr, inhalt, be)) => {
-        let felder = be.fields()
-        let stil = (:)
-        for k in ("stroke", "inset", "fill") {
-          if k in felder { stil.insert(k, felder.at(k)) }
-        }
-        (nr, inhalt, be, table.cell(..stil, []))
-      }).flatten()
-    }
-
     if rows.len() > 0 {
       let element = if new-page { page } else { block }
       element[
         #block(text(size: 1.25em, weight: "bold")[Erwartungshorizont])
         #table(
-          columns: (auto, 1fr, auto) + if erreicht-spalte { (2.2cm,) } else { () },
-          align: (center + horizon, left + horizon, center + horizon, center + horizon),
+          columns: (auto, 1fr, auto),
+          align: (center + horizon, left + horizon, center + horizon),
           inset: 8pt,
           stroke: 0.5pt,
-          table.header(strong[Nr.], strong[Inhalt], strong[BE], ..if erreicht-spalte { (box(strong[erreicht]),) }),
+          table.header(strong[Nr.], strong[Inhalt], strong[BE]),
           ..rows,
         )
       ]
