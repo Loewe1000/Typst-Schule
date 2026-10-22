@@ -57,7 +57,7 @@
 
 #let _klartext(x) = {
   if x == none { "" } else if type(x) == str { x } else if type(x) == content {
-    if x.has("text") { x.text } else if x.has("children") {
+    if x.func() == [ ].func() { " " } else if x.has("text") { x.text } else if x.has("children") {
       x.children.map(_klartext).join("", default: "")
     } else if x.has("body") { _klartext(x.body) } else { "" }
   } else { str(x) }
