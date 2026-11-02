@@ -110,7 +110,9 @@
         #let current-page = counter(page).at(here()).at(0)
         #let end-page = counter(page).at(ka-label).at(0)
         // Bei "continuous": Hole die letzte Seite der LETZTEN Klassenarbeit im Dokument
-        #let last-page = if page-numbering == "continuous" {
+        // Im Bundle (scope gesetzt) ist jede KA ein eigenes Dokument, die
+        // Labels sind aber global – dort zählt nur das eigene Ende.
+        #let last-page = if page-numbering == "continuous" and scope == none {
           let total-ka = _ka-counter.final().first()
           let last-ka-label = label("ende-arbeitsblatt-id-" + str(total-ka) + "-" + variante)
           // Guard: Im Bundle kann die letzte KA in einem anderen
@@ -123,7 +125,9 @@
         } else {
           end-page
         }
-        #if current-page <= end-page [
+        // Physische Seite vergleichen: Seiten nach dem KA-Ende (z. B. der
+        // Erwartungshorizont) bekommen keine Seitenzahl.
+        #if here().page() <= locate(ka-label).page() [
           #set text(8pt, font: font)
           #set align(right)
           Seite #current-page von #last-page
@@ -313,7 +317,16 @@
     type(erwartungen) == dictionary and erwartungen-einstellungen.remove("show", default: true) == true
   )
   context if erwartungen-aktiv and (variante == "loesung" or _state_ab_scope.get() == none) {
-    show-erwartungen(new-page: true, ..erwartungen-einstellungen)
+    let einstellungen = erwartungen-einstellungen
+    let _ = einstellungen.remove("new-page", default: true)
+    // Die Seiten des Erwartungshorizonts zählen nicht zur Klassenarbeit:
+    // Am Ende des Horizonts (noch auf dessen letzter Seite) den Zähler auf
+    // das KA-Ende zurücksetzen, damit eine folgende KA mit "continuous"
+    // lückenlos weiterzählt.
+    page({
+      show-erwartungen(..einstellungen)
+      context counter(page).update(counter(page).at(ka-label).first())
+    })
   }
 }
 

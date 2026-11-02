@@ -117,7 +117,7 @@
 ) = {
   import "@preview/cetz:0.4.2": *
   import "@preview/cetz-plot:0.1.3": *
-  import "@preview/eqalc:0.1.3": math-to-func
+  import "@preview/eqalc:0.1.3": math-to-str, get-variable
 
   show math.equation: it => {
     show regex("\d+\.\d+"): num => num.text.replace(".", ",")
@@ -151,15 +151,61 @@
   let plots = args.pos()
   let named = args.named()
 
-  // Hilfsfunktion: Konvertiere content (Mathe) oder function zu function
+  // Hilfsfunktion: Konvertiere content (Mathe) oder function zu function.
+  // Ergänzt math-to-str um deutsche Schulschreibweisen: Dezimalkomma
+  // (0,5 x), implizites Mal nach Variablen und Klammern (x e^x, x(x-2),
+  // (x-1)(x+2)) und Beträge (|x|).
   let to-func(term) = {
     if type(term) == function {
       term
     } else if type(term) == content {
-      math-to-func(term)
+      let s = math-to-str(term)
+        .replace(regex("(\d)\s*,\s*(\d)"), m => m.captures.at(0) + "." + m.captures.at(1))
+        .replace(regex("\|([^|]*)\|"), m => "calc.abs(" + m.captures.at(0) + ")")
+        // math-to-str klebt Variable und Funktion zusammen: „xcalc.sin(x)“
+        .replace(regex("\b([a-zA-Z])(calc\.)"), m => m.captures.at(0) + "*" + m.captures.at(1))
+      // Implizites Mal: einzelne Variable oder `)` vor Variable, `(` oder `calc.`
+      // (zweimal, damit auch überlappende Fälle wie „x x x“ erfasst werden)
+      for _ in range(2) {
+        s = s.replace(
+          regex("(\b[a-zA-Z]\b|\))\s*(calc\.|\(|\b[a-zA-Z]\b)"),
+          m => m.captures.at(0) + "*" + m.captures.at(1),
+        )
+      }
+      let var = get-variable(s)
+      x => eval("let " + var + " = " + repr(float(x)) + "; " + s)
     } else {
       term
     }
+  }
+
+  // Hilfsfunktion: Teilt eine Domain an Polstellen (Vorzeichenwechsel mit
+  // großem Sprung), damit keine senkrechten Verbindungslinien entstehen.
+  let polstellen-segmente(f, domain, bereich, n: 400) = {
+    let (a0, b0) = domain
+    let schritt = (b0 - a0) / n
+    // Leicht versetzt abtasten, damit z. B. x = 0 bei 1/x nicht exakt
+    // getroffen wird (Division durch null)
+    let xs = range(n + 1).map(i => calc.min(a0 + (i + 1e-6) * schritt, b0))
+    let ys = xs.map(f)
+    let segmente = ()
+    let start = a0
+    for i in range(n) {
+      let (ya, yb) = (ys.at(i), ys.at(i + 1))
+      if ya * yb < 0 and calc.abs(yb - ya) > 2 * bereich {
+        // Polstelle eingrenzen
+        let (a, b, fa) = (xs.at(i), xs.at(i + 1), ya)
+        for _ in range(40) {
+          let m = (a + b) / 2
+          let fm = f(m)
+          if fm * fa > 0 { a = m; fa = fm } else { b = m }
+        }
+        if a > start { segmente.push((start, a)) }
+        start = b
+      }
+    }
+    if b0 > start { segmente.push((start, b0)) }
+    segmente
   }
 
   // Hilfsfunktion: Finde Schnittpunkt zweier Funktionen mit Bisection-Methode
@@ -239,7 +285,7 @@
   if plots.len() > 0 {
     // Array von Plot-Definitionen
     for (index, plot-def) in plots.enumerate() {
-      let domain = (x.at(0), x.at(1)) // Standard-Domain
+      let domain = none // Standard-Domain: x-Bereich, wird beim Zeichnen aufgelöst
       let term = none
       let clr = colors.at(calc.rem(index, colors.len())) // Rotiere Farben
       let label = none // Label-Definition (position, content)
@@ -290,7 +336,7 @@
 
   if fills-array.len() > 0 {
     for (index, fill-def) in fills-array.enumerate() {
-      let domain = (x.at(0), x.at(1)) // Standard-Domain
+      let domain = if x == auto { (-5, 5) } else { (x.at(0), x.at(1)) } // Standard-Domain
       let lower = none
       let upper = none
       let clr = colors.at(calc.rem(index, colors.len())).saturate(100%).lighten(60%).transparentize(50%) // Rotiere Farben, heller und transparent
@@ -790,12 +836,18 @@
         // Füge alle Plots hinzu
         if processed-plots.len() > 0 {
           for p in processed-plots {
-            plot.add(
-              style: (stroke: p.stroke),
-              samples: samples,
-              domain: p.domain,
-              p.term,
-            )
+            let dom = if p.domain != none { p.domain } else if x == auto { (-5, 5) } else { (x.at(0), x.at(1)) }
+            let segmente = if y == auto { (dom,) } else {
+              polstellen-segmente(p.term, dom, calc.abs(y.at(1) - y.at(0)))
+            }
+            for seg in segmente {
+              plot.add(
+                style: (stroke: p.stroke),
+                samples: samples,
+                domain: seg,
+                p.term,
+              )
+            }
             if p.label != none and type(p.label) == dictionary {
               // Label-Dictionary mit Keys: x, content, fill, position, size, color
               assert("x" in p.label, message: "Label benötigt 'x' Key")

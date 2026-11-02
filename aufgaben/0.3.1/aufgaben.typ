@@ -12,6 +12,9 @@
 // loesung() an Stellen, an denen sonst keine Lösungsausgabe mehr folgt.
 #let _state_in_aufgabe = state("in_aufgabe", false)
 #let _state_in_teilaufgabe = state("in_teilaufgabe", false)
+// Anzahl Materialien der Aufgabe vor der aktuellen Teilaufgabe (für
+// Teilaufgaben nach dem Aufgabenrumpf, z. B. Shortcodes)
+#let _state_ta_material_vorher = state("ta_material_vorher", 0)
 
 // Theme-Hooks (seit 0.3.1). Ein Template wie `@schule/arbeitsblatt` legt hier
 // ein Dictionary mit Darstellungsfunktionen ab. Fehlt ein Eintrag (oder ist
@@ -404,8 +407,9 @@
       // Zur Gesamtsumme addieren
       gesamt-punkte += aufg-punkte
 
-      // Prüfe ob Kompaktmodus (kein Titel und keine echten Teilaufgaben)
-      let kompakt = aufg-title == [] and aufg.teile <= 1
+      // Prüfe ob Kompaktmodus (kein Titel und keine Teilaufgaben). Bei genau
+      // einer Teilaufgabe braucht es die Kopfzeile, sonst fehlt die Nummer.
+      let kompakt = aufg-title == [] and aufg.teile == 0
 
       // Nur Kopfzeile hinzufügen wenn NICHT im Kompaktmodus
       if not kompakt {
@@ -667,7 +671,13 @@
         continue
       } else {
         // Hat Teilaufgaben: Erstelle Spalten für alle Teilaufgaben (1 bis aufg.teile)
-        let colspan-value = if full { aufg.teile + 1 } else { aufg.teile }
+        // BE direkt an der Aufgabe (teil == 0) bekommen eine eigene Spalte „–“,
+        // damit die Spalten die Summe ergeben.
+        let teil0-punkte = if "0" in grouped-erw.keys() {
+          grouped-erw.at("0").fold(0, (sum, e) => sum + e.punkte)
+        } else { 0 }
+        let teil0-spalte = teil0-punkte > 0
+        let colspan-value = aufg.teile + (if full { 1 } else { 0 }) + (if teil0-spalte { 1 } else { 0 })
         let left-stroke = thick-stroke
         header-row1.push(table.cell(stroke: (bottom: none, left: left-stroke), fill: if full { gray.lighten(70%) } else { white }, colspan: colspan-value, text(text-size, strong[#aufg.nummer])))
 
@@ -682,6 +692,18 @@
             moegliche-punkte-row.push(table.cell(stroke: (left: left-stroke), fill: gray.lighten(70%), []))
           }
           erreichte-punkte-row.push(table.cell(stroke: (left: left-stroke), fill: gray.lighten(70%), []))
+          columns.push(cell-width)
+        }
+
+        if teil0-spalte {
+          let s0 = if full { 0.5pt } else { left-stroke }
+          header-row2.push(table.cell(stroke: (left: s0), text(text-size, strong[–])))
+          if punkte == true {
+            moegliche-punkte-row.push(table.cell(stroke: (left: s0), text(text-size, [$#_be-anzeige(teil0-punkte)$])))
+          } else if punkte == false {
+            moegliche-punkte-row.push(table.cell(stroke: (left: s0), []))
+          }
+          erreichte-punkte-row.push(table.cell(stroke: (left: s0), []))
           columns.push(cell-width)
         }
 
@@ -703,7 +725,7 @@
 
           // Setze linken Strich für die erste Teilaufgabe
           // Bei full: true nur normaler Strich (weil schon die Summen-Spalte den dicken Strich hat)
-          let teil-left-stroke = if teil-nr == 1 and not full { left-stroke } else { 0.5pt }
+          let teil-left-stroke = if teil-nr == 1 and not full and not teil0-spalte { left-stroke } else { 0.5pt }
           header-row2.push(table.cell(stroke: (left: teil-left-stroke), text(text-size, strong[#teil-label])))
           // punkte: true => zeige Punkte, false => zeige leer, none => überspringe Zeile
           if punkte == true and teil-punkte > 0 {
@@ -760,7 +782,7 @@
 }
 
 // Material system
-#let show-material(aufg) = {
+#let show-material(aufg, start: 0) = {
   if aufg.materialien.len() > 0 {
     // Set current aufgabe for material numbering
     _state_current_material_aufgabe.update(aufg.nummer)
@@ -772,7 +794,7 @@
     }
     for (index, m) in aufg.materialien.enumerate() {
       // Set current material index (1-based)
-      _state_current_material_index.update(index + 1)
+      _state_current_material_index.update(start + index + 1)
       m.body
     }
   }
@@ -929,7 +951,17 @@
   }
   if (actual-title != none and actual-title != []) or number {
     context {
-      if _state_options.get().loesungen == "nur" { return }
+      if _state_options.get().loesungen == "nur" {
+        // Unsichtbarer Anker, damit `@label`-Verweise (z. B. in Lösungen)
+        // auch im Lösungsdokument funktionieren und der Zähler weiterläuft.
+        let anker = figure(kind: "aufgabe", supplement: none, [])
+        if label != none {
+          place(hide[#anker #if type(label) == std.label { label } else { std.label(label) }])
+        } else {
+          place(hide(anker))
+        }
+        return
+      }
       if haengend() {
         // Zähler wie bei der Kopf-Figure weiterschalten (Teilaufgaben-Refs „1.1“)
         counter(figure.where(kind: "aufgabe")).step()
@@ -1086,6 +1118,10 @@
     })
   }
   
+  context {
+    let all = _state_aufgaben.get()
+    _state_ta_material_vorher.update(if all.len() > 0 { all.last().materialien.len() } else { 0 })
+  }
   _state_in_teilaufgabe.update(true)
   // Rendering in separatem context-Block
   context {
@@ -1192,10 +1228,14 @@
         )
       },
     )
+    // Verweise (`@label`) im selben Schema wie die Teilaufgabe selbst
+    let ta-numbering = if opts.teilaufgabe-numbering == "1." {
+      (..n) => numbering("1.1", curr_aufg, curr_teil)
+    } else { "a)" }
     let ta-fig = if label != none [
-      #figure(kind: "teilaufgabe", supplement: "Teilaufgabe", ta-enum, numbering: "a)") #if type(label) == std.label { label } else { std.label(label) }
+      #figure(kind: "teilaufgabe", supplement: "Teilaufgabe", ta-enum, numbering: ta-numbering) #if type(label) == std.label { label } else { std.label(label) }
     ] else [
-      #figure(kind: "teilaufgabe", supplement: "Teilaufgabe", ta-enum, numbering: "a)")
+      #figure(kind: "teilaufgabe", supplement: "Teilaufgabe", ta-enum, numbering: ta-numbering)
     ]
     // "nur"-Modus: Teilaufgabe unsichtbar layouten, damit loesung()/
     // erwartung() im Body trotzdem registriert werden (analog zu aufgabe()).
@@ -1212,6 +1252,28 @@
       _counter_aufgaben.get().at(1)
     } else { 0 }
     show-loesungen(curr: true, teil: curr_teil)
+  }
+  // Teilaufgabe nach dem Aufgabenrumpf (z. B. Shortcode `+ …` nach
+  // `= Titel`): Die Ausgabe am Ende von aufgabe() ist schon gelaufen, daher
+  // "folgend"-Lösungen und Materialien dieser Teilaufgabe hier ausgeben.
+  context {
+    let opts = _state_options.get()
+    let all = _state_aufgaben.get()
+    if not _state_in_aufgabe.get() and opts.loesungen != "nur" and all.len() > 0 {
+      let curr_teil = _counter_aufgaben.get().at(1, default: 0)
+      if opts.loesungen == "folgend" {
+        show-loesungen(curr: true, teil: curr_teil)
+      }
+      if opts.materialien in ("sofort", "seiten", "folgend") {
+        let aufg = all.last()
+        let vorher = _state_ta_material_vorher.get()
+        let neu = aufg.materialien.slice(calc.min(vorher, aufg.materialien.len()))
+        if neu.len() > 0 {
+          let inhalt = show-material((..aufg, materialien: neu), start: vorher)
+          if opts.materialien == "seiten" { page(inhalt) } else { inhalt }
+        }
+      }
+    }
   }
 }
 
