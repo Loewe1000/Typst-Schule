@@ -1,0 +1,31 @@
+name: Regressionstests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: tests/run.sh
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Typst installieren
+        uses: typst-community/setup-typst@v4
+        with:
+          # Wie in build-docs.yml festgenagelt
+          typst-version: "0.15.0"
+
+      - name: pdftotext installieren
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
+
+      - name: Tests ausführen
+        run: bash tests/run.sh

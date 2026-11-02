@@ -317,6 +317,13 @@
   }
   _pruefe("aufgaben-shortcodes", aufgaben-shortcodes, ("keine", "aufgaben", "teilaufgaben", "alle"))
   _pruefe("teilaufgabe-numbering", teilaufgabe-numbering, ("a)", "1."))
+  // Unbekannte benannte Argumente (meist Tippfehler wie `aufgaben-shortcode`)
+  // würden sonst still verschluckt.
+  let unbekannt = args.named().keys().filter(k => k not in ("header-ascent",))
+  assert(
+    unbekannt.len() == 0,
+    message: "arbeitsblatt: unbekannte Option(en): " + unbekannt.map(k => "`" + k + "`").join(", ") + " – Tippfehler?",
+  )
 
   // Theme auflösen: `none` = klassische Darstellung wie bis 0.3.x. Explizit
   // gesetzte Schriftparameter haben Vorrang vor dem Theme.

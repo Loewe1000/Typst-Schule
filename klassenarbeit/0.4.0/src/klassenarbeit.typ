@@ -400,6 +400,10 @@
   ..args,
   body,
 ) = {
+  assert(
+    type(erwartungen) in (bool, dictionary),
+    message: "klassenarbeit: `erwartungen` muss true, false oder ein Dictionary sein, erhalten: " + repr(erwartungen),
+  )
   // Counter ZUERST erhöhen, damit die ID korrekt ist
   _ka-counter.step()
 
