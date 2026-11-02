@@ -66,6 +66,19 @@
     opts.at("punkte-position", default: "ende")
   }
 }
+// BE runden: Summen aus Kommazahlen (0.1 + 0.2) auf zwei Stellen, ganze
+// Zahlen als int.
+#let _be-runden(p) = if type(p) == float {
+  let r = calc.round(p, digits: 2)
+  if calc.fract(r) == 0 { int(r) } else { r }
+} else { p }
+
+// BE für die Anzeige: gerundet und mit Dezimalkomma.
+#let _be-anzeige(p) = {
+  let r = _be-runden(p)
+  if type(r) == float { str(r).replace(".", ",") } else { r }
+}
+
 // Formatierungsfunktion für BE-Anzeige
 #let format-punkte(teil: false, points) = {
   let opts = _state_options.get()
@@ -75,7 +88,7 @@
     opts.punkte-template-aufgabe
   }
   // Call the template function with points
-  tpl(points)
+  tpl(_be-anzeige(points))
 }
 
 // Counter
@@ -360,7 +373,7 @@
     if idx < 0 or idx >= all.len() { return 0 }
     all.at(idx)
   } else {
-    if aufg == none or aufg > all.len() { return 0 }
+    if aufg == none or aufg < 1 or aufg > all.len() { return 0 }
     all.at(aufg - 1)
   }
   if not "erwartungen" in current { return 0 }
@@ -370,7 +383,127 @@
     erw = erw.filter(e => e.teil == teil)
   }
 
-  return erw.fold(0, (sum, e) => sum + e.punkte)
+  return _be-runden(erw.fold(0, (sum, e) => sum + e.punkte))
+}
+
+// Tabellenzeilen des Erwartungshorizonts für eine Liste von Aufgaben.
+// Liefert (rows, summe).
+#let _erwartungen-zeilen(all, opts, grouped, erreicht) = {
+  let rows = ()
+  let gesamt-punkte = 0
+
+  for aufg in all {
+    if "erwartungen" in aufg and aufg.erwartungen.len() > 0 {
+      // Hauptzeile für die Aufgabe
+      let aufg-title = if aufg.title != none and aufg.title != [] {
+        aufg.title
+      } else {
+        []
+      }
+      let aufg-punkte = aufg.erwartungen.fold(0, (sum, e) => sum + e.punkte)
+      // Zur Gesamtsumme addieren
+      gesamt-punkte += aufg-punkte
+
+      // Prüfe ob Kompaktmodus (kein Titel und keine echten Teilaufgaben)
+      let kompakt = aufg-title == [] and aufg.teile <= 1
+
+      // Nur Kopfzeile hinzufügen wenn NICHT im Kompaktmodus
+      if not kompakt {
+        // Dickere obere Linie für jede neue Aufgabe
+        // Graue erste und letzte Spalte, weiße mittlere Spalte
+        let stroke-aufg = (left: 0.5pt, right: 0.5pt, top: 1pt, bottom: 0.5pt)
+        rows.push(table.cell(fill: gray.lighten(70%), stroke: stroke-aufg, strong[#aufg.nummer]))
+        rows.push(table.cell(stroke: stroke-aufg, strong[#if aufg-title != [] [#aufg-title]]))
+        rows.push(table.cell(fill: gray.lighten(70%), stroke: stroke-aufg, strong[#if erreicht {[#h(1em) / #_be-anzeige(aufg-punkte)]} else {[$#_be-anzeige(aufg-punkte)$]}]))
+      }
+
+      // Zeilen für Teilaufgaben/Erwartungen
+      let grouped-erw = (:)
+      for erw in aufg.erwartungen.sorted(key: e => e.teil) {
+        let teil-key = str(erw.teil)
+        if teil-key not in grouped-erw.keys() {
+          grouped-erw.insert(teil-key, ())
+        }
+        grouped-erw.at(teil-key).push(erw)
+      }
+
+      for (teil-str, erwartungen) in grouped-erw.pairs().sorted(key: pair => int(pair.at(0))) {
+        let teil = int(teil-str)
+        let teil-label = if teil == 0 {
+          // Im Kompaktmodus: Aufgabennummer statt leer
+          if kompakt { strong[#aufg.nummer] } else { [] }
+        } else if opts.teilaufgabe-numbering == "a)" {
+          numbering("a)", teil)
+        } else {
+          numbering("1.1", aufg.nummer, teil)
+        }
+
+        if grouped {
+          // Grouped: Eine Zeile pro Teilaufgabe mit allen Erwartungen zusammengefasst
+          // Inhalte als Stack mit kleinem Abstand, damit ausreichend vertikaler Raum entsteht
+          let inhalt = stack(spacing: 2 * 6pt, ..erwartungen.map(e => e.text))
+          let punkte = erwartungen.fold(0, (sum, e) => sum + e.punkte)
+
+          // Konsistente Zellformatierung wie im ungrouped-Zweig: überall table.cell verwenden
+          // und ein einheitliches inset setzen, damit die Zeile nicht „zusammengedrückt" wirkt
+          let inset = (y: 6pt)
+
+          // Im Kompaktmodus (teil == 0): graue erste und letzte Spalte + dickere obere Linie
+          if kompakt and teil == 0 {
+            let stroke-top = (left: 0.5pt, right: 0.5pt, top: 1pt, bottom: 0.5pt)
+            rows.push(table.cell(align: top, inset: inset, stroke: stroke-top, fill: gray.lighten(70%), teil-label))
+            rows.push(table.cell(align: left, inset: inset, stroke: stroke-top, inhalt))
+            rows.push(table.cell(align: center, inset: inset, stroke: stroke-top, fill: gray.lighten(70%), strong[#if erreicht {[#h(1em) / #_be-anzeige(punkte)]} else {[$#_be-anzeige(punkte)$]}]))
+          } else {
+            rows.push(table.cell(align: top, inset: inset, teil-label))
+            rows.push(table.cell(align: left, inset: inset, inhalt))
+            rows.push(table.cell(align: center, inset: inset, if erreicht {[#h(1em) / #_be-anzeige(punkte)]} else {[$#_be-anzeige(punkte)$]}))
+          }
+        } else {
+          // Ungrouped: Eine Zeile pro Erwartung
+          for (idx, erw) in erwartungen.enumerate() {
+            let show-label = if idx == 0 { teil-label } else { [] }
+
+            // Basis-Stroke
+            let stroke-override = if idx == 0 {
+              (left: 0.5pt, right: 0.5pt, top: 0.5pt, bottom: none)
+            } else if idx < erwartungen.len() - 1 {
+              // Keine untere Linie zwischen Erwartungen derselben Teilaufgabe
+              (left: 0.5pt, right: 0.5pt, top: none, bottom: none)
+            } else if idx == erwartungen.len() - 1 {
+              // Keine untere Linie zwischen Erwartungen derselben Teilaufgabe
+              (left: 0.5pt, right: 0.5pt, top: none, bottom: 0.5pt)
+            } else {
+              0.5pt
+            }
+
+            // Einheitlicher, etwas größerer vertikaler Innenabstand für alle Zeilen
+            let inset = (y: 6pt)
+
+            // Im Kompaktmodus (teil == 0 und erste Erwartung): dickere obere Linie + graue erste/letzte Spalte
+            if kompakt and teil == 0 and idx == 0 {
+              stroke-override = (left: 0.5pt, right: 0.5pt, top: 1pt, bottom: none)
+              rows.push(table.cell(align: top, stroke: stroke-override, inset: inset, fill: gray.lighten(70%), show-label))
+              rows.push(table.cell(align: top + left, stroke: stroke-override, inset: inset, erw.text))
+              rows.push(table.cell(align: top + center, stroke: stroke-override, inset: inset, fill: gray.lighten(70%), strong[#if erreicht {[#h(1em) / #_be-anzeige(erw.punkte)]} else {[$#_be-anzeige(erw.punkte)$]}]))
+            } else if kompakt and teil == 0 {
+              // Weitere Erwartungen im Kompaktmodus: nur graue Spalten
+              rows.push(table.cell(align: top, stroke: stroke-override, inset: inset, fill: gray.lighten(70%), show-label))
+              rows.push(table.cell(align: top + left, stroke: stroke-override, inset: inset, erw.text))
+              rows.push(table.cell(align: top + center, stroke: stroke-override, inset: inset, fill: gray.lighten(70%), strong[#if erreicht {[#h(1em) / #_be-anzeige(erw.punkte)]} else {[$#_be-anzeige(erw.punkte)$]}]))
+            } else {
+              // Normal: keine besonderen Formatierungen
+              rows.push(table.cell(align: top, stroke: stroke-override, inset: inset, show-label))
+              rows.push(table.cell(align: top + left, stroke: stroke-override, inset: inset, erw.text))
+              rows.push(table.cell(align: top + center, stroke: stroke-override, inset: inset, if erreicht {[#h(1em) / #_be-anzeige(erw.punkte)]} else {[$#_be-anzeige(erw.punkte)$]}))
+            }
+          }
+        }
+      }
+    }
+  }
+
+  (rows, gesamt-punkte)
 }
 
 /// Zeigt den Erwartungshorizont als formatierte Tabelle an.
@@ -378,139 +511,57 @@
 /// Listet alle Erwartungen mit Teilaufgabenzuordnung und Punktzahlen auf.
 /// Am Ende wird eine Zeile mit der Gesamtpunktzahl angezeigt.
 ///
+/// Mit `alle: true` entsteht ein gemeinsamer Erwartungshorizont über alle
+/// Blöcke des Dokuments (z. B. Teil A und Teil B als zwei `klassenarbeit()`
+/// in einer Datei): je Block eine Zwischenüberschrift und Zwischensumme,
+/// am Ende die Gesamtsumme. Dafür in den Blöcken `erwartungen: false` setzen
+/// und `show-erwartungen(alle: true)` einmal ans Dokumentende stellen.
+///
+/// ```typ
+/// #show-erwartungen(alle: true, teile: ([Teil A -- ohne Hilfsmittel], [Teil B -- mit Hilfsmitteln]))
+/// ```
+///
 /// - grouped (boolean): Wenn `true`, werden alle Erwartungen einer Teilaufgabe in einer Zeile zusammengefasst. Default: `false`
 /// - new-page (boolean): Wenn `true`, wird der Erwartungshorizont auf einer neuen Seite gestartet. Default: `false`
 /// - erreicht (boolean): Wenn `true`, wird `__ / X` statt `X` angezeigt (für eintragbare Punktzahlen). Default: `false`
+/// - alle (boolean): Wenn `true`, werden alle Blöcke des Dokuments zusammengefasst. Default: `false`
+/// - teile (array): Überschriften der Blöcke für `alle: true`; fehlende werden als „Teil A“, „Teil B“, … ergänzt. Default: `()`
 /// -> content
-#let show-erwartungen(grouped: false, new-page: false, erreicht: false) = {
+#let show-erwartungen(grouped: false, new-page: false, erreicht: false, alle: false, teile: ()) = {
   context {
-    let all = _aufgaben-final()
     let opts = _state_options.get()
-
-    // Erstelle Tabellenzeilen
     let rows = ()
-    // Gesamtsumme über alle Aufgaben sammeln
     let gesamt-punkte = 0
+    let stroke-summe = (left: 0.5pt, right: 0.5pt, top: 1pt, bottom: 0.5pt)
+    let _summe(p) = if erreicht {[#h(1em) / #_be-anzeige(p)]} else {[#_be-anzeige(p)]}
 
-    for aufg in all {
-      if "erwartungen" in aufg and aufg.erwartungen.len() > 0 {
-        // Hauptzeile für die Aufgabe
-        let aufg-title = if aufg.title != none and aufg.title != [] {
-          aufg.title
-        } else {
-          []
-        }
-        let aufg-punkte = aufg.erwartungen.fold(0, (sum, e) => sum + e.punkte)
-        // Zur Gesamtsumme addieren
-        gesamt-punkte += aufg-punkte
-
-        // Prüfe ob Kompaktmodus (kein Titel und keine echten Teilaufgaben)
-        let kompakt = aufg-title == [] and aufg.teile <= 1
-
-        // Nur Kopfzeile hinzufügen wenn NICHT im Kompaktmodus
-        if not kompakt {
-          // Dickere obere Linie für jede neue Aufgabe
-          // Graue erste und letzte Spalte, weiße mittlere Spalte
-          let stroke-aufg = (left: 0.5pt, right: 0.5pt, top: 1pt, bottom: 0.5pt)
-          rows.push(table.cell(fill: gray.lighten(70%), stroke: stroke-aufg, strong[#aufg.nummer]))
-          rows.push(table.cell(stroke: stroke-aufg, strong[#if aufg-title != [] [#aufg-title]]))
-          rows.push(table.cell(fill: gray.lighten(70%), stroke: stroke-aufg, strong[#if erreicht {[#h(1em) / #aufg-punkte]} else {[$#aufg-punkte$]}]))
-        }
-
-        // Zeilen für Teilaufgaben/Erwartungen
-        let grouped-erw = (:)
-        for erw in aufg.erwartungen.sorted(key: e => e.teil) {
-          let teil-key = str(erw.teil)
-          if teil-key not in grouped-erw.keys() {
-            grouped-erw.insert(teil-key, ())
-          }
-          grouped-erw.at(teil-key).push(erw)
-        }
-
-        for (teil-str, erwartungen) in grouped-erw.pairs().sorted(key: pair => int(pair.at(0))) {
-          let teil = int(teil-str)
-          let teil-label = if teil == 0 {
-            // Im Kompaktmodus: Aufgabennummer statt leer
-            if kompakt { strong[#aufg.nummer] } else { [] }
-          } else if opts.teilaufgabe-numbering == "a)" {
-            numbering("a)", teil)
-          } else {
-            numbering("1.1", aufg.nummer, teil)
-          }
-
-          if grouped {
-            // Grouped: Eine Zeile pro Teilaufgabe mit allen Erwartungen zusammengefasst
-            // Inhalte als Stack mit kleinem Abstand, damit ausreichend vertikaler Raum entsteht
-            let inhalt = stack(spacing: 2 * 6pt, ..erwartungen.map(e => e.text))
-            let punkte = erwartungen.fold(0, (sum, e) => sum + e.punkte)
-
-            // Konsistente Zellformatierung wie im ungrouped-Zweig: überall table.cell verwenden
-            // und ein einheitliches inset setzen, damit die Zeile nicht „zusammengedrückt" wirkt
-            let inset = (y: 6pt)
-
-            // Im Kompaktmodus (teil == 0): graue erste und letzte Spalte + dickere obere Linie
-            if kompakt and teil == 0 {
-              let stroke-top = (left: 0.5pt, right: 0.5pt, top: 1pt, bottom: 0.5pt)
-              rows.push(table.cell(align: top, inset: inset, stroke: stroke-top, fill: gray.lighten(70%), teil-label))
-              rows.push(table.cell(align: left, inset: inset, stroke: stroke-top, inhalt))
-              rows.push(table.cell(align: center, inset: inset, stroke: stroke-top, fill: gray.lighten(70%), strong[#if erreicht {[#h(1em) / #punkte]} else {[$str(punkte)$]}]))
-            } else {
-              rows.push(table.cell(align: top, inset: inset, teil-label))
-              rows.push(table.cell(align: left, inset: inset, inhalt))
-              rows.push(table.cell(align: center, inset: inset, if erreicht {[#h(1em) / #punkte]} else {[$str(punkte)$]}))
-            }
-          } else {
-            // Ungrouped: Eine Zeile pro Erwartung
-            for (idx, erw) in erwartungen.enumerate() {
-              let show-label = if idx == 0 { teil-label } else { [] }
-
-              // Basis-Stroke
-              let stroke-override = if idx == 0 {
-                (left: 0.5pt, right: 0.5pt, top: 0.5pt, bottom: none)
-              } else if idx < erwartungen.len() - 1 {
-                // Keine untere Linie zwischen Erwartungen derselben Teilaufgabe
-                (left: 0.5pt, right: 0.5pt, top: none, bottom: none)
-              } else if idx == erwartungen.len() - 1 {
-                // Keine untere Linie zwischen Erwartungen derselben Teilaufgabe
-                (left: 0.5pt, right: 0.5pt, top: none, bottom: 0.5pt)
-              } else {
-                0.5pt
-              }
-
-              // Einheitlicher, etwas größerer vertikaler Innenabstand für alle Zeilen
-              let inset = (y: 6pt)
-
-              // Im Kompaktmodus (teil == 0 und erste Erwartung): dickere obere Linie + graue erste/letzte Spalte
-              if kompakt and teil == 0 and idx == 0 {
-                stroke-override = (left: 0.5pt, right: 0.5pt, top: 1pt, bottom: none)
-                rows.push(table.cell(align: top, stroke: stroke-override, inset: inset, fill: gray.lighten(70%), show-label))
-                rows.push(table.cell(align: top + left, stroke: stroke-override, inset: inset, erw.text))
-                rows.push(table.cell(align: top + center, stroke: stroke-override, inset: inset, fill: gray.lighten(70%), strong[#if erreicht {[#h(1em) / #erw.punkte]} else {[$str(erw.punkte)$]}]))
-              } else if kompakt and teil == 0 {
-                // Weitere Erwartungen im Kompaktmodus: nur graue Spalten
-                rows.push(table.cell(align: top, stroke: stroke-override, inset: inset, fill: gray.lighten(70%), show-label))
-                rows.push(table.cell(align: top + left, stroke: stroke-override, inset: inset, erw.text))
-                rows.push(table.cell(align: top + center, stroke: stroke-override, inset: inset, fill: gray.lighten(70%), strong[#if erreicht {[#h(1em) / #erw.punkte]} else {[$str(erw.punkte)$]}]))
-              } else {
-                // Normal: keine besonderen Formatierungen
-                rows.push(table.cell(align: top, stroke: stroke-override, inset: inset, show-label))
-                rows.push(table.cell(align: top + left, stroke: stroke-override, inset: inset, erw.text))
-                rows.push(table.cell(align: top + center, stroke: stroke-override, inset: inset, if erreicht {[#h(1em) / #erw.punkte]} else {[$str(erw.punkte)$]}))
-              }
-            }
-          }
-        }
+    if alle {
+      // Endstand jedes Blocks: an jeder Reset-Marke steht der Stand des
+      // vorherigen Blocks, am Dokumentende der des letzten.
+      let bloecke = query(<_aufgaben-reset>).map(m => _state_aufgaben.at(m.location()))
+      bloecke.push(_state_aufgaben.final())
+      bloecke = bloecke.filter(b => b.any(a => "erwartungen" in a and a.erwartungen.len() > 0))
+      for (i, block-aufgaben) in bloecke.enumerate() {
+        let (block-rows, block-summe) = _erwartungen-zeilen(block-aufgaben, opts, grouped, erreicht)
+        let titel = teile.at(i, default: [Teil #numbering("A", i + 1)])
+        rows.push(table.cell(colspan: 3, fill: gray.lighten(40%), stroke: stroke-summe, align: left, strong(titel)))
+        rows += block-rows
+        rows.push(table.cell(fill: gray.lighten(70%), stroke: stroke-summe, strong[$Sigma$]))
+        rows.push(table.cell(stroke: stroke-summe, strong[Summe #titel]))
+        rows.push(table.cell(fill: gray.lighten(70%), stroke: stroke-summe, strong(_summe(block-summe))))
+        gesamt-punkte += block-summe
       }
+    } else {
+      (rows, gesamt-punkte) = _erwartungen-zeilen(_aufgaben-final(), opts, grouped, erreicht)
     }
 
     // Schlusszeile mit Gesamtsumme der Punkte hinzufügen (nur wenn es überhaupt Zeilen gibt)
     if rows.len() > 0 {
-      let stroke-summe = (left: 0.5pt, right: 0.5pt, top: 1pt, bottom: 0.5pt)
-      rows.push(table.cell(fill: gray.lighten(70%), stroke: stroke-summe, strong[$Sigma$]))
-      rows.push(table.cell(stroke: stroke-summe, strong[Summe]))
-      rows.push(table.cell(fill: gray.lighten(70%), stroke: stroke-summe, strong[#if erreicht {[#h(1em) / #gesamt-punkte]} else {[#gesamt-punkte]}]))
+      let stroke-gesamt = if alle { (left: 0.5pt, right: 0.5pt, top: 2pt, bottom: 0.5pt) } else { stroke-summe }
+      rows.push(table.cell(fill: gray.lighten(70%), stroke: stroke-gesamt, strong[$Sigma$]))
+      rows.push(table.cell(stroke: stroke-gesamt, strong(if alle [Gesamtsumme] else [Summe])))
+      rows.push(table.cell(fill: gray.lighten(70%), stroke: stroke-gesamt, strong(_summe(gesamt-punkte))))
     }
-
     if rows.len() > 0 {
       let element = if new-page { page } else { block }
       element[
@@ -605,7 +656,7 @@
 
         // punkte: true => zeige Punkte, false => zeige leer, none => überspringe Zeile
         if punkte == true and teil-punkte > 0 {
-          moegliche-punkte-row.push(table.cell(stroke: (left: left-stroke), fill: if full { gray.lighten(70%) } else { white }, text(text-size, if full { strong[#teil-punkte] } else { [#teil-punkte] })))
+          moegliche-punkte-row.push(table.cell(stroke: (left: left-stroke), fill: if full { gray.lighten(70%) } else { white }, text(text-size, if full { strong[#_be-anzeige(teil-punkte)] } else { [#_be-anzeige(teil-punkte)] })))
         } else if punkte == false {
           moegliche-punkte-row.push(table.cell(stroke: (left: left-stroke), fill: if full { gray.lighten(70%) } else { white }, []))
         } else if punkte == true {
@@ -624,7 +675,7 @@
         if full {
           header-row2.push(table.cell(stroke: (top: none, left: left-stroke), fill: gray.lighten(70%), text(text-size, [])))
           if punkte == true {
-            moegliche-punkte-row.push(table.cell(stroke: (left: left-stroke), fill: gray.lighten(70%), text(text-size, strong[$#aufg-punkte$])))
+            moegliche-punkte-row.push(table.cell(stroke: (left: left-stroke), fill: gray.lighten(70%), text(text-size, strong[$#_be-anzeige(aufg-punkte)$])))
           } else if punkte == false {
             moegliche-punkte-row.push(table.cell(stroke: (left: left-stroke), fill: gray.lighten(70%), []))
           } else if punkte == true {
@@ -656,7 +707,7 @@
           header-row2.push(table.cell(stroke: (left: teil-left-stroke), text(text-size, strong[#teil-label])))
           // punkte: true => zeige Punkte, false => zeige leer, none => überspringe Zeile
           if punkte == true and teil-punkte > 0 {
-            moegliche-punkte-row.push(table.cell(stroke: (left: teil-left-stroke), text(text-size, [$#teil-punkte$])))
+            moegliche-punkte-row.push(table.cell(stroke: (left: teil-left-stroke), text(text-size, [$#_be-anzeige(teil-punkte)$])))
           } else if punkte == false {
             moegliche-punkte-row.push(table.cell(stroke: (left: teil-left-stroke), []))
           } else if punkte == true {
@@ -673,7 +724,7 @@
     columns.push(if cell-width == auto { auto } else { 1.25 * cell-width })
     // punkte: true => zeige Gesamtpunkte, false => zeige leer, none => überspringe Zeile
     if punkte == true {
-      moegliche-punkte-row.push(table.cell(stroke: (left: thick-stroke), fill: gray.lighten(70%), text(text-size, strong[#if gesamt-punkte > 0 [#gesamt-punkte]])))
+      moegliche-punkte-row.push(table.cell(stroke: (left: thick-stroke), fill: gray.lighten(70%), text(text-size, strong[#if gesamt-punkte > 0 [#_be-anzeige(gesamt-punkte)]])))
     } else if punkte == false {
       moegliche-punkte-row.push(table.cell(stroke: (left: thick-stroke), fill: gray.lighten(70%), []))
     }
@@ -991,7 +1042,9 @@
   // "keine-summe" mode: Zeige Punkte nur bei Aufgaben ohne Teilaufgaben
   context if get-punkte-anzeige(_state_options.get()) == "keine-summe" {
     let curr_idx = _state_current_aufgabe_index.get()
-    let curr_aufg = _state_aufgaben.get().at(curr_idx)
+    // Endstand des Blocks: Teilaufgaben, die erst nach dem Aufgabenrumpf
+    // kommen (Shortcodes), sind sonst noch nicht gezählt.
+    let curr_aufg = _aufgaben-final().at(curr_idx)
     // Nur anzeigen, wenn es KEINE Teilaufgaben gibt
     if curr_aufg.teile == 0 {
       let points = get-points(none, idx: curr_idx)

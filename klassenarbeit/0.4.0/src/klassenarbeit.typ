@@ -64,11 +64,10 @@
   body,
 ) = context {
   _state_ka_variante.update(variante)
-
-  // Page-Counter nur zurücksetzen wenn page-numbering == true oder "reset"
-  if page-numbering == true or page-numbering == "reset" {
-    counter(page).update(1)
-  }
+  assert(
+    page-numbering in (true, false, "reset", "continuous"),
+    message: "klassenarbeit: ungültiger Wert für `page-numbering`: " + repr(page-numbering) + " – erlaubt: true, false, \"reset\", \"continuous\"",
+  )
 
   // Variantenspezifisches Ende-Label (im Bundle existiert der Inhalt in
   // mehreren Dokumenten, Labels müssen daher pro Variante eindeutig sein)
@@ -195,32 +194,31 @@
   // Kopf-Abstand auf den oberen Rand aufschlagen
   if type(final-page-settings.margin) == dictionary {
     let m = final-page-settings.margin
-    m.insert("top", m.at("top", default: 1cm) + kopf-abstand)
+    m.insert("top", m.at("top", default: m.at("y", default: m.at("rest", default: 1cm))) + kopf-abstand)
     final-page-settings.insert("margin", m)
   }
 
   // Handle punkte-template parameter
-  if punkte-template != none {
-    if type(punkte-template) == function {
-      // Beide Templates gleich setzen
-      set-options((
-        punkte-template-aufgabe: punkte-template,
-        punkte-template-teilaufgabe: punkte-template,
-      ))
-    } else if type(punkte-template) == dictionary {
-      // Individuell setzen
-      let opts-update = (:)
-      if "aufgabe" in punkte-template.keys() {
-        opts-update.insert("punkte-template-aufgabe", punkte-template.aufgabe)
-      }
-      if "teilaufgabe" in punkte-template.keys() {
-        opts-update.insert("punkte-template-teilaufgabe", punkte-template.teilaufgabe)
-      }
-      if opts-update.keys().len() > 0 {
-        set-options(opts-update)
-      }
-    }
+  // Immer beide Templates setzen (ohne Angabe: Standard aus `aufgaben`),
+  // damit ein Template einer vorherigen Klassenarbeit nicht weiterwirkt.
+  let tpl-aufgabe = punkte => [*#punkte BE*]
+  let tpl-teilaufgabe = punkte => [*[#punkte BE]*]
+  if type(punkte-template) == function {
+    tpl-aufgabe = punkte-template
+    tpl-teilaufgabe = punkte-template
+  } else if type(punkte-template) == dictionary {
+    tpl-aufgabe = punkte-template.at("aufgabe", default: tpl-aufgabe)
+    tpl-teilaufgabe = punkte-template.at("teilaufgabe", default: tpl-teilaufgabe)
   }
+  set-options((
+    punkte-template-aufgabe: tpl-aufgabe,
+    punkte-template-teilaufgabe: tpl-teilaufgabe,
+  ))
+
+  // `page-settings` wird oben zu `final-page-settings` zusammengebaut und
+  // darf beim Weiterreichen nicht vom Original überschrieben werden.
+  let weitere-args = args.named()
+  let _ = weitere-args.remove("page-settings", default: none)
 
   show: arbeitsblatt-einzeln.with(
     title: title,
@@ -237,11 +235,19 @@
     page-settings: final-page-settings,
     scope: scope,
     ..(
-      args.named()
+      weitere-args
         + if variante == "loesung" { (loesungen: "nur") } else { (:) }
         + if th != none { (theme: th) } else { (:) }
     ),
   )
+
+  // Page-Counter nur zurücksetzen wenn page-numbering == true oder "reset".
+  // Erst hier, nach dem `set page` aus arbeitsblatt-einzeln: sonst landet
+  // das Update auf der vorherigen Seite, sobald zwischen zwei
+  // Klassenarbeiten weiterer Inhalt steht.
+  if page-numbering == true or page-numbering == "reset" {
+    counter(page).update(1)
+  }
 
   if info-table != false and table != () {
     let table-cells = if type(table) == array and type(table.at(0)) == array {

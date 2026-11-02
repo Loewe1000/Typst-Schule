@@ -303,6 +303,21 @@
   ..args,
   body,
 ) = {
+  // Optionswerte prüfen: Tippfehler sollen auffallen, statt still ein
+  // anderes Verhalten zu erzeugen (z. B. Lösungen in der Schülerfassung).
+  let _pruefe(name, wert, erlaubt) = assert(
+    wert in erlaubt,
+    message: "arbeitsblatt: ungültiger Wert für `" + name + "`: " + repr(wert) + " – erlaubt: " + erlaubt.map(repr).join(", "),
+  )
+  _pruefe("loesungen", loesungen, ("keine", "false", false, none, "sofort", "folgend", "seite", "seiten", "nur", "reinquetschen"))
+  _pruefe("materialien", materialien, ("keine", "false", false, none, "sofort", "folgend", "seite", "seiten", "reinquetschen"))
+  _pruefe("punkte", if type(punkte) == dictionary { punkte.at("anzeige", default: "aufgaben") } else { punkte }, ("keine", "aufgaben", "teilaufgaben", "alle", "keine-summe"))
+  if type(punkte) == dictionary {
+    _pruefe("punkte.position", punkte.at("position", default: "ende"), ("ende", "rand"))
+  }
+  _pruefe("aufgaben-shortcodes", aufgaben-shortcodes, ("keine", "aufgaben", "teilaufgaben", "alle"))
+  _pruefe("teilaufgabe-numbering", teilaufgabe-numbering, ("a)", "1."))
+
   // Theme auflösen: `none` = klassische Darstellung wie bis 0.3.x. Explizit
   // gesetzte Schriftparameter haben Vorrang vor dem Theme.
   let th = _theme-aufloesen(theme, akzent, class)
@@ -446,12 +461,15 @@
     // Margin-Logik: Prüfe zuerst page-settings.margin, dann Standard-Margins
     let seiten-margin = if "margin" in page-settings.keys() {
       // Wenn explizit ein Margin in page-settings gesetzt wurde, verwende dieses
-      let top = if type(page-settings.margin) == dictionary { page-settings.margin.at("top", default: 0cm) } else {
+      // `top` kann auch über `y` oder `rest` gesetzt sein.
+      let top = if type(page-settings.margin) == dictionary {
+        let m = page-settings.margin
+        m.at("top", default: m.at("y", default: m.at("rest", default: 0cm)))
+      } else {
         page-settings.margin
       }
       let values = page-settings.margin
       let _ = if type(values) == dictionary {
-        values.remove("top")
         values.insert("top", top + header-height)
       }
       values
@@ -1149,7 +1167,9 @@
 /// ```
 /// -> boolean
 #let loesungsmodus() = {
-  state("options", (:)).get().at("loesungen", default: "keine") not in ("keine", "false", false, none)
+  // Positiv prüfen: Ein unbekannter Wert (Tippfehler) darf keine Lösungen
+  // in die Schülerfassung drucken.
+  state("options", (:)).get().at("loesungen", default: "keine") in ("sofort", "folgend", "seite", "seiten", "nur", "reinquetschen")
 }
 
 /// Inhalt, der nur in den Lösungsfassungen erscheint – etwa ausgefüllte

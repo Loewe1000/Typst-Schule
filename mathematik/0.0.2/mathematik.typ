@@ -388,6 +388,9 @@
           // Format: ((x, y), [label])
           pos = first
           mark-content = second
+        } else if type(first) in (int, float) and type(second) in (int, float) {
+          // Format: Einfache Koordinaten (x, y)
+          pos = mark-def
         }
       } else if type(mark-def) == array and mark-def.len() == 2 and type(mark-def.at(0)) in (int, float) {
         // Format: Einfache Koordinaten (x, y)
@@ -706,6 +709,8 @@
   // Bestimme x-major-step und x-minor-step
   let (x-major-step, x-minor-step) = if effective-x-step == auto {
     (auto, auto)
+  } else if effective-x-step == none {
+    (none, none)
   } else if type(effective-x-step) == array {
     (effective-x-step.at(0), effective-x-step.at(1))
   } else {
@@ -715,6 +720,8 @@
   // Bestimme y-major-step und y-minor-step
   let (y-major-step, y-minor-step) = if effective-y-step == auto {
     (auto, auto)
+  } else if effective-y-step == none {
+    (none, none)
   } else if type(effective-y-step) == array {
     (effective-y-step.at(0), effective-y-step.at(1))
   } else {
@@ -796,6 +803,8 @@
 
               let x-pos = p.label.x
               let y-pos = (p.term)(x-pos)
+              // Label nicht außerhalb des y-Bereichs setzen (sonst wächst die Grafik)
+              if y != auto { y-pos = calc.clamp(y-pos, calc.min(..y), calc.max(..y)) }
               let label-content = p.label.content
               let label-pos = if "position" in p.label { p.label.position } else { "tr" }
               let label-fill = if "fill" in p.label { p.label.fill } else { white }
