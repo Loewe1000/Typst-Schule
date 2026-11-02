@@ -317,6 +317,29 @@
   }
 }
 
+// x-Position des rechten Textrands der aktuellen Seite (absolut), oder
+// `none`, wenn sich der Seitenrand nicht bestimmen lässt.
+// Berücksichtigt `inside`/`outside` (Bindung links: ungerade Seiten haben
+// `outside` rechts). Muss in einem `context`-Block aufgerufen werden.
+#let _rechter-textrand() = {
+  let breite = page.width
+  if type(breite) != length { return none }
+  let m = page.margin
+  let rechts = if type(m) == dictionary {
+    if "right" in m { m.right }
+    else if "outside" in m or "inside" in m {
+      let ungerade = calc.odd(here().page())
+      let links-bindung = page.binding == auto or page.binding == left
+      if ungerade == links-bindung { m.at("outside", default: m.at("rest", default: none)) }
+      else { m.at("inside", default: m.at("rest", default: none)) }
+    } else { m.at("x", default: m.at("rest", default: none)) }
+  } else { m }
+  if type(rechts) == relative { rechts = rechts.length + rechts.ratio * breite }
+  else if type(rechts) == ratio { rechts = rechts * breite }
+  if type(rechts) != length { return none }
+  breite - rechts
+}
+
 // Helper functions
 /// Gibt die Gesamtpunktzahl einer Aufgabe oder Teilaufgabe zurück.
 ///
@@ -1066,15 +1089,16 @@
                     idx: curr_idx,
                   )
                   if points > 0 {
-                    // Platziere Punkte am rechten Rand (außerhalb des Textbereichs), linksbündig
-                    place(
-                      right,
-                      dx: 2mm, // In den rechten Rand hinein
-                      box(
-                        width: 0cm,
-                        align(left, text(fill: black, size: 0.88em, hyphenate: false)[#box(width: 2cm, [#format-punkte(teil: true, points)])])
-                      )
-                    )
+                    // Platziere Punkte am rechten Seitenrand (außerhalb des Textbereichs),
+                    // linksbündig – auch wenn die Teilaufgabe in einem schmaleren
+                    // Container (z. B. einer grid-Spalte) steht.
+                    let inhalt = align(left, text(fill: black, size: 0.88em, hyphenate: false)[#box(width: 2cm, [#format-punkte(teil: true, points)])])
+                    let rechts = _rechter-textrand()
+                    if rechts == none {
+                      place(right, dx: 2mm, box(width: 0cm, inhalt))
+                    } else {
+                      place(top + left, dx: rechts - here().position().x + 2mm, box(width: 0cm, inhalt))
+                    }
                   }
                 }
                 body
