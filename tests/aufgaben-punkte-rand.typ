@@ -2,5 +2,7 @@
 // Die Lage am Seitenrand lässt sich am Text nicht prüfen.
 // erwartet: \[2 BE\]
 #import "@schule/arbeitsblatt:0.4.0": *
-#show: arbeitsblatt.with(title: [T], print: true, punkte: (anzeige: "alle", position: "rand"))
+// Digitalfassung (1,75 cm Rand): Im Duplex-Druck ist der äußere Rand nur
+// 1,25 cm, mit Ersatzschriften ragt „[2 BE]“ dann über die Blattkante.
+#show: arbeitsblatt.with(title: [T], print: false, punkte: (anzeige: "alle", position: "rand"))
 #aufgabe[A][#grid(columns: (1fr, 1fr), [+ links #erwartung(2)[e]], [])]
