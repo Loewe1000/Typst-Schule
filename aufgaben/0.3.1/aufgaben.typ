@@ -115,6 +115,9 @@
 ///
 /// -> content
 #let reset-aufgaben() = {
+  // Marke VOR dem Zurücksetzen: Der Zustand an dieser Stelle ist der
+  // Endstand des vorherigen Blocks (siehe `_aufgaben-final`).
+  [#metadata("aufgaben-reset") <_aufgaben-reset>]
   _counter_aufgaben.update((0, 0))
   counter(figure.where(kind: "aufgabe")).update(0)
   counter(figure.where(kind: "teilaufgabe")).update(0)
@@ -301,6 +304,19 @@
   }
 }
 
+// Endstand der Aufgaben des aktuellen Blocks (bis zum nächsten
+// `reset-aufgaben()`), statt des Endstands des ganzen Dokuments. Damit
+// lesen mehrere Klassenarbeiten in einer Datei jeweils ihre eigenen BE.
+// Muss in einem `context`-Block aufgerufen werden.
+#let _aufgaben-final() = {
+  let naechste = query(selector(<_aufgaben-reset>).after(here()))
+  if naechste.len() > 0 {
+    _state_aufgaben.at(naechste.first().location())
+  } else {
+    _state_aufgaben.final()
+  }
+}
+
 // Helper functions
 /// Gibt die Gesamtpunktzahl einer Aufgabe oder Teilaufgabe zurück.
 ///
@@ -316,7 +332,7 @@
 /// - teil (integer): Teilaufgabennummer (1-basiert); `none` für Gesamtpunkte der Aufgabe. Default: `none`
 /// -> integer
 #let get-points(aufg, teil: none, idx: none) = {
-  let all = _state_aufgaben.final()
+  let all = _aufgaben-final()
   let current = if idx != none {
     if idx < 0 or idx >= all.len() { return 0 }
     all.at(idx)
@@ -345,7 +361,7 @@
 /// -> content
 #let show-erwartungen(grouped: false, new-page: false, erreicht: false) = {
   context {
-    let all = _state_aufgaben.final()
+    let all = _aufgaben-final()
     let opts = _state_options.get()
 
     // Erstelle Tabellenzeilen
@@ -505,7 +521,7 @@
     punkte = pos-args.at(0)
   }
   context {
-    let all = _state_aufgaben.final()
+    let all = _aufgaben-final()
     let opts = _state_options.get()
 
     if all.len() == 0 { return }
@@ -1078,6 +1094,8 @@
                     idx: curr_idx,
                   )
                   if points > 0 {
+                    // Mindestabstand zum Text, damit die BE nicht direkt am letzten Wort kleben
+                    h(1.5em)
                     h(1fr)
                     box(
                       align(
