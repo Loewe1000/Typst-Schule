@@ -1,5 +1,22 @@
 
 // Was ist items? Gibts da nicht schönere Variablennamen?
+/// Ein Feld, das sich wie `v(1fr)` den freien Platz der Seite mit anderen
+/// flexiblen Feldern teilt (`1fr`, `2fr` …). `zeichne` bekommt die
+/// tatsächliche Höhe. In `teilaufgabe(workspace: …)` holt das Aufgabenpaket
+/// solche Felder aus der Teilaufgabe heraus, damit sie mitteilen können.
+#let flex-feld(hoehe, zeichne) = block(
+  height: hoehe,
+  width: 100%,
+  breakable: false,
+  // Beim Ausmessen (unbegrenzte Höhe) erst einmal klein zeichnen
+  layout(size => zeichne(if size.height.pt() > 100000 { 1cm } else { size.height })),
+)
+
+/// Ist `inhalt` ein flexibles Feld (Block mit Bruchteilhöhe)?
+#let ist-flex-feld(inhalt) = (
+  type(inhalt) == content and inhalt.func() == block and type(inhalt.at("height", default: auto)) == fraction
+)
+
 /// Erstellt ein kariertes Schreibfeld.
 ///
 /// Zeichnet ein kariertes Raster mit optionalen Beschriftungen und Annotationen.
@@ -7,9 +24,11 @@
 ///
 /// ```typ
 /// #kariert(rows: 10, grid-size: 0.5cm)
+/// #kariert(rows: 1fr)   // teilt sich den freien Platz der Seite
 /// ```
 ///
-/// - rows (int): Anzahl der Zeilen. Standard: `1`.
+/// - rows (int, fraction): Anzahl der Zeilen, oder ein Bruchteil wie `1fr`:
+///   dann füllt das Feld (zusammen mit anderen `fr`-Feldern) den freien Platz. Standard: `1`.
 /// - width (length): Breite des Felds. Standard: `auto` (verfügbare Breite).
 /// - items (array): Liste von Einträgen, die im Raster platziert werden. Standard: `()`.
 /// - items-spacing (int): Zeilenabstand zwischen Items in Rastereinheiten. Standard: `2`.
@@ -45,6 +64,14 @@
     args.pos().at(1)
   } else {
     width
+  }
+
+  if type(effective-rows) == fraction {
+    return flex-feld(effective-rows, h => {
+      let zeilen = calc.max(1, calc.floor(h / grid-size))
+      kariert(rows: zeilen, width: effective-width, items: items, items-spacing: items-spacing, grid-size: grid-size,
+        annotations: annotations, line-stroke: line-stroke, fill-color: fill-color, content: content)
+    })
   }
 
   layout(size => {
@@ -113,9 +140,11 @@
 ///
 /// ```typ
 /// #liniert(rows: 5, line-height: 1cm)
+/// #liniert(rows: 2fr)   // teilt sich den freien Platz der Seite
 /// ```
 ///
-/// - rows (int): Anzahl der Zeilen. Standard: `1`.
+/// - rows (int, fraction): Anzahl der Zeilen, oder ein Bruchteil wie `1fr`
+///   (siehe `kariert`). Standard: `1`.
 /// - width (length): Breite des Felds. Standard: `auto` (verfügbare Breite).
 /// - items (array): Liste von Einträgen auf den Linien. Standard: `()`.
 /// - items-spacing (int): Abstand zwischen Items in Zeileneinheiten. Standard: `1`.
@@ -143,6 +172,20 @@
     args.pos().at(1)
   } else {
     width
+  }
+
+  if type(effective-rows) == fraction and items.len() == 0 {
+    // Die Linien verteilen sich gleichmäßig über die ganze Höhe des Felds,
+    // die letzte sitzt am unteren Rand - kein Rest bleibt leer.
+    return flex-feld(effective-rows, h => {
+      let n = calc.max(1, int(calc.round(h / line-height)))
+      let abstand = h / n
+      block(height: h, width: if effective-width != auto { effective-width } else { 100% }, {
+        for i in range(n) {
+          place(top + left, dy: abstand * (i + 1), line(length: 100%, stroke: line-stroke))
+        }
+      })
+    })
   }
 
   // Wenn items übergeben werden, Zeilenanzahl aus items und spacing berechnen

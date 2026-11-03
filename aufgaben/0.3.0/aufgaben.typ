@@ -716,6 +716,18 @@
   }
 }
 
+/// Ist der Arbeitsbereich ein flexibles Feld (`kariert(rows: 1fr)` o. Ä., ein
+/// Block mit Bruchteilhöhe)? Solche Felder setzt `teilaufgabe` nicht in die
+/// Abbildung, sondern dahinter in den Textfluss - nur dort teilen sie sich den
+/// freien Platz der Seite.
+#let _ist-flex-workspace(ws) = (
+  type(ws) == content and ws.func() == block and type(ws.at("height", default: auto)) == fraction
+)
+
+/// Seiten mit automatischer Höhe (Digitalfassung) haben keinen freien Platz
+/// zum Teilen: Dort bekommt ein flexibles Feld 3 cm je `fr` (braucht context).
+#let _flex-fest(ws) = block(height: ws.height / 1fr * 3cm, width: 100%, ws)
+
 // Main components
 /// Erstellt eine nummerierte Aufgabe.
 ///
@@ -860,7 +872,14 @@
   }
   // Workspace
   context if workspace != none and _state_options.get().workspaces and _state_options.get().loesungen != "nur" {
-    block(width: 100%, inset: (x: 0em, y: 0.5em))[#workspace]
+    if not _ist-flex-workspace(workspace) {
+      block(width: 100%, inset: (x: 0em, y: 0.5em))[#workspace]
+    } else if page.height == auto {
+      block(width: 100%, inset: (x: 0em, y: 0.5em), _flex-fest(workspace))
+    } else {
+      // im Textfluss, damit es sich den freien Platz mit anderen teilt
+      block(height: workspace.height, width: 100%, above: 0.5em, below: 0.5em, workspace)
+    }
   }
   // "sofort" materials
   context if _state_options.get().materialien in ("sofort", "seiten", "folgend") and _state_aufgaben.get().last().materialien.len() > 0 and _state_options.get().loesungen != "nur" {
@@ -1017,9 +1036,9 @@
                   }
                 }
               }
-              // Workspace
+              // Workspace (flexible Felder folgen nach der Abbildung)
               if not workspace in (none, false) and opts.workspaces {
-                workspace
+                if not _ist-flex-workspace(workspace) { workspace } else if page.height == auto { _flex-fest(workspace) }
               }
             })
           },
@@ -1037,6 +1056,10 @@
       place(hide(ta-fig))
     } else {
       ta-fig
+      if _ist-flex-workspace(workspace) and opts.workspaces and page.height != auto {
+        // eingerückt wie der Inhalt der Teilaufgabe
+        block(height: workspace.height, width: 100%, inset: (left: 1.6em), above: 0.4em, below: 0.6em, workspace)
+      }
     }
   }
   _state_in_teilaufgabe.update(false)
