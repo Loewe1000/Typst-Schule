@@ -221,14 +221,14 @@ Die Schulstufe bestimmt das Layout der Bögen:
 == Liniert und Korrekturrand
 
 Die Bögen sind kariert oder liniert; der Korrekturrand liegt standardmäßig
-*innen* an der Falz, geschrieben wird außen. Beides lässt sich einstellen:
+*außen* am Blattrand, geschrieben wird innen an der Falz. Beides lässt sich einstellen:
 
 #show-code(```typ
 #show: klassenarbeit.with(
   klausurboegen: (
     muster: "liniert",       // "kariert" (Standard) oder "liniert"
     linienabstand: 8mm,      // Zeilenabstand der Linierung
-    korrekturrand: "innen",  // "innen" (Standard) oder "aussen"
+    korrekturrand: "aussen", // "aussen" (Standard) oder "innen"
   ),
   // ...
 )

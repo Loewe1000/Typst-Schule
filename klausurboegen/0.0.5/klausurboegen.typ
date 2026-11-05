@@ -31,8 +31,8 @@
 /// - line-stroke (stroke): Strichstärke und Farbe der Linien. Standard: `1pt + rgb("FF0613")`.
 /// - muster (string): Schreibfeld `"kariert"` oder `"liniert"`. Standard: `"kariert"`.
 /// - linienabstand (length): Zeilenabstand bei `muster: "liniert"`. Standard: `8mm`.
-/// - korrekturrand (string): Lage des Korrekturrands, `"innen"` (an der Falz,
-///   geschrieben wird außen) oder `"aussen"` (am Blattrand). Standard: `"innen"`.
+/// - korrekturrand (string): Lage des Korrekturrands, `"aussen"` (am Blattrand,
+///   geschrieben wird innen an der Falz) oder `"innen"` (an der Falz). Standard: `"aussen"`.
 /// -> content
 #let klausurbögen(
   exam: "",
@@ -54,7 +54,7 @@
   line-stroke: 1pt + rgb("FF0613"),
   muster: "kariert",
   linienabstand: 8mm,
-  korrekturrand: "innen",
+  korrekturrand: "aussen",
 ) = [
   #assert(muster in ("kariert", "liniert"), message: "klausurbögen: muster muss \"kariert\" oder \"liniert\" sein, nicht " + repr(muster))
   #let korrekturrand = if korrekturrand == "außen" { "aussen" } else { korrekturrand }

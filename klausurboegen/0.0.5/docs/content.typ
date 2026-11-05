@@ -12,7 +12,7 @@ Besonderheiten:
 - A3 quer, kein Seitenrand (randlos für professionellen Druck).
 - Personalisierte Kopfzeile mit Name, Klasse, Lehrkraft und Datum.
 - Wahlweise kariertes oder liniertes Schreibfeld (`muster`).
-- Korrekturrand innen an der Falz (Standard) oder außen am Blattrand (`korrekturrand`).
+- Korrekturrand außen am Blattrand (Standard) oder innen an der Falz (`korrekturrand`).
 - Sek-I-Modus mit vereinfachtem Layout.
 - Optionale Ergebnistabelle für Teilaufgaben.
 - Benötigt die Schriftart *Myriad Pro*.
@@ -81,8 +81,8 @@ Mit `result-table: true` wird eine Tabelle für Punkte pro Teilaufgabe eingefüg
 == Liniert und Korrekturrand
 
 Mit `muster: "liniert"` ist das Schreibfeld liniert statt kariert. Der
-Korrekturrand liegt standardmäßig *innen* an der Falz, damit außen geschrieben
-wird; `korrekturrand: "aussen"` legt ihn wie früher an den Blattrand.
+Korrekturrand liegt standardmäßig *außen* am Blattrand, geschrieben wird innen
+an der Falz; `korrekturrand: "innen"` legt ihn an die Falz.
 
 #show-code[```typ
 #klausurbögen(
@@ -92,7 +92,7 @@ wird; `korrekturrand: "aussen"` legt ihn wie früher an den Blattrand.
   date: "12.10.2026",
   muster: "liniert",       // "kariert" (Standard) oder "liniert"
   linienabstand: 8mm,      // Zeilenabstand der Linierung
-  korrekturrand: "innen",  // "innen" (Standard) oder "aussen"
+  korrekturrand: "aussen", // "aussen" (Standard) oder "innen"
 )
 ```]
 
@@ -151,7 +151,7 @@ Mit `rand: true` werden Aufgaben zufällig auf die Bögen verteilt (Varianten A/
   line-stroke: 1pt + rgb("FF0613"),  // stroke: Farbe und Stärke der Korrekturlinien
   muster: "kariert",   // str: "kariert" oder "liniert"
   linienabstand: 8mm,  // length: Zeilenabstand bei muster: "liniert"
-  korrekturrand: "innen",  // str: "innen" (an der Falz) oder "aussen" (am Blattrand)
+  korrekturrand: "aussen", // str: "aussen" (am Blattrand) oder "innen" (an der Falz)
 )
 ```]
 

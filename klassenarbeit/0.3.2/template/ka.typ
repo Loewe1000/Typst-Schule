@@ -11,7 +11,7 @@
   erwartungen: (erreicht: true), // true, false oder Einstellungen für show-erwartungen; erreicht: „_ / X“ zum Eintragen
   klausurboegen: (
     muster: "kariert", // kariert, liniert
-    korrekturrand: "innen", // innen (an der Falz), aussen
+    korrekturrand: "aussen", // aussen (am Blattrand), innen (an der Falz)
   ),
   // Bundle-Export (typst compile --features bundle --format bundle) erzeugt
   // automatisch "{Titel}.pdf" und "{Titel} - Lösung.pdf"; mit

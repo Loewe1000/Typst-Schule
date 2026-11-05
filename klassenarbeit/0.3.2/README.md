@@ -67,7 +67,7 @@ sein.
 ## Neu in 0.3.2
 
 - Klausurbögen liniert: `klausurboegen: (muster: "liniert")`, Zeilenabstand mit `linienabstand`
-- Korrekturrand der Klausurbögen standardmäßig innen an der Falz (`korrekturrand: "innen" | "aussen"`)
+- Korrekturrand der Klausurbögen standardmäßig außen am Blattrand (`korrekturrand: "aussen" | "innen"`)
 - `erwartungen` nimmt Einstellungen für `show-erwartungen()`, z. B.
   `erwartungen: (erreicht: true)` für „_ / X“ zum Eintragen der Punkte
 
