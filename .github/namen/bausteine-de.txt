@@ -1,0 +1,47 @@
+# bausteine-de.txt – die deutschen Bausteine (konvention.md 2.1a), abschließend.
+# Eine Zeile je Funktionsname. Ein Name gilt als Ganzes; neue Bausteine nur
+# nach dem Bausteintest (konvention.md 2.1) und mit Zeile in wortpaare.json.
+# Kern (13)
+arbeitsblatt
+arbeitsblatt-einzeln
+klassenarbeit
+aufgabe
+teilaufgabe
+teilaufgaben
+loesung
+erwartung
+lsg
+luecke
+kariert
+liniert
+klausurboegen
+# mathematik (3)
+graphen
+steckbrief
+kreisdiagramm
+# physik (12)
+datensatz
+messdaten
+berechnung
+messwerttabelle
+lineare-regression
+quadratische-regression
+wurzel-regression
+exponentielle-regression
+potenz-regression
+polynom-regression
+schaltkreis
+konstante
+# informatik (1)
+haeufigkeitsanalyse
+# operatoren (1)
+operatoren-liste
+# Hilfspakete, aus der Umsetzung 0.5.0 (Bausteintest konvention.md 2.1; die
+# Zeilen in wortpaare.json und word-pairs von check.typ stehen noch aus)
+# typlace (2)
+sitzordnung
+wunschliste
+# angela (1)
+brief
+# gutachten (1)
+gutachten

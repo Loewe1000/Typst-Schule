@@ -1,0 +1,11 @@
+#import "@schule/schuldocs:0.3.1": docs
+
+#show: docs.with(
+  toml: toml("../typst.toml"),
+  authors: ("Alexander Schulz",),
+  abstract: [Das `insert-a-word`-Paket setzt Lückentexte: Markierte Wörter werden zu Lücken und erscheinen gemischt als farbige Wortkästen über dem Text.],
+  links: ((name: "GitHub", url: "https://github.com/Loewe1000/Typst-Schule"),),
+  notices: ([Entwickelt für das Schule-Typst-Ökosystem],),
+)
+
+#include "content.typ"

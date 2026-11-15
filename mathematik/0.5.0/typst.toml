@@ -1,0 +1,9 @@
+[package]
+name = "mathematik"
+version = "0.5.0"
+entrypoint = "src/lib.typ"
+compiler = "0.15.0"
+
+description = "Mathematikunterricht in Typst: Funktionsgraphen im Koordinatensystem mit Flächen, Punkten und Messreihen, Steckbriefaufgaben mit Gleichungssystem und Funktionsgleichung, Kreisdiagramme und die nachgebildete Algebra-Ansicht von GeoGebra."
+license = "MIT"
+repository = "https://github.com/Loewe1000/Typst-Schule"

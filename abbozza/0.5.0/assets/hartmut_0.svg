@@ -1,0 +1,95 @@
+<svg viewBox="-80 -160 160 320" xmlns="http://www.w3.org/2000/svg">
+    <g id="hathi" transform="scale(1,1)">
+      <!-- right ear -->
+      <g transform="skewY(0)">
+        <path d="M 45 -64 s 24 -32 0 48 z"
+          stroke="#ed6495" fill="#ed6495"
+          stroke-width="1"
+          stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+  
+      <!-- background -->
+      <g>
+        <path d="M 0 22 l 48 -24 l 0 -64 l -48 -24 l -48 24 l 0 64 z" 
+          stroke-width="5" stroke-linejoin="round"
+          stroke="#fd84b5" fill="#fd84b5"
+        />
+        <path d="M 20 13 l 10 -5 l 0 -30 l -10 5 z"
+          stroke-width="1" stroke-linejoin="round"
+          stroke="#bd3465" fill="#bd3465"
+        />
+        <path d="M -20 13 l -10 -5 l 0 -30 l 10 5 z"
+          stroke-width="1" stroke-linejoin="round"
+          stroke="#bd3465" fill="#bd3465"
+        />
+      </g>
+  
+      <!-- face -->
+      <g transform="skewY(-26.5)">
+        <rect x="1" y="-42" width="48" height="48" rx="2" ry="2" fill="#ed6495"/>
+        <rect x="1" y="0" width="22" height="24" rx="2" ry="2" fill="#ed6495"/>
+        <rect x="27" y="0" width="22" height="24" rx="2" ry="2" fill="#ed6495"/>          
+        <!-- eyes -->
+        <g>
+          <ellipse cx="12.5" cy="-30" rx="5" ry="5" fill="white" stroke="white"/>
+          <ellipse cx="12.5" cy="-28" rx="2" ry="2" fill="black" stroke="black"/>
+        </g>
+        <g>
+          <ellipse cx="40.5" cy="-30" rx="5" ry="5" fill="white" stroke="white"/>
+          <ellipse cx="40.5" cy="-28" rx="2" ry="2" fill="black" stroke="black"/>
+        </g>
+      </g>
+  
+      <!-- side -->
+      <g transform="skewY(26.5)">
+        <rect x="-49" y="-42" width="48" height="48" rx="2" ry="2" fill="#dd5485"/>
+        <rect x="-49" y="0" width="22" height="24" rx="2" ry="2" fill="#dd5485"/>
+        <rect x="-23" y="0" width="22" height="24" rx="2" ry="2" fill="#dd5485"/>          
+      </g>
+  
+      <!-- left ear -->
+      <g>
+        <path d="M -5 -42 s -54 -6 0 48 z"
+          stroke="#bd3465" fill="#bd3465"
+          stroke-width="1"
+          stroke-linecap="round" stroke-linejoin="round"/>  
+        <path d="M -5 -42 s -48 0 0 48 z"
+          stroke="#ed6495" fill="#ed6495"
+          stroke-width="1"
+          stroke-linecap="round" stroke-linejoin="round"/> 
+      </g>
+  
+      <!-- top -->
+      <g>
+        <path d="M 0 -45 l 46 -23 l -46 -23 l -46 23 z" 
+          stroke-width="1" stroke-linejoin="round"
+          stroke="#fd74a5" fill="#fd74a5"
+        />
+        <path d="M 18 -61 l 0 -10"
+          stroke-width="3" stroke-linejoin="round" stroke-linecap="round"
+          stroke="black" fill="black"/>
+        <path d="M 22 -63 a 20 20 0 0 1 2 -10"
+          stroke-width="3" stroke-linejoin="round" stroke-linecap="round"
+          stroke="black" fill="black"/>
+        <path d="M 14 -59 a 20 20 0 0 0 -2 -10"
+          stroke-width="3" stroke-linejoin="round" stroke-linecap="round"
+          stroke="black" fill="black"/>
+      </g>
+  
+      <!-- trunk -->
+      <g>
+        <path d="M 26.5 -38 a 40 30 0 0 1 0 24 a 30 30 0 0 0 0 12"
+          stroke="#cd4475" fill="none"
+          stroke-width="10"
+          stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M 30.5 -38 a 40 30 0 0 1 0 24 a 30 30 0 0 0 0 12"
+          stroke="#fd84b5" fill="none"
+          stroke-width="10"
+          stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M 28.5 -38 a 40 30 0 0 1 0 24 a 30 30 0 0 0 0 12"
+          stroke="#ed6495" fill="none"
+          stroke-width="10"
+          stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+    </g>
+  </svg>

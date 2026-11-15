@@ -1,0 +1,9 @@
+[package]
+name = "informatik"
+version = "0.5.0"
+entrypoint = "src/lib.typ"
+compiler = "0.15.0"
+
+description = "Werkzeuge für den Informatikunterricht: Caesar, Vigenère, Atbash und ROT13, Häufigkeitsanalyse mit Diagramm, Umwandlung zwischen Binär-, Dezimal- und Hexadezimalzahlen, ASCII-Tabelle."
+license = "MIT"
+repository = "https://github.com/Loewe1000/Typst-Schule"

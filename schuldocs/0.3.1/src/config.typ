@@ -1,0 +1,123 @@
+// schuldocs — gemeinsame Grundwerte
+//
+// Farben, Maße, Schriften und der Ausgabe-Zustand. Dieses Modul hat keine
+// Abhängigkeiten und darf von allen anderen Modulen geladen werden.
+
+/// Version des Pakets.
+#let version = "0.3.0"
+
+// ─── Wörter der Vorlage ─────────────────────────────────────────────────────
+//
+// Die Seite hat einige wenige eigene Wörter: das Inhaltsverzeichnis, der
+// Zusatz im Fenstertitel, die Überschriften der Hinweiskästen. Sie folgen
+// `text.lang` statt fest deutsch zu sein, sonst trägt ein englisches Handbuch
+// deutsches Beiwerk.
+#let _woerter = (
+  de: (contents: "Inhalt", docs: "Dokumentation",
+       tip: "Tipp", info: "Hinweis", warning: "Achtung",
+       caution: "Vorsicht", note: "Notiz",
+       authors: "Autoren", license: "Lizenz", links: "Verweise",
+       typeset: "Mit Typst gesetzt",
+       version: "Version", versions: "Versionen", choose-version: "Version wählen",
+       newest: "aktuell", outdated: "Dies ist eine ältere Version",
+       to-newest: "zur aktuellen Version", overview: "Übersicht",
+       manual-pdf: "Handbuch (PDF)", examples: "Beispiele"),
+  en: (contents: "Contents", docs: "Documentation",
+       tip: "Tip", info: "Note", warning: "Careful",
+       caution: "Caution", note: "Aside",
+       authors: "Authors", license: "License", links: "Links",
+       typeset: "Typeset with Typst",
+       version: "Version", versions: "Versions", choose-version: "Choose a version",
+       newest: "latest", outdated: "This is an older version",
+       to-newest: "go to the latest version", overview: "Overview",
+       manual-pdf: "Manual (PDF)", examples: "Examples"),
+  fr: (contents: "Sommaire", docs: "Documentation",
+       tip: "Astuce", info: "Remarque", warning: "Attention",
+       caution: "Prudence", note: "Note",
+       authors: "Auteurs", license: "Licence", links: "Liens",
+       typeset: "Composé avec Typst",
+       version: "Version", versions: "Versions", choose-version: "Choisir une version",
+       newest: "actuelle", outdated: "Ceci est une ancienne version",
+       to-newest: "vers la version actuelle", overview: "Aperçu",
+       manual-pdf: "Manuel (PDF)", examples: "Exemples"),
+)
+
+/// Ein Wort der Vorlage in der Sprache des Dokuments.
+///
+/// Nur in `context` aufrufbar, weil `text.lang` erst dort feststeht.
+#let word(key) = {
+  let l = _woerter.at(text.lang, default: _woerter.de)
+  l.at(key, default: _woerter.de.at(key))
+}
+
+// ─── Ausgabe-Zustand ────────────────────────────────────────────────────────
+
+// Welche Ausgabe gerade gesetzt wird. `docs()` setzt den Wert zu Beginn jedes
+// Dokuments; er ist auch innerhalb von `html.frame` verlässlich, anders als
+// `target()`, das dort fälschlich `"paged"` meldet.
+#let target-state = state("schuldocs-target", "pdf")
+
+/// Liefert die gerade gesetzte Ausgabe: `"web"` oder `"pdf"`.
+///
+/// Muss innerhalb von `context` stehen, weil der Wert aus einem Zustand kommt.
+/// Verlässlich auch innerhalb von `html.frame` — im Unterschied zu `target()`.
+///
+/// ```typ
+/// #context {
+///   if doc-target() == "web" { html.frame(zeichnung) } else { zeichnung }
+/// }
+/// ```
+/// -> string
+#let doc-target() = target-state.get()
+
+// Weiche für die Bausteine der Vorlage (`show-example`, `show-code`, Kästen,
+// API-Referenz): `true` auf der Website. `target()` steht schon im ersten
+// Layout-Durchlauf fest; der Zustand `target-state` wird erst im zweiten
+// bekannt und kostete jedes Beispiel einen der fünf Durchläufe, die Typst
+// einem Dokument gibt (ab 0.3.1). Der Zustand bleibt als zweite Bedingung,
+// weil `target()` innerhalb von `html.frame` "paged" meldet. Braucht `context`.
+#let is-web() = target() == "html" or target-state.get() == "web"
+
+// Marke am Anfang des PDF-Dokuments. Beide Ausgaben liegen in einem einzigen
+// Introspektions-Raum: `query(heading)` sieht die Überschriften beider
+// Durchgänge. Über diese Marke trennt sich, was zu welcher Ausgabe gehört —
+// die Website fragt `.before(…)`, das Handbuch `.after(…)`.
+#let pdf-mark = <schuldocs-pdf-anfang>
+
+// ─── Farben ─────────────────────────────────────────────────────────────────
+
+// Ruhige, sachliche Farbwelt. Der Akzent ist dasselbe Blau, das die alte
+// Web-Dokumentation für Überschriften benutzt hat.
+#let colors = (
+  ink: rgb("#16191d"), // Fließtext
+  muted: rgb("#5b6670"), // Nebentext, Kopf- und Fußzeile
+  accent: rgb("#14537f"), // Überschriften, Verweise
+  accent-deep: rgb("#0c4a6e"), // Titelseite, Betonung
+  rule: rgb("#d5dbe1"), // Linien
+  surface: rgb("#f4f6f8"), // Flächen hinter Quelltext
+  surface-edge: rgb("#e3e8ed"), // Rand dieser Flächen
+)
+
+// ─── Schriften ──────────────────────────────────────────────────────────────
+
+// Die letzte Angabe jeder Kette ist eine von Typst mitgelieferte Schrift,
+// damit das Handbuch überall gleich baut.
+#let fonts = (
+  serif: ("Libertinus Serif",),
+  sans: ("Inter", "Source Sans 3", "Noto Sans", "Helvetica Neue", "Libertinus Serif"),
+  mono: ("DejaVu Sans Mono",),
+)
+
+// ─── Maße ───────────────────────────────────────────────────────────────────
+
+#let sizes = (
+  paper: "a4",
+  margin: (top: 2.6cm, bottom: 2.4cm, x: 2.6cm),
+  text: 10.5pt,
+  leading: 0.72em,
+  par-spacing: 1.1em,
+  code: 0.92em,
+)
+
+// Name der Stilvorlage neben der Website.
+#let css-name = "docs.css"

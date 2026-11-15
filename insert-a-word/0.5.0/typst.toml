@@ -1,0 +1,10 @@
+[package]
+name = "insert-a-word"
+version = "0.5.0"
+entrypoint = "src/lib.typ"
+compiler = "0.15.0"
+authors = ["Alexander Schulz"]
+exclude = ["*.pdf", "examples/"]
+description = "Lückentexte mit Wortbank: markierte Wörter werden zu Lücken und erscheinen gemischt als farbige Wortkästen über dem Text."
+license = "MIT"
+repository = "https://github.com/Loewe1000/Typst-Schule"

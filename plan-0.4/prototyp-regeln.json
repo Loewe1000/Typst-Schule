@@ -1,0 +1,4 @@
+{"parameter": {
+  "arbeitsblatt": {"loesungen": {"name": "solutions", "werte": {"\"false\"": "\"none\"", "false": "\"none\"", "\"keine\"": "\"none\"", "\"sofort\"": "\"inline\""}}, "punkte": "points", "materialien": "materials", "aufgaben-shortcodes": "task-shortcodes", "teilaufgabe-numbering": "subtask-numbering"},
+  "aufgabe": {"title": "titel"}},
+ "namen": {"show-loesungen": "solutions", "loesung": "solution", "lücke": "gap"}}
