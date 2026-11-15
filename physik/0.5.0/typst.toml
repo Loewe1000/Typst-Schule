@@ -1,0 +1,9 @@
+[package]
+name = "physik"
+version = "0.5.0"
+entrypoint = "src/lib.typ"
+compiler = "0.15.0"
+
+description = "Physikunterricht in Typst: Messwerttabellen aus Datensätzen, berechnete Messreihen, sechs Regressionen mit gesetzter Gleichung, Schaltzeichen für Schaltkreise und eine Sammlung von Naturkonstanten."
+license = "MIT"
+repository = "https://github.com/Loewe1000/Typst-Schule"

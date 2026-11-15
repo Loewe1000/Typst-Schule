@@ -1,0 +1,2 @@
+# bausteine-de-zusatz.txt – neue deutsche Bausteine aus der Umsetzung 0.5.0 (Bausteintest konvention.md 2.1), je Zeile ein Funktionsname.
+# Stand Gesamtabnahme 2026-11-15: brief, sitzordnung, wunschliste stehen jetzt in bausteine-de.txt.

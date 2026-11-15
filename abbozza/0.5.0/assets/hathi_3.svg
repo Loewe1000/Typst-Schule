@@ -1,0 +1,101 @@
+<svg viewBox="-80 -160 160 320" xmlns="http://www.w3.org/2000/svg">
+    <g id="hathi" transform="scale(-1,1)">
+      <!-- right ear -->
+      <g transform="skewY(0)">
+        <path d="M 5 -64 s 24 32 0 48 z"
+          stroke="#6495ed" fill="#6495ed"
+          stroke-width="1"
+          stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+  
+      <!-- background -->
+      <g>
+        <path d="M 0 22 l 48 -24 l 0 -64 l -48 -24 l -48 24 l 0 64 z" 
+          stroke-width="5" stroke-linejoin="round"
+          stroke="#84b5fd" fill="#84b5fd"
+        />
+        <path d="M 20 13 l 10 -5 l 0 -30 l -10 5 z"
+          stroke-width="1" stroke-linejoin="round"
+          stroke="#3465bd" fill="#3465bd"
+        />
+        <path d="M -20 13 l -10 -5 l 0 -30 l 10 5 z"
+          stroke-width="1" stroke-linejoin="round"
+          stroke="#3465bd" fill="#3465bd"
+        />
+      </g>
+  
+      <!-- face -->
+      <g transform="skewY(-26.5)">
+        <rect x="1" y="-42" width="48" height="48" rx="2" ry="2" fill="#6495ed"/>
+        <rect x="1" y="0" width="22" height="24" rx="2" ry="2" fill="#6495ed"/>
+        <rect x="27" y="0" width="22" height="24" rx="2" ry="2" fill="#6495ed"/>          
+      </g>
+  
+      <!-- side -->
+      <g transform="skewY(26.5)">
+        <rect x="-49" y="-42" width="48" height="48" rx="2" ry="2" fill="#5485dd"/>
+        <rect x="-49" y="0" width="22" height="24" rx="2" ry="2" fill="#5485dd"/>
+        <rect x="-23" y="0" width="22" height="24" rx="2" ry="2" fill="#5485dd"/>          
+      </g>
+  
+      <!-- top -->
+      <g>
+        <path d="M 0 -45 l 46 -23 l -46 -23 l -46 23 z" 
+          stroke-width="1" stroke-linejoin="round"
+          stroke="#74a5fd" fill="#74a5fd"
+        />
+        <path d="M -18 -76 l 0 -10"
+          stroke-width="3" stroke-linejoin="round" stroke-linecap="round"
+          stroke="black" fill="black"/>
+        <path d="M -14 -78 a 20 20 0 0 1 2 -10"
+          stroke-width="3" stroke-linejoin="round" stroke-linecap="round"
+          stroke="black" fill="black"/>
+        <path d="M -22 -74 a 20 20 0 0 0 -2 -10"
+          stroke-width="3" stroke-linejoin="round" stroke-linecap="round"
+          stroke="black" fill="black"/>
+      </g>
+  
+      <!-- left ear -->
+      <g>
+        <path d="M -45 -62 s 48 12 0 48 z"
+          stroke="#3465bd" fill="#3465bd"
+          stroke-width="1"
+          stroke-linecap="round" stroke-linejoin="round"/>  
+        <path d="M -45 -62 s 32 10 0 48 z"
+          stroke="#6495ed" fill="#6495ed"
+          stroke-width="1"
+          stroke-linecap="round" stroke-linejoin="round"/> 
+      </g>
+  
+      <!-- trunk -->
+      <g>
+        <path d="M 26.5 -38 a 40 30 0 0 1 0 24 a 30 30 0 0 0 0 12"
+          stroke="#4475cd" fill="none"
+          stroke-width="5"
+          stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M 30.5 -38 a 40 30 0 0 1 0 24 a 30 30 0 0 0 0 12"
+          stroke="#84b5fd" fill="none"
+          stroke-width="5"
+          stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M 28.5 -38 a 40 30 0 0 1 0 24 a 30 30 0 0 0 0 12"
+          stroke="#6495ed" fill="none"
+          stroke-width="5"
+          stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M 28.5 2 l 0 -5" 
+          stroke-width="3" stroke="black"
+          stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M 30.5 2 l -1 -5" 
+          stroke-width="3" stroke="black"
+          stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M 26.5 2 l 1 -5" 
+          stroke-width="3" stroke="black"
+          stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M 32.5 2 l -1 -5" 
+          stroke-width="3" stroke="black"
+          stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M 24.5 2 l 1 -5" 
+          stroke-width="3" stroke="black"
+          stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+    </g>
+  </svg>

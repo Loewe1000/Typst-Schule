@@ -1,0 +1,15 @@
+<svg viewBox="-80 -160 160 320" xmlns="http://www.w3.org/2000/svg">
+    <g>
+      <!-- base -->
+      <g>
+        <path d="M 0 32 l 64 -32 l 0 8 l -64 32 l -64 -32 l 0 -8 z" fill="#61B0FF" stroke="black" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+        <path d="M 0 32 l 64 -32 l -64 -32 l -64 32 z" fill="#61B0FF" stroke="black" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+        <path d="M 0 32 l 0 8" fill="#61B0FF" stroke="black" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      </g>
+      <!--
+      <g>
+        <path d="M 0 32 l 64 -32 l -64 -32 l -64 32 z" stroke="black" fill="transparent"/>
+      </g>
+      -->
+    </g>
+  </svg>

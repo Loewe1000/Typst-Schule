@@ -1,0 +1,15 @@
+# fremdnamen.txt – bewusst weitergereichte Fremdnamen (konvention.md 7.1).
+# Nur arbeitsblatt (und über arbeitsblatt klassenarbeit) reicht sie weiter.
+# cetz
+canvas
+draw
+# cetz-plot
+plot
+# Einheiten-Wrapper
+qty
+num
+unit
+# colorful-boxes
+stickybox
+# fontawesome
+fa-icon

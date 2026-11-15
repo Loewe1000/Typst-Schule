@@ -1,0 +1,32 @@
+# zwillinge.txt – englische Zwillinge der Bausteine (konvention.md 10, L27c).
+# Keiner dieser Namen darf als Funktion exportiert werden.
+worksheet
+worksheet-single
+exam
+task
+subtask
+subtasks
+solution
+expectation
+inline-solution
+blank
+squares
+lines
+answer-sheets
+graph
+function-profile
+pie-chart
+dataset
+measurements
+derived
+measurement-table
+linear-regression
+quadratic-regression
+root-regression
+exponential-regression
+power-regression
+polynomial-regression
+circuit
+constant
+frequency-analysis
+operator-overview

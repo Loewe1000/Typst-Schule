@@ -1,0 +1,37 @@
+# names.txt – Eigennamen und Lehnwörter (konvention.md 2.2 und 2.1).
+# Als Segment erlaubt; Einträge mit Bindestrich gelten nur als ganzer Name.
+# Themes und Logo
+angela
+atlas
+bauhaus
+klar
+kontur
+labor
+leiste
+riso
+skizze
+# Chiffren
+atbash
+caesar
+rot13
+vigenere
+# Produkte und Kürzel
+geogebra
+iaword
+# Niveau und Papier
+ea
+ga
+a3
+a4
+a5
+# ganze Werte
+sek-1
+sek-2
+# Fremdvokabular von zap (Zeichenbefehle in `schaltkreis`, konvention.md 2.1 und Anhang B)
+source
+lamp
+multimeter
+ammeter
+voltmeter
+motor
+generator

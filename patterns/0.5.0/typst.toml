@@ -1,0 +1,13 @@
+[package]
+name = "patterns"
+version = "0.5.0"
+entrypoint = "src/lib.typ"
+compiler = "0.15.0"
+authors = ["Lukas Köhl", "Alexander Schulz"]
+description = "Karierte und linierte Schreibfelder für Arbeitsblätter, Klassenarbeiten und Klausurbögen: feste Zeilenzahl, feste Höhe oder flexible Felder, die sich den freien Platz der Seite teilen."
+license = "MIT"
+repository = "https://github.com/Loewe1000/Typst-Schule"
+exclude = ["docs"]
+keywords = ["schule", "kariert", "liniert", "arbeitsblatt"]
+categories = ["components", "layout"]
+disciplines = ["education"]

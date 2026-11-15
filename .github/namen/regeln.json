@@ -1,0 +1,3715 @@
+{
+ "_format": [
+  "Regeln für .github/scripts/umstellen.py (Codemod alt -> 0.5.0). Quelle: plan-0.4/tabelle-*.md und die",
+  "renamed-/removed-Tabellen in <paket>/0.5.0/src; bei Widerspruch gilt der Code.",
+  "pakete: Umfang; untergrenze = kleinste Quellversion, die umgestellt wird (darunter nur Bericht);",
+  "  reicht-weiter = Pakete, deren Namen die alte Version über `*` mitlieferte.",
+  "funktionen: <paket> -> alter Name -> neuer Name oder {neu, argumente} (argumente wird vorn in den Aufruf gesetzt).",
+  "parameter: <paket>.<alte funktion> -> alter Parameter -> neuer Parameter.",
+  "werte: <paket>.<alte funktion>.<alter parameter> -> alter Wert (Typst-Literal) -> neuer Wert,",
+  "  null (Argument löschen: der Wert ist die Vorgabe oder nicht mehr erlaubt) oder {parameter: wert, …} (mehrere Optionen).",
+  "schluessel: <paket>.<alte funktion>.<alter parameter> -> {schluessel, werte, entfernt, eintraege};",
+  "  Schlüssel eines Dictionary-Literals (eintraege: true = Array aus Dictionaries bzw. Dictionary aus Dictionaries).",
+  "entfernt: <paket>.<alte funktion>.<alter parameter> -> {hinweis, loeschen}; loeschen: true = Argument war wirkungslos.",
+  "entfernte-namen: <paket> -> Name -> Hinweis (kein Nachfolger, nur Bericht).",
+  "vorgaben: <paket>.<alte funktion>.<alter parameter> -> alter Wert -> ausgeschriebener neuer Wert, wo `werte` das Argument löscht;",
+  "  gebraucht für Literale hinter `default:` in berechneten Werten (`sys.inputs.at(\"loesungen\", default: \"keine\")`).",
+  "positional: <paket>.<alte funktion> -> {namen, ab}: Positionsargumente, die jetzt benannt sind (null = bleibt Positionsargument);",
+  "  angewandt ab `ab` Positionsargumenten.",
+  "rueckgabe: <paket>.<alte funktion> -> altes Feld -> neues Feld (null = entfällt) für `#let v = funktion(…)` und `v.feld`",
+  "  sowie `funktion(…).feld`; Unterebenen unter <paket>.<funktion>>feld.",
+  "weggefallen: <paket> -> Gruppen von Namen, die die alte Version über `*` weiterreichte und 0.5.0 nicht mehr;",
+  "  import = Importzeile, die der Codemod ergänzt; sonst nur Bericht.",
+  "kontextregeln: Regeln nach konvention.md 9.2, die keine reine Namensersetzung sind; werkzeug sagt,",
+  "  ob umstellen.py sie ausführt (automatisch) oder nur meldet (bericht)."
+ ],
+ "ziel": "0.5.0",
+ "pakete": {
+  "arbeitsblatt": {
+   "untergrenze": "0.2.3",
+   "reicht-weiter": [
+    "aufgaben",
+    "patterns",
+    "mathematik",
+    "physik",
+    "informatik",
+    "operatoren",
+    "insert-a-word",
+    "energy-sketch"
+   ]
+  },
+  "klassenarbeit": {
+   "untergrenze": "0.1.2",
+   "reicht-weiter": [
+    "arbeitsblatt",
+    "klausurboegen",
+    "aufgaben",
+    "patterns",
+    "mathematik",
+    "physik",
+    "informatik",
+    "operatoren",
+    "insert-a-word",
+    "energy-sketch"
+   ]
+  },
+  "aufgaben": {
+   "untergrenze": "0.1.0",
+   "reicht-weiter": []
+  },
+  "klausurboegen": {
+   "untergrenze": null,
+   "reicht-weiter": [
+    "patterns"
+   ]
+  },
+  "patterns": {
+   "untergrenze": null,
+   "reicht-weiter": []
+  },
+  "mathematik": {
+   "untergrenze": null,
+   "reicht-weiter": []
+  },
+  "physik": {
+   "untergrenze": null,
+   "reicht-weiter": []
+  },
+  "informatik": {
+   "untergrenze": null,
+   "reicht-weiter": []
+  },
+  "operatoren": {
+   "untergrenze": null,
+   "reicht-weiter": []
+  },
+  "insert-a-word": {
+   "untergrenze": null,
+   "reicht-weiter": []
+  },
+  "energy-sketch": {
+   "untergrenze": null,
+   "reicht-weiter": []
+  },
+  "typlace": {
+   "untergrenze": null,
+   "reicht-weiter": []
+  },
+  "summify": {
+   "untergrenze": null,
+   "reicht-weiter": []
+  },
+  "gutachten": {
+   "untergrenze": null,
+   "reicht-weiter": []
+  },
+  "flashcards": {
+   "untergrenze": null,
+   "reicht-weiter": []
+  },
+  "angela": {
+   "untergrenze": null,
+   "reicht-weiter": []
+  },
+  "abbozza": {
+   "untergrenze": null,
+   "reicht-weiter": []
+  }
+ },
+ "funktionen": {
+  "aufgaben": {
+   "reset-aufgaben": "reset-tasks",
+   "show-loesungen": "show-solutions",
+   "show-offene-loesungen": {
+    "neu": "show-solutions",
+    "argumente": "select: \"pending\""
+   },
+   "show-materialien": "show-materials",
+   "show-erwartungen": "show-expectations",
+   "show-bewertung": "show-points-table",
+   "format-punkte": "format-points"
+  },
+  "arbeitsblatt": {
+   "lücke": "luecke",
+   "loesungsmodus": "has-solutions",
+   "tasks": "teilaufgaben",
+   "print-pagebreak": {
+    "neu": "conditional-pagebreak",
+    "argumente": "print: true"
+   },
+   "non-print-pagebreak": {
+    "neu": "conditional-pagebreak",
+    "argumente": "print: false"
+   },
+   "qrbox": "qr-box",
+   "fachfarben": "subject-accents",
+   "fachnamen": "subject-names",
+   "kasten-stil": "callout-style"
+  },
+  "klausurboegen": {
+   "klausurbögen": "klausurboegen"
+  },
+  "patterns": {
+   "flex-feld": "flex-area",
+   "ist-flex-feld": "is-flex-area"
+  },
+  "mathematik": {
+   "tasks": "teilaufgaben"
+  },
+  "physik": {
+   "lineare_regression": "lineare-regression",
+   "quadratische_regression": "quadratische-regression",
+   "wurzel_regression": "wurzel-regression",
+   "exponentielle_regression": "exponentielle-regression",
+   "potenz_regression": "potenz-regression",
+   "polynom_regression": "polynom-regression",
+   "simple-source": "source",
+   "amperemeter": "ammeter",
+   "pk": "constants"
+  },
+  "informatik": {
+   "bin2dec": "bin-to-dec",
+   "dec2bin": "dec-to-bin",
+   "hex2dec": "hex-to-dec",
+   "dec2hex": "dec-to-hex",
+   "häufigkeitsanalyse": "haeufigkeitsanalyse"
+  },
+  "insert-a-word": {
+   "iaword-neu": "reset-iaword"
+  },
+  "typlace": {
+   "sitzplan-bericht": "seating-report",
+   "sitzplan-kennzahlen": "seating-summary",
+   "standard-gewichte": "default-weights"
+  },
+  "summify": {
+   "content": "cell",
+   "cols": "cell-columns",
+   "rows": "cell-rows",
+   "compose": "cell-grid",
+   "update-theme": "set-theme-overrides"
+  },
+  "gutachten": {
+   "set-gutachten-infos": "set-options",
+   "gutachten-optionen": "set-options",
+   "set-aufgaben": "set-tasks",
+   "bewertungsskala": "format-grade"
+  },
+  "flashcards": {
+   "letter8up": {
+    "neu": "show-cards",
+    "argumente": "paper: \"us-letter\"",
+    "wert": true
+   },
+   "a48up": {
+    "neu": "show-cards",
+    "argumente": "paper: \"a4\"",
+    "wert": true
+   }
+  },
+  "abbozza": {
+   "render-hathi-level": "hathi-level"
+  }
+ },
+ "parameter": {
+  "aufgaben.aufgabe": {
+   "titel": "title"
+  },
+  "aufgaben.teilaufgabe": {
+   "item-label": "marker"
+  },
+  "aufgaben.teilaufgaben": {
+   "tasks": "items",
+   "loesungen": "item-solutions"
+  },
+  "aufgaben.show-loesungen": {
+   "curr": "select",
+   "teil": "subtask-number"
+  },
+  "aufgaben.show-materialien": {
+   "curr": "select"
+  },
+  "aufgaben.show-erwartungen": {
+   "erreicht": "achieved",
+   "alle": "select",
+   "teile": "blocks"
+  },
+  "aufgaben.show-bewertung": {
+   "full": "subtotals"
+  },
+  "aufgaben.get-points": {
+   "teil": "subtask-number",
+   "idx": "index"
+  },
+  "aufgaben.format-punkte": {
+   "teil": "target"
+  },
+  "aufgaben.set-options": {
+   "loesungen": "solutions",
+   "materialien": "materials",
+   "punkte": "points",
+   "punkte-position": "points-position",
+   "teilaufgabe-numbering": "subtask-numbering",
+   "aufgaben-shortcodes": "shortcodes"
+  },
+  "arbeitsblatt.arbeitsblatt": {
+   "loesungen": "solutions",
+   "materialien": "materials",
+   "punkte": "points",
+   "punkte-position": "points-position",
+   "teilaufgabe-numbering": "subtask-numbering",
+   "aufgaben-shortcodes": "shortcodes",
+   "akzent": "accent",
+   "custom-header": "header",
+   "copyright": "copyright-url",
+   "zweifach": "two-up",
+   "varianten": "variants",
+   "vorschau-alle": "preview-variant",
+   "dateiname": "filename",
+   "fach": "subject",
+   "thema": "topic",
+   "jahrgang": "years",
+   "stufe": "stage",
+   "niveau": "level",
+   "typ": "kind",
+   "stichworte": "keywords",
+   "kerncurriculum": "curriculum",
+   "stand": "revision"
+  },
+  "arbeitsblatt.arbeitsblatt-einzeln": {
+   "loesungen": "solutions",
+   "materialien": "materials",
+   "punkte": "points",
+   "punkte-position": "points-position",
+   "teilaufgabe-numbering": "subtask-numbering",
+   "aufgaben-shortcodes": "shortcodes",
+   "akzent": "accent",
+   "custom-header": "header",
+   "copyright": "copyright-url",
+   "zweifach": "two-up",
+   "varianten": "variants",
+   "vorschau-alle": "preview-variant",
+   "dateiname": "filename",
+   "fach": "subject",
+   "thema": "topic",
+   "jahrgang": "years",
+   "stufe": "stage",
+   "niveau": "level",
+   "typ": "kind",
+   "stichworte": "keywords",
+   "kerncurriculum": "curriculum",
+   "stand": "revision"
+  },
+  "arbeitsblatt.tasks": {
+   "tasks": "items",
+   "loesungen": "item-solutions"
+  },
+  "arbeitsblatt.teilaufgaben": {
+   "tasks": "items",
+   "loesungen": "item-solutions"
+  },
+  "arbeitsblatt.lsg": {
+   "platz": "reserve",
+   "sonst": "fallback"
+  },
+  "arbeitsblatt.minipage": {
+   "spacing": "gutter"
+  },
+  "arbeitsblatt.qr-code": {
+   "light-color": "background-fill",
+   "background": "background-fill",
+   "dark-color": "fill"
+  },
+  "arbeitsblatt.icon-link": {
+   "color": "fill"
+  },
+  "arbeitsblatt.kasten-stil": {
+   "farbe": "accent",
+   "akzent": "worksheet-accent",
+   "art": "kind"
+  },
+  "arbeitsblatt.abstract": {
+   "accent-color": "accent"
+  },
+  "arbeitsblatt.info": {
+   "accent-color": "accent"
+  },
+  "arbeitsblatt.question": {
+   "accent-color": "accent"
+  },
+  "arbeitsblatt.memo": {
+   "accent-color": "accent"
+  },
+  "arbeitsblatt.conclusion": {
+   "accent-color": "accent"
+  },
+  "arbeitsblatt.tip": {
+   "accent-color": "accent"
+  },
+  "arbeitsblatt.success": {
+   "accent-color": "accent"
+  },
+  "arbeitsblatt.warning": {
+   "accent-color": "accent"
+  },
+  "arbeitsblatt.error": {
+   "accent-color": "accent"
+  },
+  "arbeitsblatt.example": {
+   "accent-color": "accent"
+  },
+  "arbeitsblatt.goal": {
+   "accent-color": "accent"
+  },
+  "arbeitsblatt.idea": {
+   "accent-color": "accent"
+  },
+  "arbeitsblatt.experiment": {
+   "accent-color": "accent"
+  },
+  "arbeitsblatt.notify": {
+   "accent-color": "accent"
+  },
+  "arbeitsblatt.danger": {
+   "accent-color": "accent"
+  },
+  "klassenarbeit.klassenarbeit": {
+   "loesungen": "solutions",
+   "materialien": "materials",
+   "punkte": "points",
+   "punkte-position": "points-position",
+   "teilaufgabe-numbering": "subtask-numbering",
+   "aufgaben-shortcodes": "shortcodes",
+   "page-numbering": "page-counter",
+   "klausurboegen": "answer-sheets",
+   "erwartungen": "expectations",
+   "punkte-template": "points-format",
+   "varianten": "variants",
+   "variante": "preview-variant",
+   "dateiname": "filename",
+   "akzent": "accent",
+   "schueler": "student",
+   "header-font-size": "title-font-size",
+   "bogen": "answer-sheet-pages",
+   "table": "info-table"
+  },
+  "klausurboegen.klausurbögen": {
+   "exam": "title",
+   "subexam": "subtitle",
+   "students": "results",
+   "sek1": "stage",
+   "result": "overprint",
+   "rand": "correction-margin",
+   "scale": "grid-size",
+   "sub": "continuation",
+   "numbering": "subtask-numbering",
+   "mv": "offset",
+   "move": "offset",
+   "weisser-rand": "correction-margin-blank",
+   "weißer-rand": "correction-margin-blank",
+   "result-table": "points-table",
+   "vorschlag": "proposal",
+   "line-stroke": "correction-margin-stroke",
+   "muster": "pattern",
+   "linienabstand": "line-height",
+   "korrekturrand": "correction-margin-side",
+   "vordruck": "points-table-preprinted",
+   "namen": "overprint-name"
+  },
+  "klausurboegen.klausurboegen": {
+   "exam": "title",
+   "subexam": "subtitle",
+   "students": "results",
+   "sek1": "stage",
+   "result": "overprint",
+   "rand": "correction-margin",
+   "scale": "grid-size",
+   "sub": "continuation",
+   "numbering": "subtask-numbering",
+   "mv": "offset",
+   "move": "offset",
+   "weisser-rand": "correction-margin-blank",
+   "weißer-rand": "correction-margin-blank",
+   "result-table": "points-table",
+   "vorschlag": "proposal",
+   "line-stroke": "correction-margin-stroke",
+   "muster": "pattern",
+   "linienabstand": "line-height",
+   "korrekturrand": "correction-margin-side",
+   "vordruck": "points-table-preprinted",
+   "namen": "overprint-name"
+  },
+  "patterns.kariert": {
+   "items-spacing": "item-rows",
+   "line-stroke": "stroke",
+   "fill-color": "fill",
+   "content": "overlay"
+  },
+  "patterns.liniert": {
+   "items-spacing": "item-rows",
+   "lineheight": "line-height",
+   "line-stroke": "stroke"
+  },
+  "patterns.flex-feld": {
+   "hoehe": "height",
+   "zeichne": "body"
+  },
+  "patterns.ist-flex-feld": {
+   "inhalt": "body"
+  },
+  "mathematik.teilaufgaben": {
+   "tasks": "items",
+   "loesungen": "item-solutions"
+  },
+  "mathematik.tasks": {
+   "tasks": "items",
+   "loesungen": "item-solutions"
+  },
+  "mathematik.graphen": {
+   "line-width": "stroke",
+   "samples": "sample-count",
+   "fills": "areas",
+   "datensätze": "datasets",
+   "datensaetze": "datasets"
+  },
+  "mathematik.steckbrief": {
+   "precision": "tolerance"
+  },
+  "mathematik.kreisdiagramm": {
+   "show-percentage": "labeled",
+   "label-color": "text-fill",
+   "mode": "percent",
+   "colors": "accents",
+   "slice-style": "accents"
+  },
+  "mathematik.geogebra-cell": {
+   "approx": "approximate"
+  },
+  "mathematik.geogebra-algebra": {
+   "last-has-approx": "approximate-last"
+  },
+  "physik.lineare_regression": {
+   "precision": "tolerance",
+   "grad": "degree"
+  },
+  "physik.lineare-regression": {
+   "precision": "tolerance",
+   "grad": "degree"
+  },
+  "physik.quadratische_regression": {
+   "precision": "tolerance",
+   "grad": "degree"
+  },
+  "physik.quadratische-regression": {
+   "precision": "tolerance",
+   "grad": "degree"
+  },
+  "physik.wurzel_regression": {
+   "precision": "tolerance",
+   "grad": "degree"
+  },
+  "physik.wurzel-regression": {
+   "precision": "tolerance",
+   "grad": "degree"
+  },
+  "physik.exponentielle_regression": {
+   "precision": "tolerance",
+   "grad": "degree"
+  },
+  "physik.exponentielle-regression": {
+   "precision": "tolerance",
+   "grad": "degree"
+  },
+  "physik.potenz_regression": {
+   "precision": "tolerance",
+   "grad": "degree"
+  },
+  "physik.potenz-regression": {
+   "precision": "tolerance",
+   "grad": "degree"
+  },
+  "physik.polynom_regression": {
+   "precision": "tolerance",
+   "grad": "degree"
+  },
+  "physik.polynom-regression": {
+   "precision": "tolerance",
+   "grad": "degree"
+  },
+  "physik.datensatz": {
+   "max-digits": "digits",
+   "einheit": "unit",
+   "werte": "values"
+  },
+  "physik.messdaten": {
+   "anzahl-messwerte": "count",
+   "einheit": "unit"
+  },
+  "physik.berechnung": {
+   "fehler": "error",
+   "max-digits": "digits",
+   "einheit": "unit",
+   "datensaetze": "datasets",
+   "formel": "formula"
+  },
+  "physik.messwerttabelle": {
+   "amount": "count",
+   "max-digits": "digits"
+  },
+  "physik.source": {
+   "variant": "kind",
+   "flipped-side": "flipped-labels"
+  },
+  "physik.simple-source": {
+   "variant": "kind",
+   "flipped-side": "flipped-labels"
+  },
+  "physik.konstante": {
+   "wert": "value",
+   "einheit": "unit"
+  },
+  "informatik.caesar": {
+   "keyword": "key"
+  },
+  "informatik.vigenere": {
+   "keyword": "key"
+  },
+  "informatik.text-to-blocks": {
+   "block-size": "character-count"
+  },
+  "informatik.ascii-table": {
+   "ranges": "domains",
+   "height": "rows",
+   "variants": "fields"
+  },
+  "operatoren.operator": {
+   "text": "caption"
+  },
+  "operatoren.operatoren-liste": {
+   "fach": "subject",
+   "operator-text-bold": "bold"
+  },
+  "insert-a-word.insert-a-word": {
+   "hide-words": "word-bank",
+   "line-spacing": "leading",
+   "item-spacing": "spacing",
+   "uniform-gaps": "uniform-blanks"
+  },
+  "energy-sketch.energy-sketch": {
+   "hide-letters": "labeled",
+   "gap": "gutter"
+  },
+  "typlace.typlace": {
+   "namen": "names",
+   "tisch-breite": "cell-width",
+   "tisch-hoehe": "cell-height",
+   "tisch-farbe": "seat-fill",
+   "pult-farbe": "desk-fill",
+   "koerper-farbe": "table-fill",
+   "nummern": "number"
+  },
+  "typlace.sitzordnung": {
+   "vorgaben": "constraints",
+   "gewichte": "weights",
+   "position-anteil": "position-share",
+   "qualitaet": "quality",
+   "qualität": "quality",
+   "versuche": "attempts",
+   "max-schritte": "max-steps",
+   "vorne": "front",
+   "perspektive": "perspective",
+   "streng": "strict",
+   "dauer": "duration",
+   "motor": "engine"
+  },
+  "typlace.wunschliste": {
+   "trenner": "delimiter",
+   "kopfzeile": "header-row",
+   "plaetze": "seat-count",
+   "max-wuensche": "max-wishes",
+   "streng": "strict"
+  },
+  "typlace.sitzplan-bericht": {},
+  "summify.summify": {
+   "flipped": "landscape",
+   "hide-content": "visible"
+  },
+  "summify.compose": {
+   "lines": "dividers",
+   "gap": "gutter"
+  },
+  "summify.beside": {
+   "gap": "gutter"
+  },
+  "summify.below": {
+   "gap": "gutter"
+  },
+  "summify.cols": {
+   "gap": "gutter"
+  },
+  "summify.rows": {
+   "gap": "gutter"
+  },
+  "summify.content": {
+   "align-content": "align",
+   "hide": "visible"
+  },
+  "gutachten.set-gutachten-infos": {
+   "fach": "subject",
+   "niveau": "level",
+   "kuerzel": "teacher",
+   "kürzel": "teacher",
+   "anonym": "anonymous",
+   "be": "max-points",
+   "jahr": "year"
+  },
+  "gutachten.gutachten-optionen": {
+   "fach": "subject",
+   "niveau": "level",
+   "kuerzel": "teacher",
+   "kürzel": "teacher",
+   "anonym": "anonymous",
+   "be": "max-points",
+   "jahr": "year"
+  },
+  "gutachten.set-options": {
+   "fach": "subject",
+   "niveau": "level",
+   "kuerzel": "teacher",
+   "kürzel": "teacher",
+   "anonym": "anonymous",
+   "be": "max-points",
+   "jahr": "year"
+  },
+  "gutachten.aufgabe": {
+   "punkte": "points"
+  },
+  "gutachten.gutachten": {
+   "vorname": "first-name",
+   "nachname": "last-name",
+   "name": "last-name",
+   "wahl": "selected-tasks"
+  },
+  "abbozza.render-hathi-level": {
+   "scale": "tile-size",
+   "replace": "replacements"
+  }
+ },
+ "werte": {
+  "aufgaben.aufgabe.method": {
+   "\"\"": null,
+   "\"EA\"": "\"individual\"",
+   "\"PA\"": "\"pair\"",
+   "\"GA\"": "\"group\""
+  },
+  "aufgaben.aufgabe.title": {
+   "\"\"": null
+  },
+  "aufgaben.aufgabe.titel": {
+   "\"\"": null
+  },
+  "aufgaben.aufgabe.workspace": {
+   "false": null
+  },
+  "aufgaben.teilaufgabe.workspace": {
+   "false": null
+  },
+  "aufgaben.show-loesungen.curr": {
+   "false": null,
+   "true": "\"current\""
+  },
+  "aufgaben.show-loesungen.teil": {
+   "false": null
+  },
+  "aufgaben.show-materialien.curr": {
+   "false": null,
+   "true": "\"current\""
+  },
+  "aufgaben.show-erwartungen.alle": {
+   "false": null,
+   "true": "\"all\""
+  },
+  "aufgaben.format-punkte.teil": {
+   "false": null,
+   "true": "\"subtask\""
+  },
+  "aufgaben.set-options.loesungen": {
+   "\"keine\"": "none",
+   "false": "none",
+   "\"false\"": "none",
+   "\"sofort\"": "\"in-place\"",
+   "\"folgend\"": "\"after-task\"",
+   "\"nur\"": "\"only\"",
+   "\"reinquetschen\"": "\"at-end\"",
+   "\"seite\"": {
+    "solutions": "\"at-end\"",
+    "solutions-pagebreak": "\"before\""
+   },
+   "\"seiten\"": {
+    "solutions": "\"at-end\"",
+    "solutions-pagebreak": "\"per-task\""
+   }
+  },
+  "aufgaben.set-options.materialien": {
+   "\"keine\"": "none",
+   "false": "none",
+   "\"false\"": "none",
+   "\"seiten\"": {
+    "materials": "\"after-task\"",
+    "materials-pagebreak": "\"before\""
+   },
+   "\"sofort\"": {
+    "materials": "\"after-task\"",
+    "materials-pagebreak": "none"
+   },
+   "\"folgend\"": {
+    "materials": "\"after-task\"",
+    "materials-pagebreak": "none"
+   },
+   "\"seite\"": {
+    "materials": "\"at-end\"",
+    "materials-pagebreak": "\"before\""
+   },
+   "\"reinquetschen\"": {
+    "materials": "\"at-end\"",
+    "materials-pagebreak": "none"
+   }
+  },
+  "aufgaben.set-options.punkte": {
+   "\"keine\"": "none",
+   "\"aufgaben\"": "\"tasks\"",
+   "\"teilaufgaben\"": "\"subtasks\"",
+   "\"alle\"": "\"all\"",
+   "\"keine-summe\"": {
+    "points": "\"all\"",
+    "points-total": "false"
+   }
+  },
+  "aufgaben.set-options.punkte-position": {
+   "\"ende\"": "\"end\"",
+   "\"rand\"": "\"margin\""
+  },
+  "aufgaben.set-options.teilaufgabe-numbering": {
+   "\"1.\"": "\"1.1\""
+  },
+  "aufgaben.set-options.aufgaben-shortcodes": {
+   "\"keine\"": "none",
+   "\"aufgaben\"": "\"tasks\"",
+   "\"teilaufgaben\"": "\"subtasks\"",
+   "\"alle\"": "\"all\"",
+   "false": "none"
+  },
+  "arbeitsblatt.arbeitsblatt.title": {
+   "\"\"": null,
+   "[]": null
+  },
+  "arbeitsblatt.arbeitsblatt.class": {
+   "\"\"": null
+  },
+  "arbeitsblatt.arbeitsblatt.theme": {
+   "none": null,
+   "\"standard\"": null
+  },
+  "arbeitsblatt.arbeitsblatt.loesungen": {
+   "\"keine\"": null,
+   "false": null,
+   "\"false\"": null,
+   "\"sofort\"": "\"in-place\"",
+   "\"folgend\"": "\"after-task\"",
+   "\"nur\"": "\"only\"",
+   "\"reinquetschen\"": "\"at-end\"",
+   "\"seite\"": {
+    "solutions": "\"at-end\"",
+    "solutions-pagebreak": "\"before\""
+   },
+   "\"seiten\"": {
+    "solutions": "\"at-end\"",
+    "solutions-pagebreak": "\"per-task\""
+   },
+   "none": null
+  },
+  "arbeitsblatt.arbeitsblatt.materialien": {
+   "\"keine\"": "none",
+   "false": "none",
+   "\"false\"": "none",
+   "\"seiten\"": null,
+   "\"sofort\"": {
+    "materials": "\"after-task\"",
+    "materials-pagebreak": "none"
+   },
+   "\"folgend\"": {
+    "materials": "\"after-task\"",
+    "materials-pagebreak": "none"
+   },
+   "\"seite\"": {
+    "materials": "\"at-end\"",
+    "materials-pagebreak": "\"before\""
+   },
+   "\"reinquetschen\"": {
+    "materials": "\"at-end\"",
+    "materials-pagebreak": "none"
+   }
+  },
+  "arbeitsblatt.arbeitsblatt.punkte": {
+   "\"keine\"": null,
+   "\"aufgaben\"": "\"tasks\"",
+   "\"teilaufgaben\"": "\"subtasks\"",
+   "\"alle\"": "\"all\"",
+   "\"keine-summe\"": {
+    "points": "\"all\"",
+    "points-total": "false"
+   }
+  },
+  "arbeitsblatt.arbeitsblatt.punkte-position": {
+   "\"ende\"": "\"end\"",
+   "\"rand\"": "\"margin\""
+  },
+  "arbeitsblatt.arbeitsblatt.aufgaben-shortcodes": {
+   "\"keine\"": "none",
+   "\"aufgaben\"": "\"tasks\"",
+   "\"teilaufgaben\"": null,
+   "\"alle\"": "\"all\"",
+   "false": "none"
+  },
+  "arbeitsblatt.arbeitsblatt.teilaufgabe-numbering": {
+   "\"a)\"": null,
+   "\"1.\"": "\"1.1\""
+  },
+  "arbeitsblatt.arbeitsblatt.vorschau-alle": {
+   "true": null,
+   "false": "none"
+  },
+  "arbeitsblatt.arbeitsblatt.niveau": {
+   "\"einfuehrung\"": "\"introduction\"",
+   "\"vertiefung\"": "\"consolidation\""
+  },
+  "arbeitsblatt.arbeitsblatt.typ": {
+   "\"arbeitsblatt\"": "\"worksheet\"",
+   "\"uebung\"": "\"practice\"",
+   "\"stationsarbeit\"": "\"stations\"",
+   "\"klausur\"": "\"exam\""
+  },
+  "arbeitsblatt.arbeitsblatt.stufe": {
+   "\"sek1\"": "\"sek-1\"",
+   "\"sek2\"": "\"sek-2\""
+  },
+  "arbeitsblatt.arbeitsblatt-einzeln.title": {
+   "\"\"": null,
+   "[]": null
+  },
+  "arbeitsblatt.arbeitsblatt-einzeln.class": {
+   "\"\"": null
+  },
+  "arbeitsblatt.arbeitsblatt-einzeln.theme": {
+   "none": null,
+   "\"standard\"": null
+  },
+  "arbeitsblatt.arbeitsblatt-einzeln.loesungen": {
+   "\"keine\"": null,
+   "false": null,
+   "\"false\"": null,
+   "\"sofort\"": "\"in-place\"",
+   "\"folgend\"": "\"after-task\"",
+   "\"nur\"": "\"only\"",
+   "\"reinquetschen\"": "\"at-end\"",
+   "\"seite\"": {
+    "solutions": "\"at-end\"",
+    "solutions-pagebreak": "\"before\""
+   },
+   "\"seiten\"": {
+    "solutions": "\"at-end\"",
+    "solutions-pagebreak": "\"per-task\""
+   },
+   "none": null
+  },
+  "arbeitsblatt.arbeitsblatt-einzeln.materialien": {
+   "\"keine\"": "none",
+   "false": "none",
+   "\"false\"": "none",
+   "\"seiten\"": null,
+   "\"sofort\"": {
+    "materials": "\"after-task\"",
+    "materials-pagebreak": "none"
+   },
+   "\"folgend\"": {
+    "materials": "\"after-task\"",
+    "materials-pagebreak": "none"
+   },
+   "\"seite\"": {
+    "materials": "\"at-end\"",
+    "materials-pagebreak": "\"before\""
+   },
+   "\"reinquetschen\"": {
+    "materials": "\"at-end\"",
+    "materials-pagebreak": "none"
+   }
+  },
+  "arbeitsblatt.arbeitsblatt-einzeln.punkte": {
+   "\"keine\"": null,
+   "\"aufgaben\"": "\"tasks\"",
+   "\"teilaufgaben\"": "\"subtasks\"",
+   "\"alle\"": "\"all\"",
+   "\"keine-summe\"": {
+    "points": "\"all\"",
+    "points-total": "false"
+   }
+  },
+  "arbeitsblatt.arbeitsblatt-einzeln.punkte-position": {
+   "\"ende\"": "\"end\"",
+   "\"rand\"": "\"margin\""
+  },
+  "arbeitsblatt.arbeitsblatt-einzeln.aufgaben-shortcodes": {
+   "\"keine\"": "none",
+   "\"aufgaben\"": "\"tasks\"",
+   "\"teilaufgaben\"": null,
+   "\"alle\"": "\"all\"",
+   "false": "none"
+  },
+  "arbeitsblatt.arbeitsblatt-einzeln.teilaufgabe-numbering": {
+   "\"a)\"": null,
+   "\"1.\"": "\"1.1\""
+  },
+  "arbeitsblatt.arbeitsblatt-einzeln.vorschau-alle": {
+   "true": null,
+   "false": "none"
+  },
+  "arbeitsblatt.arbeitsblatt-einzeln.niveau": {
+   "\"einfuehrung\"": "\"introduction\"",
+   "\"vertiefung\"": "\"consolidation\""
+  },
+  "arbeitsblatt.arbeitsblatt-einzeln.typ": {
+   "\"arbeitsblatt\"": "\"worksheet\"",
+   "\"uebung\"": "\"practice\"",
+   "\"stationsarbeit\"": "\"stations\"",
+   "\"klausur\"": "\"exam\""
+  },
+  "arbeitsblatt.arbeitsblatt-einzeln.stufe": {
+   "\"sek1\"": "\"sek-1\"",
+   "\"sek2\"": "\"sek-2\""
+  },
+  "arbeitsblatt.qr-code.light-color": {
+   "white.transparentize(100%)": null
+  },
+  "arbeitsblatt.print-pagebreak.loesungen-only": {
+   "false": null
+  },
+  "arbeitsblatt.non-print-pagebreak.loesungen-only": {
+   "false": null
+  },
+  "arbeitsblatt.abstract.headless": {
+   "false": null
+  },
+  "arbeitsblatt.info.headless": {
+   "false": null
+  },
+  "arbeitsblatt.question.headless": {
+   "false": null
+  },
+  "arbeitsblatt.memo.headless": {
+   "false": null
+  },
+  "arbeitsblatt.conclusion.headless": {
+   "false": null
+  },
+  "arbeitsblatt.tip.headless": {
+   "false": null
+  },
+  "arbeitsblatt.success.headless": {
+   "false": null
+  },
+  "arbeitsblatt.warning.headless": {
+   "false": null
+  },
+  "arbeitsblatt.error.headless": {
+   "false": null
+  },
+  "arbeitsblatt.example.headless": {
+   "false": null
+  },
+  "arbeitsblatt.goal.headless": {
+   "false": null
+  },
+  "arbeitsblatt.idea.headless": {
+   "false": null
+  },
+  "arbeitsblatt.experiment.headless": {
+   "false": null
+  },
+  "arbeitsblatt.notify.headless": {
+   "false": null
+  },
+  "arbeitsblatt.danger.headless": {
+   "false": null
+  },
+  "klassenarbeit.klassenarbeit.title": {
+   "\"\"": null,
+   "[]": null
+  },
+  "klassenarbeit.klassenarbeit.class": {
+   "\"\"": null
+  },
+  "klassenarbeit.klassenarbeit.theme": {
+   "none": null,
+   "\"standard\"": null
+  },
+  "klassenarbeit.klassenarbeit.loesungen": {
+   "\"keine\"": null,
+   "false": null,
+   "\"false\"": null,
+   "\"sofort\"": "\"in-place\"",
+   "\"folgend\"": "\"after-task\"",
+   "\"nur\"": "\"only\"",
+   "\"reinquetschen\"": "\"at-end\"",
+   "\"seite\"": {
+    "solutions": "\"at-end\"",
+    "solutions-pagebreak": "\"before\""
+   },
+   "\"seiten\"": {
+    "solutions": "\"at-end\"",
+    "solutions-pagebreak": "\"per-task\""
+   },
+   "none": null
+  },
+  "klassenarbeit.klassenarbeit.materialien": {
+   "\"keine\"": "none",
+   "false": "none",
+   "\"false\"": "none",
+   "\"seiten\"": null,
+   "\"sofort\"": {
+    "materials": "\"after-task\"",
+    "materials-pagebreak": "none"
+   },
+   "\"folgend\"": {
+    "materials": "\"after-task\"",
+    "materials-pagebreak": "none"
+   },
+   "\"seite\"": {
+    "materials": "\"at-end\"",
+    "materials-pagebreak": "\"before\""
+   },
+   "\"reinquetschen\"": {
+    "materials": "\"at-end\"",
+    "materials-pagebreak": "none"
+   }
+  },
+  "klassenarbeit.klassenarbeit.punkte": {
+   "\"keine\"": null,
+   "\"aufgaben\"": "\"tasks\"",
+   "\"teilaufgaben\"": "\"subtasks\"",
+   "\"alle\"": "\"all\"",
+   "\"keine-summe\"": {
+    "points": "\"all\"",
+    "points-total": "false"
+   }
+  },
+  "klassenarbeit.klassenarbeit.punkte-position": {
+   "\"ende\"": "\"end\"",
+   "\"rand\"": "\"margin\""
+  },
+  "klassenarbeit.klassenarbeit.aufgaben-shortcodes": {
+   "\"keine\"": "none",
+   "\"aufgaben\"": "\"tasks\"",
+   "\"teilaufgaben\"": null,
+   "\"alle\"": "\"all\"",
+   "false": "none"
+  },
+  "klassenarbeit.klassenarbeit.teilaufgabe-numbering": {
+   "\"a)\"": null,
+   "\"1.\"": "\"1.1\""
+  },
+  "klassenarbeit.klassenarbeit.subtitle": {
+   "\"\"": null
+  },
+  "klassenarbeit.klassenarbeit.date": {
+   "\"\"": null
+  },
+  "klassenarbeit.klassenarbeit.teacher": {
+   "\"\"": null
+  },
+  "klassenarbeit.klassenarbeit.student": {
+   "\"\"": null
+  },
+  "klassenarbeit.klassenarbeit.schueler": {
+   "\"\"": null
+  },
+  "klassenarbeit.klassenarbeit.logo": {
+   "\"angela\"": null,
+   "\"\"": "none"
+  },
+  "klassenarbeit.klassenarbeit.info-table": {
+   "false": null,
+   "()": null
+  },
+  "klassenarbeit.klassenarbeit.page-numbering": {
+   "true": null,
+   "\"reset\"": "\"restart\"",
+   "false": "none"
+  },
+  "klassenarbeit.klassenarbeit.erwartungen": {
+   "\"keine\"": "false",
+   "\"false\"": "false",
+   "\"true\"": "false"
+  },
+  "klassenarbeit.klassenarbeit.punkte-template": {
+   "none": null
+  },
+  "klassenarbeit.klassenarbeit.variante": {
+   "\"druck\"": "\"print\"",
+   "\"loesung\"": "\"solutions\"",
+   "\"klausurboegen\"": "\"answer-sheets\""
+  },
+  "klassenarbeit.klassenarbeit.print": {
+   "true": null
+  },
+  "klausurboegen.klausurbögen.exam": {
+   "\"\"": null
+  },
+  "klausurboegen.klausurbögen.subexam": {
+   "\"\"": null
+  },
+  "klausurboegen.klausurbögen.teacher": {
+   "\"\"": null
+  },
+  "klausurboegen.klausurbögen.class": {
+   "\"\"": null
+  },
+  "klausurboegen.klausurbögen.date": {
+   "\"\"": null
+  },
+  "klausurboegen.klausurbögen.sek1": {
+   "false": null,
+   "true": "\"sek-1\""
+  },
+  "klausurboegen.klausurbögen.vorschlag": {
+   "false": null
+  },
+  "klausurboegen.klausurbögen.muster": {
+   "\"kariert\"": "\"squares\"",
+   "\"liniert\"": "\"lines\""
+  },
+  "klausurboegen.klausurbögen.korrekturrand": {
+   "\"aussen\"": "\"outside\"",
+   "\"außen\"": "\"outside\"",
+   "\"innen\"": "\"inside\""
+  },
+  "klausurboegen.klausurbögen.vordruck": {
+   "\"werte\"": "true",
+   "true": null,
+   "false": null
+  },
+  "klausurboegen.klausurbögen.numbering": {
+   "\"a)\"": null,
+   "\"1.\"": "\"1.1\""
+  },
+  "klausurboegen.klausurboegen.exam": {
+   "\"\"": null
+  },
+  "klausurboegen.klausurboegen.subexam": {
+   "\"\"": null
+  },
+  "klausurboegen.klausurboegen.teacher": {
+   "\"\"": null
+  },
+  "klausurboegen.klausurboegen.class": {
+   "\"\"": null
+  },
+  "klausurboegen.klausurboegen.date": {
+   "\"\"": null
+  },
+  "klausurboegen.klausurboegen.sek1": {
+   "false": null,
+   "true": "\"sek-1\""
+  },
+  "klausurboegen.klausurboegen.vorschlag": {
+   "false": null
+  },
+  "klausurboegen.klausurboegen.muster": {
+   "\"kariert\"": "\"squares\"",
+   "\"liniert\"": "\"lines\""
+  },
+  "klausurboegen.klausurboegen.korrekturrand": {
+   "\"aussen\"": "\"outside\"",
+   "\"außen\"": "\"outside\"",
+   "\"innen\"": "\"inside\""
+  },
+  "klausurboegen.klausurboegen.vordruck": {
+   "\"werte\"": "true",
+   "true": null,
+   "false": null
+  },
+  "klausurboegen.klausurboegen.numbering": {
+   "\"a)\"": null,
+   "\"1.\"": "\"1.1\""
+  },
+  "patterns.kariert.height": {
+   "none": null
+  },
+  "patterns.kariert.content": {
+   "[]": null
+  },
+  "mathematik.steckbrief.notation": {
+   "\"dec\"": "\"decimal\"",
+   "\"sci\"": "\"scientific\"",
+   "\"frac\"": "\"fraction\""
+  },
+  "mathematik.kreisdiagramm.mode": {
+   "\"percent\"": null,
+   "\"absolute\"": "false"
+  },
+  "mathematik.kreisdiagramm.legend": {
+   "\"r\"": null,
+   "none": "false",
+   "\"l\"": {
+    "legend-position": "\"left\""
+   },
+   "\"t\"": {
+    "legend-position": "\"top\""
+   },
+   "\"b\"": {
+    "legend-position": "\"bottom\""
+   }
+  },
+  "mathematik.graphen.grid": {
+   "\"both\"": null,
+   "\"none\"": "none",
+   "false": "none",
+   "true": "\"major\""
+  },
+  "physik.lineare_regression.notation": {
+   "\"dec\"": "\"decimal\"",
+   "\"sci\"": "\"scientific\""
+  },
+  "physik.lineare-regression.notation": {
+   "\"dec\"": "\"decimal\"",
+   "\"sci\"": "\"scientific\""
+  },
+  "physik.quadratische_regression.notation": {
+   "\"dec\"": "\"decimal\"",
+   "\"sci\"": "\"scientific\""
+  },
+  "physik.quadratische-regression.notation": {
+   "\"dec\"": "\"decimal\"",
+   "\"sci\"": "\"scientific\""
+  },
+  "physik.wurzel_regression.notation": {
+   "\"dec\"": "\"decimal\"",
+   "\"sci\"": "\"scientific\""
+  },
+  "physik.wurzel-regression.notation": {
+   "\"dec\"": "\"decimal\"",
+   "\"sci\"": "\"scientific\""
+  },
+  "physik.exponentielle_regression.notation": {
+   "\"dec\"": "\"decimal\"",
+   "\"sci\"": "\"scientific\""
+  },
+  "physik.exponentielle-regression.notation": {
+   "\"dec\"": "\"decimal\"",
+   "\"sci\"": "\"scientific\""
+  },
+  "physik.potenz_regression.notation": {
+   "\"dec\"": "\"decimal\"",
+   "\"sci\"": "\"scientific\""
+  },
+  "physik.potenz-regression.notation": {
+   "\"dec\"": "\"decimal\"",
+   "\"sci\"": "\"scientific\""
+  },
+  "physik.polynom_regression.notation": {
+   "\"dec\"": "\"decimal\"",
+   "\"sci\"": "\"scientific\""
+  },
+  "physik.polynom-regression.notation": {
+   "\"dec\"": "\"decimal\"",
+   "\"sci\"": "\"scientific\""
+  },
+  "physik.datensatz.prefix": {
+   "\"1\"": null,
+   "\"\"": null
+  },
+  "physik.datensatz.max-digits": {
+   "none": null
+  },
+  "physik.datensatz.auto-einheit": {
+   "true": {
+    "prefix": "auto"
+   },
+   "false": null
+  },
+  "physik.messdaten.prefix": {
+   "\"1\"": null,
+   "\"\"": null
+  },
+  "physik.berechnung.prefix": {
+   "\"1\"": null,
+   "\"\"": "none"
+  },
+  "physik.berechnung.auto-einheit": {
+   "true": null,
+   "false": {
+    "prefix": "none"
+   }
+  },
+  "physik.berechnung.max-digits": {
+   "none": null
+  },
+  "physik.source.current": {
+   "\"dc\"": "\"direct\"",
+   "\"ac\"": "\"alternating\""
+  },
+  "physik.source.variant": {
+   "\"symbol\"": null,
+   "\"lines\"": "\"bars\""
+  },
+  "physik.simple-source.current": {
+   "\"dc\"": "\"direct\"",
+   "\"ac\"": "\"alternating\""
+  },
+  "physik.simple-source.variant": {
+   "\"symbol\"": null,
+   "\"lines\"": "\"bars\""
+  },
+  "operatoren.operator.text": {
+   "\"\"": null
+  },
+  "operatoren.operator.bold": {
+   "none": null
+  },
+  "insert-a-word.insert-a-word.hide-words": {
+   "false": null,
+   "true": "false"
+  },
+  "insert-a-word.insert-a-word.show-solution": {
+   "false": null
+  },
+  "energy-sketch.energy-sketch.hide-letters": {
+   "false": null,
+   "true": "false"
+  },
+  "typlace.typlace.rotation": {
+   "0": "0deg",
+   "90": "90deg",
+   "180": "180deg",
+   "270": "270deg"
+  },
+  "typlace.sitzordnung.qualitaet": {
+   "\"schnell\"": "\"fast\"",
+   "\"gruendlich\"": "\"thorough\"",
+   "\"gründlich\"": "\"thorough\""
+  },
+  "typlace.sitzordnung.vorne": {
+   "\"oben\"": "\"top\"",
+   "\"unten\"": "\"bottom\"",
+   "\"links\"": "\"left\"",
+   "\"rechts\"": "\"right\""
+  },
+  "typlace.sitzordnung.perspektive": {
+   "\"schueler\"": "\"student\"",
+   "\"schüler\"": "\"student\""
+  },
+  "summify.summify.title": {
+   "\"\"": null
+  },
+  "summify.summify.hide-content": {
+   "false": null,
+   "true": "false"
+  },
+  "summify.content.hide": {
+   "auto": null,
+   "true": "false",
+   "false": "true"
+  },
+  "gutachten.set-gutachten-infos.fach": {
+   "\"\"": null
+  },
+  "gutachten.set-gutachten-infos.niveau": {
+   "\"\"": null
+  },
+  "gutachten.set-gutachten-infos.kuerzel": {
+   "\"\"": null
+  },
+  "gutachten.set-gutachten-infos.kürzel": {
+   "\"\"": null
+  },
+  "gutachten.gutachten-optionen.fach": {
+   "\"\"": null
+  },
+  "gutachten.gutachten-optionen.niveau": {
+   "\"\"": null
+  },
+  "gutachten.gutachten-optionen.kuerzel": {
+   "\"\"": null
+  },
+  "gutachten.gutachten-optionen.kürzel": {
+   "\"\"": null
+  },
+  "gutachten.set-options.fach": {
+   "\"\"": null
+  },
+  "gutachten.set-options.niveau": {
+   "\"\"": null
+  },
+  "gutachten.set-options.kuerzel": {
+   "\"\"": null
+  },
+  "gutachten.set-options.kürzel": {
+   "\"\"": null
+  }
+ },
+ "schluessel": {
+  "klassenarbeit.klassenarbeit.klausurboegen": {
+   "schluessel": {
+    "exam": "title",
+    "subexam": "subtitle",
+    "students": "results",
+    "sek1": "stage",
+    "result": "overprint",
+    "rand": "correction-margin",
+    "scale": "grid-size",
+    "sub": "continuation",
+    "numbering": "subtask-numbering",
+    "mv": "offset",
+    "move": "offset",
+    "weisser-rand": "correction-margin-blank",
+    "weißer-rand": "correction-margin-blank",
+    "result-table": "points-table",
+    "vorschlag": "proposal",
+    "line-stroke": "correction-margin-stroke",
+    "muster": "pattern",
+    "linienabstand": "line-height",
+    "korrekturrand": "correction-margin-side",
+    "vordruck": "points-table-preprinted",
+    "namen": "overprint-name",
+    "stufe": "stage"
+   },
+   "werte": {
+    "exam": {
+     "\"\"": null
+    },
+    "subexam": {
+     "\"\"": null
+    },
+    "teacher": {
+     "\"\"": null
+    },
+    "class": {
+     "\"\"": null
+    },
+    "date": {
+     "\"\"": null
+    },
+    "sek1": {
+     "false": null,
+     "true": "\"sek-1\""
+    },
+    "stufe": {
+     "\"I\"": "\"sek-1\"",
+     "\"II\"": "\"sek-2\""
+    },
+    "vorschlag": {
+     "false": null
+    },
+    "muster": {
+     "\"kariert\"": "\"squares\"",
+     "\"liniert\"": "\"lines\""
+    },
+    "korrekturrand": {
+     "\"aussen\"": "\"outside\"",
+     "\"außen\"": "\"outside\"",
+     "\"innen\"": "\"inside\""
+    },
+    "vordruck": {
+     "\"werte\"": "true",
+     "true": null,
+     "false": null
+    },
+    "numbering": {
+     "\"a)\"": null,
+     "\"1.\"": "\"1.1\""
+    }
+   },
+   "entfernt": {},
+   "eintraege": false
+  },
+  "klassenarbeit.klassenarbeit.erwartungen": {
+   "schluessel": {
+    "erreicht": "achieved",
+    "alle": "select",
+    "teile": "blocks"
+   },
+   "werte": {
+    "alle": {
+     "true": "\"all\"",
+     "false": null
+    }
+   },
+   "entfernt": {},
+   "eintraege": false
+  },
+  "klassenarbeit.klassenarbeit.punkte-template": {
+   "schluessel": {
+    "aufgabe": "task",
+    "teilaufgabe": "subtask"
+   },
+   "werte": {},
+   "entfernt": {},
+   "eintraege": false
+  },
+  "klassenarbeit.klassenarbeit.bogen": {
+   "schluessel": {
+    "exam": "title",
+    "subexam": "subtitle",
+    "sek1": "stage",
+    "sub": "continuation",
+    "result-table": "points-table",
+    "vorschlag": "proposal",
+    "numbering": "subtask-numbering",
+    "mv": "offset",
+    "aufgaben": "task-points",
+    "tabelle": "points-table-preprinted",
+    "rueckseite": "back-page",
+    "abstand": "header-spacing",
+    "seite4": "back-page-tasks",
+    "teilaufgaben": "points-table-subtasks"
+   },
+   "werte": {
+    "exam": {
+     "\"\"": null
+    },
+    "subexam": {
+     "\"\"": null
+    },
+    "teacher": {
+     "\"\"": null
+    },
+    "class": {
+     "\"\"": null
+    },
+    "date": {
+     "\"\"": null
+    },
+    "sek1": {
+     "false": null,
+     "true": "\"sek-1\""
+    },
+    "vorschlag": {
+     "false": null
+    },
+    "numbering": {
+     "\"a)\"": null,
+     "\"1.\"": "\"1.1\""
+    }
+   },
+   "entfernt": {
+    "rand": "der Seitenrand steht in `answer-sheet-pages: (margin: (top:, bottom:, x:))`",
+    "unten": "der Seitenrand steht in `answer-sheet-pages: (margin: (top:, bottom:, x:))`"
+   },
+   "eintraege": false
+  },
+  "typlace.sitzordnung.vorgaben": {
+   "schluessel": {
+    "fest": "fixed",
+    "muss-vorne": "must-front",
+    "muss-mitte": "must-middle",
+    "muss-hinten": "must-back",
+    "muss-links": "must-left",
+    "muss-rechts": "must-right",
+    "getrennt": "apart",
+    "zusammen": "together"
+   },
+   "werte": {},
+   "entfernt": {},
+   "eintraege": false
+  },
+  "typlace.sitzordnung.gewichte": {
+   "schluessel": {
+    "direkt": "adjacent",
+    "tisch": "table",
+    "raenge": "ranks",
+    "stufen": "tiers",
+    "wunschzahl": "wish-count",
+    "ablehnung": "rejection",
+    "hart": "constraint",
+    "position-meidet": "position-avoided"
+   },
+   "werte": {},
+   "entfernt": {},
+   "eintraege": false
+  },
+  "abbozza.render-hathi-level.extra-tiles": {
+   "schluessel": {
+    "type": "kind",
+    "pos": "at"
+   },
+   "werte": {},
+   "entfernt": {},
+   "eintraege": true
+  }
+ },
+ "entfernt": {
+  "aufgaben.teilaufgaben.row-gutter": {
+   "hinweis": "`gutter` gilt für Spalten und Zeilen",
+   "loeschen": false
+  },
+  "aufgaben.teilaufgaben.column-gutter": {
+   "hinweis": "`gutter` gilt für Spalten und Zeilen",
+   "loeschen": false
+  },
+  "aufgaben.teilaufgaben.stroke": {
+   "hinweis": "für ein eigenes Raster `table` oder `grid` mit `teilaufgabe` in den Zellen schreiben",
+   "loeschen": false
+  },
+  "aufgaben.teilaufgaben.fill": {
+   "hinweis": "für ein eigenes Raster `table` oder `grid` mit `teilaufgabe` in den Zellen schreiben",
+   "loeschen": false
+  },
+  "aufgaben.teilaufgaben.rows": {
+   "hinweis": "für ein eigenes Raster `table` oder `grid` mit `teilaufgabe` in den Zellen schreiben",
+   "loeschen": false
+  },
+  "aufgaben.set-options.print": {
+   "hinweis": "der Druckmodus ist keine Option des Schemas; Abfrage mit `is-print()`",
+   "loeschen": false
+  },
+  "aufgaben.show-erwartungen.new-page": {
+   "hinweis": "`#pagebreak(weak: true)` vor und nach dem Aufruf schreiben",
+   "loeschen": false
+  },
+  "arbeitsblatt.arbeitsblatt.header-font-size": {
+   "hinweis": "war seit 0.1.0 wirkungslos; Titelgröße: `title-font-size`",
+   "loeschen": true
+  },
+  "arbeitsblatt.arbeitsblatt.subtitle": {
+   "hinweis": "war wirkungslos; einen Untertitel hat nur `klassenarbeit`",
+   "loeschen": true
+  },
+  "arbeitsblatt.arbeitsblatt.erwartungen": {
+   "hinweis": "war wirkungslos; den Erwartungshorizont setzt `klassenarbeit` (`expectations`)",
+   "loeschen": true
+  },
+  "arbeitsblatt.arbeitsblatt.klausurboegen": {
+   "hinweis": "war wirkungslos; Klausurbögen setzt `klassenarbeit` (`answer-sheets`)",
+   "loeschen": true
+  },
+  "arbeitsblatt.arbeitsblatt-einzeln.header-font-size": {
+   "hinweis": "war seit 0.1.0 wirkungslos; Titelgröße: `title-font-size`",
+   "loeschen": true
+  },
+  "arbeitsblatt.arbeitsblatt-einzeln.subtitle": {
+   "hinweis": "war wirkungslos; einen Untertitel hat nur `klassenarbeit`",
+   "loeschen": true
+  },
+  "arbeitsblatt.arbeitsblatt-einzeln.erwartungen": {
+   "hinweis": "war wirkungslos; den Erwartungshorizont setzt `klassenarbeit` (`expectations`)",
+   "loeschen": true
+  },
+  "arbeitsblatt.arbeitsblatt-einzeln.klausurboegen": {
+   "hinweis": "war wirkungslos; Klausurbögen setzt `klassenarbeit` (`answer-sheets`)",
+   "loeschen": true
+  },
+  "arbeitsblatt.minipage.row-gutter": {
+   "hinweis": "`gutter` gilt für Spalten und Zeilen",
+   "loeschen": false
+  },
+  "arbeitsblatt.minipage.column-gutter": {
+   "hinweis": "`gutter` gilt für Spalten und Zeilen",
+   "loeschen": false
+  },
+  "arbeitsblatt.minipage.stroke": {
+   "hinweis": "für ein eigenes Raster `grid` oder `table` schreiben",
+   "loeschen": false
+  },
+  "arbeitsblatt.minipage.fill": {
+   "hinweis": "für ein eigenes Raster `grid` oder `table` schreiben",
+   "loeschen": false
+  },
+  "arbeitsblatt.minipage.rows": {
+   "hinweis": "für ein eigenes Raster `grid` oder `table` schreiben",
+   "loeschen": false
+  },
+  "arbeitsblatt.workspace.height": {
+   "hinweis": "war wirkungslos; die Höhe bestimmt der Inhalt, zum Beispiel `kariert(4)`",
+   "loeschen": true
+  },
+  "arbeitsblatt.qr-code.alt": {
+   "hinweis": "war wirkungslos",
+   "loeschen": true
+  },
+  "arbeitsblatt.qr-code.options": {
+   "hinweis": "`qrcode` aus `@preview/zebra:0.1.0` selbst importieren",
+   "loeschen": false
+  },
+  "arbeitsblatt.qr-code.height": {
+   "hinweis": "`qrcode` aus `@preview/zebra:0.1.0` selbst importieren",
+   "loeschen": false
+  },
+  "arbeitsblatt.qr-code.module-size": {
+   "hinweis": "`qrcode` aus `@preview/zebra:0.1.0` selbst importieren",
+   "loeschen": false
+  },
+  "arbeitsblatt.qrbox.fill": {
+   "hinweis": "`stickybox` direkt benutzen",
+   "loeschen": false
+  },
+  "arbeitsblatt.qrbox.tape": {
+   "hinweis": "`stickybox` direkt benutzen",
+   "loeschen": false
+  },
+  "arbeitsblatt.print-pagebreak.loesungen-only": {
+   "hinweis": "`solutions-visible: true` gilt für jede sichtbare Lösung; `loesungen-only` galt nur für die reine Lösungsfassung – von Hand entscheiden",
+   "loeschen": false
+  },
+  "arbeitsblatt.non-print-pagebreak.loesungen-only": {
+   "hinweis": "`solutions-visible: true` gilt für jede sichtbare Lösung; `loesungen-only` galt nur für die reine Lösungsfassung – von Hand entscheiden",
+   "loeschen": false
+  },
+  "arbeitsblatt.lücke.length": {
+   "hinweis": "die Breite bestimmt der Inhalt; solche Aufrufe gehören meist einer dokumenteigenen Funktion",
+   "loeschen": false
+  },
+  "arbeitsblatt.lücke.len": {
+   "hinweis": "die Breite bestimmt der Inhalt; solche Aufrufe gehören meist einer dokumenteigenen Funktion",
+   "loeschen": false
+  },
+  "arbeitsblatt.lücke.breite": {
+   "hinweis": "die Breite bestimmt der Inhalt; solche Aufrufe gehören meist einer dokumenteigenen Funktion",
+   "loeschen": false
+  },
+  "arbeitsblatt.lücke.width": {
+   "hinweis": "die Breite bestimmt der Inhalt; solche Aufrufe gehören meist einer dokumenteigenen Funktion",
+   "loeschen": false
+  },
+  "arbeitsblatt.canvas.baseline": {
+   "hinweis": "`cetz.canvas` nach `#import \"@preview/cetz:0.4.2\"` benutzen",
+   "loeschen": false
+  },
+  "arbeitsblatt.canvas.debug": {
+   "hinweis": "`cetz.canvas` nach `#import \"@preview/cetz:0.4.2\"` benutzen",
+   "loeschen": false
+  },
+  "arbeitsblatt.canvas.background": {
+   "hinweis": "`cetz.canvas` nach `#import \"@preview/cetz:0.4.2\"` benutzen",
+   "loeschen": false
+  },
+  "arbeitsblatt.canvas.stroke": {
+   "hinweis": "`cetz.canvas` nach `#import \"@preview/cetz:0.4.2\"` benutzen",
+   "loeschen": false
+  },
+  "arbeitsblatt.abstract.icon": {
+   "hinweis": "das Symbol bestimmt das Theme",
+   "loeschen": false
+  },
+  "arbeitsblatt.abstract.header-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.abstract.border-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.abstract.body-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.info.icon": {
+   "hinweis": "das Symbol bestimmt das Theme",
+   "loeschen": false
+  },
+  "arbeitsblatt.info.header-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.info.border-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.info.body-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.question.icon": {
+   "hinweis": "das Symbol bestimmt das Theme",
+   "loeschen": false
+  },
+  "arbeitsblatt.question.header-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.question.border-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.question.body-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.memo.icon": {
+   "hinweis": "das Symbol bestimmt das Theme",
+   "loeschen": false
+  },
+  "arbeitsblatt.memo.header-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.memo.border-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.memo.body-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.conclusion.icon": {
+   "hinweis": "das Symbol bestimmt das Theme",
+   "loeschen": false
+  },
+  "arbeitsblatt.conclusion.header-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.conclusion.border-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.conclusion.body-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.tip.icon": {
+   "hinweis": "das Symbol bestimmt das Theme",
+   "loeschen": false
+  },
+  "arbeitsblatt.tip.header-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.tip.border-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.tip.body-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.success.icon": {
+   "hinweis": "das Symbol bestimmt das Theme",
+   "loeschen": false
+  },
+  "arbeitsblatt.success.header-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.success.border-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.success.body-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.warning.icon": {
+   "hinweis": "das Symbol bestimmt das Theme",
+   "loeschen": false
+  },
+  "arbeitsblatt.warning.header-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.warning.border-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.warning.body-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.error.icon": {
+   "hinweis": "das Symbol bestimmt das Theme",
+   "loeschen": false
+  },
+  "arbeitsblatt.error.header-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.error.border-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.error.body-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.example.icon": {
+   "hinweis": "das Symbol bestimmt das Theme",
+   "loeschen": false
+  },
+  "arbeitsblatt.example.header-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.example.border-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.example.body-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.goal.icon": {
+   "hinweis": "das Symbol bestimmt das Theme",
+   "loeschen": false
+  },
+  "arbeitsblatt.goal.header-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.goal.border-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.goal.body-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.idea.icon": {
+   "hinweis": "das Symbol bestimmt das Theme",
+   "loeschen": false
+  },
+  "arbeitsblatt.idea.header-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.idea.border-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.idea.body-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.experiment.icon": {
+   "hinweis": "das Symbol bestimmt das Theme",
+   "loeschen": false
+  },
+  "arbeitsblatt.experiment.header-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.experiment.border-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.experiment.body-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.notify.icon": {
+   "hinweis": "das Symbol bestimmt das Theme",
+   "loeschen": false
+  },
+  "arbeitsblatt.notify.header-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.notify.border-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.notify.body-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.danger.icon": {
+   "hinweis": "das Symbol bestimmt das Theme",
+   "loeschen": false
+  },
+  "arbeitsblatt.danger.header-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.danger.border-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "arbeitsblatt.danger.body-color": {
+   "hinweis": "die Farben bestimmt das Theme; eine Farbe für den ganzen Kasten setzt `accent`",
+   "loeschen": false
+  },
+  "klassenarbeit.klassenarbeit.print": {
+   "hinweis": "eine Klassenarbeit ist immer Druckfassung",
+   "loeschen": false
+  },
+  "klassenarbeit.klassenarbeit.custom-header": {
+   "hinweis": "der Kopf entsteht aus `title`, `subtitle`, `class`, `date`, `teacher`, `logo`; ein eigener Kopf ist der Theme-Hook `header`",
+   "loeschen": false
+  },
+  "klassenarbeit.klassenarbeit.scope": {
+   "hinweis": "die Kennung der Fassung setzt `klassenarbeit` selbst",
+   "loeschen": false
+  },
+  "klassenarbeit.klassenarbeit.copyright": {
+   "hinweis": "`copyright-url` gibt es nur in `arbeitsblatt`",
+   "loeschen": false
+  },
+  "klassenarbeit.klassenarbeit.zweifach": {
+   "hinweis": "zwei Seiten je Bogen (`two-up`) gibt es nur in `arbeitsblatt`",
+   "loeschen": false
+  },
+  "klassenarbeit.klassenarbeit.fach": {
+   "hinweis": "Bibliotheks-Metadaten gibt es nur in `arbeitsblatt`",
+   "loeschen": false
+  },
+  "klassenarbeit.klassenarbeit.thema": {
+   "hinweis": "Bibliotheks-Metadaten gibt es nur in `arbeitsblatt`",
+   "loeschen": false
+  },
+  "klassenarbeit.klassenarbeit.jahrgang": {
+   "hinweis": "Bibliotheks-Metadaten gibt es nur in `arbeitsblatt`",
+   "loeschen": false
+  },
+  "klassenarbeit.klassenarbeit.niveau": {
+   "hinweis": "Bibliotheks-Metadaten gibt es nur in `arbeitsblatt`",
+   "loeschen": false
+  },
+  "klassenarbeit.klassenarbeit.typ": {
+   "hinweis": "Bibliotheks-Metadaten gibt es nur in `arbeitsblatt`",
+   "loeschen": false
+  },
+  "klassenarbeit.klassenarbeit.stichworte": {
+   "hinweis": "Bibliotheks-Metadaten gibt es nur in `arbeitsblatt`",
+   "loeschen": false
+  },
+  "klassenarbeit.klassenarbeit.kerncurriculum": {
+   "hinweis": "Bibliotheks-Metadaten gibt es nur in `arbeitsblatt`",
+   "loeschen": false
+  },
+  "klassenarbeit.klassenarbeit.stand": {
+   "hinweis": "Bibliotheks-Metadaten gibt es nur in `arbeitsblatt`",
+   "loeschen": false
+  },
+  "klassenarbeit.klassenarbeit.stufe": {
+   "hinweis": "wird seit 0.1.2 nicht mehr gelesen; der Notenschlüssel steht in `answer-sheets: (stage: \"sek-1\")`",
+   "loeschen": true
+  },
+  "klassenarbeit.klassenarbeit.vorschau-alle": {
+   "hinweis": "die Vorschau wählt `preview-variant`",
+   "loeschen": false
+  },
+  "klassenarbeit.klassenarbeit.bewertung": {
+   "hinweis": "die Punkteübersicht ist `show-points-table()`, die Spalte zum Eintragen `expectations: (achieved: true)`",
+   "loeschen": false
+  },
+  "klassenarbeit.klassenarbeit.ergebnisse": {
+   "hinweis": "die Ergebnisse stehen in `answer-sheets: (results: …, overprint: true)`",
+   "loeschen": false
+  },
+  "klassenarbeit.klassenarbeit.klausurboegen-settings": {
+   "hinweis": "die Einstellungen der Bögen stehen in `answer-sheets: (…)`",
+   "loeschen": false
+  },
+  "patterns.kariert.cnt": {
+   "hinweis": "hatte nie eine Wirkung",
+   "loeschen": true
+  },
+  "mathematik.graphen.scale": {
+   "hinweis": "die Größe setzen `width` und `height`",
+   "loeschen": false
+  },
+  "mathematik.kreisdiagramm.gap": {
+   "hinweis": "die Segmente liegen ohne Lücke aneinander",
+   "loeschen": false
+  },
+  "mathematik.kreisdiagramm.value-key": {
+   "hinweis": "`items` sind immer Paare `(Beschriftung, Wert)`",
+   "loeschen": false
+  },
+  "mathematik.kreisdiagramm.label-key": {
+   "hinweis": "`items` sind immer Paare `(Beschriftung, Wert)`",
+   "loeschen": false
+  },
+  "mathematik.kreisdiagramm.inner-label": {
+   "hinweis": "`labeled`, `percent` und `text-fill` bestimmen die Beschriftung der Segmente",
+   "loeschen": false
+  },
+  "mathematik.kreisdiagramm.outer-label": {
+   "hinweis": "`labeled`, `percent` und `text-fill` bestimmen die Beschriftung der Segmente",
+   "loeschen": false
+  },
+  "physik.konstante.beschreibung": {
+   "hinweis": "die Beschreibung wurde nie verwendet",
+   "loeschen": true
+  },
+  "informatik.caesar.advanced": {
+   "hinweis": "`caesar(text, key: …)` liefert den Text direkt, die Tabelle setzt `caesar-table(key: …)`",
+   "loeschen": false
+  },
+  "informatik.vigenere.advanced": {
+   "hinweis": "`vigenere(text, key: …)` liefert den Text direkt",
+   "loeschen": false
+  },
+  "informatik.atbash.advanced": {
+   "hinweis": "`atbash(text)` liefert den Text direkt",
+   "loeschen": false
+  },
+  "insert-a-word.insert-a-word.show-solution": {
+   "hinweis": "die Lücken folgen der Lösungsoption des Dokuments – weglassen und im Dokument `set-options(solutions: \"in-place\")` schreiben",
+   "loeschen": false
+  },
+  "summify.beside.lines": {
+   "hinweis": "Trennlinien setzt `cell-grid(direction: …, dividers: true)`",
+   "loeschen": false
+  },
+  "summify.below.lines": {
+   "hinweis": "Trennlinien setzt `cell-grid(direction: …, dividers: true)`",
+   "loeschen": false
+  },
+  "summify.cols.lines": {
+   "hinweis": "Trennlinien setzt `cell-grid(direction: …, dividers: true)`",
+   "loeschen": false
+  },
+  "summify.rows.lines": {
+   "hinweis": "Trennlinien setzt `cell-grid(direction: …, dividers: true)`",
+   "loeschen": false
+  },
+  "gutachten.set-gutachten-infos.kurs": {
+   "hinweis": "seit 0.0.2 steht im Kopf nur noch Fach, Niveau und Kürzel; Angabe streichen",
+   "loeschen": false
+  },
+  "gutachten.set-gutachten-infos.pruefer": {
+   "hinweis": "seit 0.0.2 steht im Kopf das Kürzel der Lehrkraft; `teacher: \"…\"` schreiben",
+   "loeschen": false
+  },
+  "gutachten.set-gutachten-infos.korreferent": {
+   "hinweis": "seit 0.0.2 unterschreibt die Zweitkorrektur ohne Namen; Angabe streichen",
+   "loeschen": false
+  },
+  "gutachten.gutachten-optionen.kurs": {
+   "hinweis": "seit 0.0.2 steht im Kopf nur noch Fach, Niveau und Kürzel; Angabe streichen",
+   "loeschen": false
+  },
+  "gutachten.gutachten-optionen.pruefer": {
+   "hinweis": "seit 0.0.2 steht im Kopf das Kürzel der Lehrkraft; `teacher: \"…\"` schreiben",
+   "loeschen": false
+  },
+  "gutachten.gutachten-optionen.korreferent": {
+   "hinweis": "seit 0.0.2 unterschreibt die Zweitkorrektur ohne Namen; Angabe streichen",
+   "loeschen": false
+  },
+  "gutachten.set-options.kurs": {
+   "hinweis": "seit 0.0.2 steht im Kopf nur noch Fach, Niveau und Kürzel; Angabe streichen",
+   "loeschen": false
+  },
+  "gutachten.set-options.pruefer": {
+   "hinweis": "seit 0.0.2 steht im Kopf das Kürzel der Lehrkraft; `teacher: \"…\"` schreiben",
+   "loeschen": false
+  },
+  "gutachten.set-options.korreferent": {
+   "hinweis": "seit 0.0.2 unterschreibt die Zweitkorrektur ohne Namen; Angabe streichen",
+   "loeschen": false
+  },
+  "gutachten.gutachten.geschlecht": {
+   "hinweis": "seit 0.0.2 nennt das Gutachten den Vornamen ohne Anrede; Angabe streichen",
+   "loeschen": false
+  },
+  "gutachten.gutachten.jahr": {
+   "hinweis": "steht jetzt in `set-options(year: …)`",
+   "loeschen": false
+  },
+  "gutachten.gutachten.fach": {
+   "hinweis": "steht jetzt in `set-options(subject: …)`",
+   "loeschen": false
+  },
+  "gutachten.gutachten.niveau": {
+   "hinweis": "steht jetzt in `set-options(level: …)`",
+   "loeschen": false
+  },
+  "gutachten.gutachten.be": {
+   "hinweis": "steht jetzt in `set-options(max-points: …)`",
+   "loeschen": false
+  },
+  "gutachten.gutachten.kurs": {
+   "hinweis": "seit 0.0.2 steht im Kopf nur noch Fach, Niveau und Kürzel; Angabe streichen",
+   "loeschen": false
+  },
+  "gutachten.gutachten.pruefer": {
+   "hinweis": "steht jetzt als Kürzel in `set-options(teacher: …)`",
+   "loeschen": false
+  },
+  "gutachten.gutachten.korreferent": {
+   "hinweis": "seit 0.0.2 unterschreibt die Zweitkorrektur ohne Namen; Angabe streichen",
+   "loeschen": false
+  }
+ },
+ "entfernte-namen": {
+  "aufgaben": {
+   "show-loesung": "`show-solutions(select: \"current\")` schreiben",
+   "show-loesung-inline": "`show-solutions(inline: true)` schreiben",
+   "show-material": "`show-materials(select: \"current\")` schreiben",
+   "get-punkte-anzeige": "die Anzeige steht in der Option `points`",
+   "get-punkte-position": "die Position steht in der Option `points-position`"
+  },
+  "arbeitsblatt": {
+   "c_canvas": "`cetz.canvas` nach `#import \"@preview/cetz:0.4.2\"` benutzen",
+   "mono": "`text(font: \"SF Mono\", …)` schreiben (der Name überdeckte `math.mono`)",
+   "print-state": "`is-print()` schreiben (`print-state.get()` stellt der Codemod um)",
+   "qr-code-zebra": "`qrcode` aus `@preview/zebra:0.1.0` selbst importieren",
+   "unify-num": "`num` benutzen",
+   "unify-qty": "`qty` benutzen",
+   "unify-unit": "`unit` benutzen",
+   "add-unit": "`add-unit` aus `@preview/unify:0.8.1` selbst importieren",
+   "kuerzel": "interne Funktion (`internal.parse-class`)",
+   "kicker": "interne Funktion (`internal.subject-line`)",
+   "fachfarbe": "interne Funktion (`internal.class-accent`)",
+   "häufigkeitsanalyse-alt": "entfällt ohne Ersatz; `haeufigkeitsanalyse` benutzen"
+  },
+  "klausurboegen": {
+   "bogen-seiten": "ist jetzt intern – die Arbeit direkt auf dem Bogen schaltet `klassenarbeit(answer-sheet-pages: …)` ein",
+   "klausurbogen-arbeit": "ist jetzt intern – `#show: klassenarbeit.with(answer-sheet-pages: true)` schreiben"
+  },
+  "mathematik": {
+   "geogebra-colors": "interner Wert (`internal.geogebra-palette`)",
+   "geogebra-button": "interne Funktion (`internal.geogebra-menu-button`)",
+   "geogebra-approx-button": "interne Funktion (`internal.geogebra-approximate-button`)",
+   "umrechnungseinheit": "gehörte zu physik und ist dort intern"
+  },
+  "physik": {
+   "multiplikatoren": "interne Funktion (`internal`)",
+   "umrechnungseinheit": "interne Funktion (`internal`)",
+   "auto_einheit_anwenden": "interne Funktion (`internal`)",
+   "p_messwerttabelle": "interne Funktion (`internal`)",
+   "format-number": "interne Funktion (`internal`)",
+   "format-unit": "interne Funktion (`internal`)",
+   "combine-units": "interne Funktion (`internal`)",
+   "format-equation-term": "interne Funktion (`internal`)",
+   "build-equation": "interne Funktion (`internal`)",
+   "format-simple-equation": "interne Funktion (`internal`)",
+   "regression": "interne Funktion (`internal`)",
+   "count_decimal_places": "interne Funktion (`internal`)"
+  },
+  "informatik": {
+   "mono": "`text(font: \"SF Mono\", …)` schreiben",
+   "häufigkeitsanalyse-alt": "entfällt ohne Ersatz; `haeufigkeitsanalyse` benutzen"
+  },
+  "operatoren": {
+   "operatoren-state": "interner Zustand",
+   "operatoren-config-state": "interner Zustand"
+  },
+  "insert-a-word": {
+   "iaword-list": "interner Zustand (`internal`)",
+   "iaword-counter": "interner Zustand (`internal`)",
+   "iaword-uniform": "interner Zustand (`internal`)",
+   "iaword-start": "interner Zustand (`internal`)",
+   "iaword-solution": "interner Zustand (`internal`)",
+   "iaword-show": "interner Zustand (`internal`)"
+  },
+  "typlace": {
+   "schueler-lesen": "interne Funktion (`internal`)",
+   "schueler-pruefen": "interne Funktion (`internal`)",
+   "plaetze-analysieren": "interne Funktion (`internal`)",
+   "layout-matrix": "interne Funktion (`internal`)",
+   "koerper-zellen": "interne Funktion (`internal`)",
+   "ist-frei": "interne Funktion (`internal`)",
+   "ist-pult": "interne Funktion (`internal`)",
+   "ist-koerper": "interne Funktion (`internal`)",
+   "ist-platz": "interne Funktion (`internal`)",
+   "tisch-ids": "interne Funktion (`internal`)",
+   "wasm-suchen": "interne Funktion (`internal`)",
+   "kontext-erstellen": "interne Funktion (`internal`)",
+   "normalisiere-vorgaben": "interne Funktion (`internal`)",
+   "bewerte": "interne Funktion (`internal`)",
+   "statistik": "interne Funktion (`internal`)",
+   "punkte-schueler": "interne Funktion (`internal`)",
+   "punkte-wert": "interne Funktion (`internal`)",
+   "platz-von-schueler": "interne Funktion (`internal`)",
+   "tausch-delta": "interne Funktion (`internal`)"
+  },
+  "gutachten": {
+   "sachgebiet": "gibt es seit 0.0.2 nicht mehr – die Aufgaben in `set-tasks` eintragen und je Aufgabe `aufgabe(\"…\", points: …)[...]` schreiben",
+   "pflichtteil": "gibt es seit 0.0.2 nicht mehr – die Aufgaben in `set-tasks` eintragen und je Aufgabe `aufgabe(\"…\", points: …)[...]` schreiben"
+  },
+  "flashcards": {
+   "cardnumber": "die Nummer einer Karte ergibt sich aus ihrer Stelle im Dokument",
+   "cardheader": "interner Zustand, steht in `internal.cards`",
+   "cardfooter": "interner Zustand, steht in `internal.cards`",
+   "cardquestion": "interner Zustand, steht in `internal.cards`",
+   "cardanswer": "interner Zustand, steht in `internal.cards`"
+  }
+ },
+ "weggefallen": {
+  "arbeitsblatt": [
+   {
+    "praefix": "fa-",
+    "import": "@preview/fontawesome:0.6.0"
+   },
+   {
+    "namen": [
+     "task",
+     "code",
+     "clue",
+     "quotation"
+    ],
+    "import": "@preview/gentle-clues:1.2.0"
+   },
+   {
+    "namen": [
+     "colorbox",
+     "slanted-colorbox",
+     "colorbox-rounded",
+     "outline-colorbox"
+    ],
+    "import": "@preview/colorful-boxes:1.4.3"
+   },
+   {
+    "namen": [
+     "codly",
+     "codly-init",
+     "codly-disable",
+     "codly-enable",
+     "codly-offset",
+     "codly-range",
+     "codly-reset",
+     "codly-skip",
+     "no-codly",
+     "yes-codly"
+    ],
+    "import": "@preview/codly:1.3.0"
+   },
+   {
+    "namen": [
+     "ztable",
+     "zi",
+     "set-num",
+     "set-group",
+     "set-round",
+     "set-unit",
+     "nonum",
+     "format-table"
+    ],
+    "import": "@preview/zero:0.5.0"
+   },
+   {
+    "namen": [
+     "math-to-func",
+     "math-to-str",
+     "math-to-data",
+     "math-to-table",
+     "label-to-math",
+     "get-variable",
+     "split-equation"
+    ],
+    "import": "@preview/eqalc:0.1.3"
+   },
+   {
+    "namen": [
+     "zap"
+    ],
+    "import": "@preview/zap:0.4.0",
+    "modul": true
+   },
+   {
+    "namen": [
+     "lamp",
+     "voltmeter",
+     "motor",
+     "generator",
+     "multimeter",
+     "source",
+     "ammeter"
+    ],
+    "import": "@schule/physik:0.5.0",
+    "hinweis": "arbeitsblatt reicht die Bauteile für `schaltkreis` nicht mehr weiter"
+   },
+   {
+    "namen": [
+     "rand",
+     "randint",
+     "shuffle"
+    ],
+    "import": "@schule/random:0.0.1"
+   },
+   {
+    "namen": [
+     "blockst",
+     "scratch",
+     "set-blockst",
+     "blockst-run-options",
+     "set-scratch-run",
+     "scratch-run"
+    ],
+    "import": "@preview/blockst:0.1.0"
+   },
+   {
+    "namen": [
+     "chart",
+     "smartart"
+    ],
+    "import": "@preview/cetz-plot:0.1.3"
+   },
+   {
+    "namen": [
+     "angle",
+     "coordinate",
+     "decorations",
+     "drawable",
+     "intersection",
+     "mark-shapes",
+     "path-util",
+     "sorting"
+    ],
+    "hinweis": "aus cetz; `#import \"@preview/cetz:0.4.2\"` und `cetz.<name>` schreiben"
+   },
+   {
+    "namen": [
+     "showybox",
+     "box-colors",
+     "gentle-clues",
+     "typst-icon",
+     "lcg",
+     "step_seed",
+     "default_seed",
+     "fisher_yates_shuffle",
+     "low_cminstd_rand",
+     "low_cminstd_randint",
+     "linguify",
+     "lflib",
+     "set-database",
+     "reset-database",
+     "lang-database",
+     "load_ftl_data",
+     "if-auto-then",
+     "get-task-number",
+     "increment-task-counter",
+     "gc-task-counter",
+     "gc-task-counter-enabled",
+     "align-column",
+     "clues",
+     "predefined",
+     "default-state"
+    ],
+    "hinweis": "kam aus einem Fremdpaket, das arbeitsblatt nicht mehr weiterreicht; das Fremdpaket selbst importieren"
+   }
+  ],
+  "klassenarbeit": [
+   {
+    "praefix": "fa-",
+    "import": "@preview/fontawesome:0.6.0"
+   },
+   {
+    "namen": [
+     "task",
+     "code",
+     "clue",
+     "quotation"
+    ],
+    "import": "@preview/gentle-clues:1.2.0"
+   },
+   {
+    "namen": [
+     "colorbox",
+     "slanted-colorbox",
+     "colorbox-rounded",
+     "outline-colorbox"
+    ],
+    "import": "@preview/colorful-boxes:1.4.3"
+   },
+   {
+    "namen": [
+     "codly",
+     "codly-init",
+     "codly-disable",
+     "codly-enable",
+     "codly-offset",
+     "codly-range",
+     "codly-reset",
+     "codly-skip",
+     "no-codly",
+     "yes-codly"
+    ],
+    "import": "@preview/codly:1.3.0"
+   },
+   {
+    "namen": [
+     "ztable",
+     "zi",
+     "set-num",
+     "set-group",
+     "set-round",
+     "set-unit",
+     "nonum",
+     "format-table"
+    ],
+    "import": "@preview/zero:0.5.0"
+   },
+   {
+    "namen": [
+     "math-to-func",
+     "math-to-str",
+     "math-to-data",
+     "math-to-table",
+     "label-to-math",
+     "get-variable",
+     "split-equation"
+    ],
+    "import": "@preview/eqalc:0.1.3"
+   },
+   {
+    "namen": [
+     "zap"
+    ],
+    "import": "@preview/zap:0.4.0",
+    "modul": true
+   },
+   {
+    "namen": [
+     "lamp",
+     "voltmeter",
+     "motor",
+     "generator",
+     "multimeter",
+     "source",
+     "ammeter"
+    ],
+    "import": "@schule/physik:0.5.0",
+    "hinweis": "arbeitsblatt reicht die Bauteile für `schaltkreis` nicht mehr weiter"
+   },
+   {
+    "namen": [
+     "rand",
+     "randint",
+     "shuffle"
+    ],
+    "import": "@schule/random:0.0.1"
+   },
+   {
+    "namen": [
+     "blockst",
+     "scratch",
+     "set-blockst",
+     "blockst-run-options",
+     "set-scratch-run",
+     "scratch-run"
+    ],
+    "import": "@preview/blockst:0.1.0"
+   },
+   {
+    "namen": [
+     "chart",
+     "smartart"
+    ],
+    "import": "@preview/cetz-plot:0.1.3"
+   },
+   {
+    "namen": [
+     "angle",
+     "coordinate",
+     "decorations",
+     "drawable",
+     "intersection",
+     "mark-shapes",
+     "path-util",
+     "sorting"
+    ],
+    "hinweis": "aus cetz; `#import \"@preview/cetz:0.4.2\"` und `cetz.<name>` schreiben"
+   },
+   {
+    "namen": [
+     "showybox",
+     "box-colors",
+     "gentle-clues",
+     "typst-icon",
+     "lcg",
+     "step_seed",
+     "default_seed",
+     "fisher_yates_shuffle",
+     "low_cminstd_rand",
+     "low_cminstd_randint",
+     "linguify",
+     "lflib",
+     "set-database",
+     "reset-database",
+     "lang-database",
+     "load_ftl_data",
+     "if-auto-then",
+     "get-task-number",
+     "increment-task-counter",
+     "gc-task-counter",
+     "gc-task-counter-enabled",
+     "align-column",
+     "clues",
+     "predefined",
+     "default-state"
+    ],
+    "hinweis": "kam aus einem Fremdpaket, das arbeitsblatt nicht mehr weiterreicht; das Fremdpaket selbst importieren"
+   }
+  ],
+  "aufgaben": [
+   {
+    "praefix": "fa-",
+    "import": "@preview/fontawesome:0.6.0"
+   },
+   {
+    "namen": [
+     "task",
+     "code",
+     "clue",
+     "quotation",
+     "abstract",
+     "info",
+     "question",
+     "memo",
+     "conclusion",
+     "tip",
+     "success",
+     "warning",
+     "error",
+     "example",
+     "goal",
+     "idea",
+     "experiment",
+     "notify",
+     "danger"
+    ],
+    "import": "@preview/gentle-clues:1.2.0",
+    "hinweis": "aufgaben reicht gentle-clues nicht mehr weiter; die 15 Kästen liefert arbeitsblatt"
+   }
+  ],
+  "mathematik": [
+   {
+    "namen": [
+     "teilaufgaben"
+    ],
+    "import": "@schule/aufgaben:0.5.0"
+   },
+   {
+    "namen": [
+     "rand",
+     "randint",
+     "shuffle"
+    ],
+    "import": "@schule/random:0.0.1"
+   }
+  ],
+  "physik": [
+   {
+    "namen": [
+     "rand",
+     "randint",
+     "shuffle"
+    ],
+    "import": "@schule/random:0.0.1"
+   },
+   {
+    "namen": [
+     "qty",
+     "unit",
+     "add-macros"
+    ],
+    "import": "@preview/fancy-units:0.1.1"
+   },
+   {
+    "namen": [
+     "zap"
+    ],
+    "import": "@preview/zap:0.4.0",
+    "modul": true
+   },
+   {
+    "namen": [
+     "znum"
+    ],
+    "hinweis": "`#import \"@preview/zero:0.5.0\": num as znum` selbst schreiben"
+   }
+  ],
+  "informatik": [
+   {
+    "namen": [
+     "blockst",
+     "scratch",
+     "set-blockst",
+     "blockst-run-options",
+     "set-scratch-run",
+     "scratch-run"
+    ],
+    "import": "@preview/blockst:0.1.0"
+   }
+  ],
+  "insert-a-word": [
+   {
+    "namen": [
+     "rand",
+     "randint",
+     "shuffle"
+    ],
+    "import": "@schule/random:0.0.1"
+   }
+  ],
+  "energy-sketch": [
+   {
+    "namen": [
+     "canvas",
+     "draw"
+    ],
+    "import": "@preview/cetz:0.5.2"
+   }
+  ],
+  "abbozza": [
+   {
+    "namen": [
+     "canvas",
+     "draw"
+    ],
+    "import": "@preview/cetz:0.3.4"
+   }
+  ],
+  "gutachten": [
+   {
+    "namen": [
+     "qty",
+     "num",
+     "unit",
+     "numrange",
+     "qtyrange",
+     "add-unit",
+     "add-prefix"
+    ],
+    "import": "@preview/unify:0.7.0"
+   }
+  ],
+  "klausurboegen": [
+   {
+    "namen": [
+     "kariert"
+    ],
+    "import": "@schule/patterns:0.5.0"
+   }
+  ]
+ },
+ "vorgaben": {
+  "arbeitsblatt.arbeitsblatt.loesungen": {
+   "\"keine\"": "none",
+   "false": "none",
+   "\"false\"": "none",
+   "none": "none"
+  },
+  "arbeitsblatt.arbeitsblatt.materialien": {
+   "\"seiten\"": "\"after-task\""
+  },
+  "arbeitsblatt.arbeitsblatt.punkte": {
+   "\"keine\"": "none"
+  },
+  "arbeitsblatt.arbeitsblatt.aufgaben-shortcodes": {
+   "\"teilaufgaben\"": "\"subtasks\""
+  },
+  "arbeitsblatt.arbeitsblatt.theme": {
+   "\"standard\"": "auto",
+   "none": "auto"
+  },
+  "arbeitsblatt.arbeitsblatt-einzeln.loesungen": {
+   "\"keine\"": "none",
+   "false": "none",
+   "\"false\"": "none",
+   "none": "none"
+  },
+  "arbeitsblatt.arbeitsblatt-einzeln.materialien": {
+   "\"seiten\"": "\"after-task\""
+  },
+  "arbeitsblatt.arbeitsblatt-einzeln.punkte": {
+   "\"keine\"": "none"
+  },
+  "arbeitsblatt.arbeitsblatt-einzeln.aufgaben-shortcodes": {
+   "\"teilaufgaben\"": "\"subtasks\""
+  },
+  "arbeitsblatt.arbeitsblatt-einzeln.theme": {
+   "\"standard\"": "auto",
+   "none": "auto"
+  },
+  "klassenarbeit.klassenarbeit.loesungen": {
+   "\"keine\"": "none",
+   "false": "none",
+   "\"false\"": "none",
+   "none": "none"
+  },
+  "klassenarbeit.klassenarbeit.materialien": {
+   "\"seiten\"": "\"after-task\""
+  },
+  "klassenarbeit.klassenarbeit.punkte": {
+   "\"keine\"": "none"
+  },
+  "klassenarbeit.klassenarbeit.aufgaben-shortcodes": {
+   "\"teilaufgaben\"": "\"subtasks\""
+  },
+  "klassenarbeit.klassenarbeit.theme": {
+   "\"standard\"": "auto",
+   "none": "auto"
+  }
+ },
+ "positional": {
+  "physik.datensatz": {
+   "namen": [
+    "name",
+    "unit",
+    null
+   ],
+   "ab": 3
+  },
+  "physik.messdaten": {
+   "namen": [
+    "name",
+    "unit",
+    null
+   ],
+   "ab": 3
+  },
+  "physik.berechnung": {
+   "namen": [
+    "name",
+    "unit",
+    "datasets",
+    null
+   ],
+   "ab": 4
+  },
+  "physik.konstante": {
+   "namen": [
+    "name",
+    null,
+    "unit"
+   ],
+   "ab": 3
+  },
+  "physik.lineare_regression": {
+   "namen": [
+    "x",
+    "y"
+   ],
+   "ab": 2
+  },
+  "physik.lineare-regression": {
+   "namen": [
+    "x",
+    "y"
+   ],
+   "ab": 2
+  },
+  "physik.quadratische_regression": {
+   "namen": [
+    "x",
+    "y"
+   ],
+   "ab": 2
+  },
+  "physik.quadratische-regression": {
+   "namen": [
+    "x",
+    "y"
+   ],
+   "ab": 2
+  },
+  "physik.wurzel_regression": {
+   "namen": [
+    "x",
+    "y"
+   ],
+   "ab": 2
+  },
+  "physik.wurzel-regression": {
+   "namen": [
+    "x",
+    "y"
+   ],
+   "ab": 2
+  },
+  "physik.exponentielle_regression": {
+   "namen": [
+    "x",
+    "y"
+   ],
+   "ab": 2
+  },
+  "physik.exponentielle-regression": {
+   "namen": [
+    "x",
+    "y"
+   ],
+   "ab": 2
+  },
+  "physik.potenz_regression": {
+   "namen": [
+    "x",
+    "y"
+   ],
+   "ab": 2
+  },
+  "physik.potenz-regression": {
+   "namen": [
+    "x",
+    "y"
+   ],
+   "ab": 2
+  },
+  "physik.polynom_regression": {
+   "namen": [
+    "x",
+    "y",
+    "degree"
+   ],
+   "ab": 2
+  },
+  "physik.polynom-regression": {
+   "namen": [
+    "x",
+    "y",
+    "degree"
+   ],
+   "ab": 2
+  }
+ },
+ "rueckgabe": {
+  "physik.datensatz": {
+   "einheit": "unit",
+   "werte": "values",
+   "max-digits": "digits",
+   "auto-einheit": null
+  },
+  "physik.messdaten": {
+   "einheit": "unit",
+   "werte": "values",
+   "max-digits": "digits",
+   "auto-einheit": null
+  },
+  "physik.berechnung": {
+   "einheit": "unit",
+   "werte": "values",
+   "max-digits": "digits",
+   "auto-einheit": null
+  },
+  "physik.konstante": {
+   "wert": "value",
+   "einheit": "unit",
+   "mit-einheit": "qty",
+   "beschreibung": null
+  },
+  "physik.lineare_regression": {
+   "m": "coefficients.m",
+   "b": "coefficients.b"
+  },
+  "physik.lineare-regression": {
+   "m": "coefficients.m",
+   "b": "coefficients.b"
+  },
+  "physik.quadratische_regression": {
+   "a": "coefficients.a",
+   "b": "coefficients.b",
+   "c": "coefficients.c"
+  },
+  "physik.quadratische-regression": {
+   "a": "coefficients.a",
+   "b": "coefficients.b",
+   "c": "coefficients.c"
+  },
+  "physik.wurzel_regression": {
+   "a": "coefficients.a",
+   "b": "coefficients.b"
+  },
+  "physik.wurzel-regression": {
+   "a": "coefficients.a",
+   "b": "coefficients.b"
+  },
+  "physik.exponentielle_regression": {
+   "a": "coefficients.a",
+   "b": "coefficients.b"
+  },
+  "physik.exponentielle-regression": {
+   "a": "coefficients.a",
+   "b": "coefficients.b"
+  },
+  "physik.potenz_regression": {
+   "a": "coefficients.a",
+   "m": "coefficients.m"
+  },
+  "physik.potenz-regression": {
+   "a": "coefficients.a",
+   "m": "coefficients.m"
+  },
+  "physik.polynom_regression": {
+   "c0": "coefficients.c0",
+   "c1": "coefficients.c1",
+   "c2": "coefficients.c2",
+   "c3": "coefficients.c3",
+   "c4": "coefficients.c4",
+   "c5": "coefficients.c5",
+   "c6": "coefficients.c6",
+   "c7": "coefficients.c7",
+   "c8": "coefficients.c8",
+   "c9": "coefficients.c9"
+  },
+  "physik.polynom-regression": {
+   "c0": "coefficients.c0",
+   "c1": "coefficients.c1",
+   "c2": "coefficients.c2",
+   "c3": "coefficients.c3",
+   "c4": "coefficients.c4",
+   "c5": "coefficients.c5",
+   "c6": "coefficients.c6",
+   "c7": "coefficients.c7",
+   "c8": "coefficients.c8",
+   "c9": "coefficients.c9"
+  },
+  "mathematik.steckbrief": {
+   "gleichungssystem": "system",
+   "bedingungen": "conditions",
+   "bedingungen-system": "condition-system",
+   "gleichungssystem-raw": "equations",
+   "bedingungen-raw": null,
+   "bedingungen-system-raw": null,
+   "error": null,
+   "grad": null,
+   "a": "coefficients.a",
+   "b": "coefficients.b",
+   "c": "coefficients.c",
+   "d": "coefficients.d",
+   "e": "coefficients.e",
+   "f": "coefficients.f",
+   "g": "coefficients.g",
+   "h": "coefficients.h"
+  },
+  "informatik.häufigkeitsanalyse": {
+   "absolut": "counts",
+   "relativ": "frequencies",
+   "data": "items",
+   "diagramm": "chart"
+  },
+  "informatik.haeufigkeitsanalyse": {
+   "absolut": "counts",
+   "relativ": "frequencies",
+   "data": "items",
+   "diagramm": "chart"
+  },
+  "typlace.sitzordnung": {
+   "namen": "names",
+   "zuordnung": "assignment",
+   "platz-von": "seat-of",
+   "punkte": "points",
+   "punkte-gerundet": "points-rounded",
+   "statistik": "statistics",
+   "hinweise": "notes",
+   "kontext": "problem",
+   "geo": "geometry",
+   "dauer": "duration",
+   "versuche": "attempts",
+   "schritte": "steps",
+   "geprueft": "checked",
+   "details": {
+    "hinweis": "die Einträge von `details` haben neue Schlüssel (punkte → points, punkte-position → position-points, erfuellt → fulfilled, verletzt → violated, position-verletzt → position-violated, hart-verletzt → constraints-violated; darin schueler → student, art → kind) – von Hand umstellen"
+   }
+  },
+  "typlace.sitzordnung>geo>plaetze": {},
+  "typlace.sitzordnung>statistik": {
+   "punkte": "points",
+   "wuensche-gesamt": "wishes-total",
+   "wuensche-erfuellt": "wishes-fulfilled",
+   "quote": "rate",
+   "alle-erfuellt": "all-fulfilled",
+   "ohne-wunsch": "unfulfilled",
+   "position-gesamt": "position-total",
+   "position-erfuellt": "position-fulfilled",
+   "position-verletzt": "position-violated",
+   "position-unerfuellbar": "position-impossible",
+   "ablehnungen-verletzt": "rejections-violated",
+   "vorgaben-verletzt": "constraints-violated",
+   "verteilung": "distribution",
+   "punkte-aus-position": "position-points",
+   "punkte-aus-wuenschen": "wish-points"
+  },
+  "typlace.sitzordnung>geo": {
+   "zeilen": "rows",
+   "spalten": "columns",
+   "vorne": "front",
+   "plaetze": {
+    "neu": "seats",
+    "hinweis": "die Einträge von `plaetze` haben neue Schlüssel (zeile → row, spalte → column, zeichen → character, tisch → table, abstand → distance) – von Hand umstellen"
+   },
+   "tische": {
+    "neu": "tables",
+    "hinweis": "Einträge von `tische` von Hand prüfen"
+   },
+   "zonen": "zones",
+   "beziehung": "relations"
+  },
+  "typlace.sitzordnung>kontext": {
+   "geo": "geometry",
+   "schueler": "students",
+   "index-von": "index-of",
+   "wuensche": "wishes",
+   "ablehnungen": "rejections",
+   "getrennt": "apart",
+   "zusammen": "together",
+   "rueckwaerts": "reverse",
+   "gewichte": "weights",
+   "anzahl-schueler": "student-count",
+   "anzahl-plaetze": "seat-count"
+  },
+  "typlace.wunschliste": {
+   "schueler": "students",
+   "hinweise": "notes"
+  }
+ },
+ "kontextregeln": [
+  {
+   "id": "aufgabe-zwei-inhalte",
+   "wo": "aufgaben.aufgabe",
+   "alt": "aufgabe[T][R]",
+   "neu": "aufgabe(title: [T])[R]",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "erwartung-reihenfolge",
+   "wo": "aufgaben.erwartung",
+   "alt": "erwartung(B, P) mit P als Zahl-Literal; erwartung(punkte: P, B)",
+   "neu": "erwartung(P, B)",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "set-options-dictionary",
+   "wo": "aufgaben.set-options",
+   "alt": "set-options((k: v, …))",
+   "neu": "set-options(k': v', …); Werte nach werte.aufgaben.set-options.*",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "set-options-variable",
+   "wo": "aufgaben.set-options",
+   "alt": "set-options(d) mit d als Variable",
+   "neu": "Bericht; von Hand `set-options(..d)` und die Schlüssel von d umstellen",
+   "werkzeug": "bericht"
+  },
+  {
+   "id": "punkte-dictionary",
+   "wo": "Kopf und set-options",
+   "alt": "punkte: (anzeige: A, position: P)",
+   "neu": "points: A', points-position: P'; fehlt anzeige: points: \"tasks\"; ein daneben stehendes punkte-position entfällt",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "punkte-template",
+   "wo": "aufgaben.set-options",
+   "alt": "punkte-template-aufgabe: F, punkte-template-teilaufgabe: G",
+   "neu": "points-format: (task: F, subtask: G)",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "show-bewertung-positional",
+   "wo": "aufgaben.show-bewertung",
+   "alt": "show-bewertung(X)",
+   "neu": "show-points-table(possible: X'): true -> löschen, false -> \"fields\"; mehrere Positionsargumente löschen",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "show-erwartungen-teile",
+   "wo": "aufgaben.show-erwartungen",
+   "alt": "teile: T ohne alle: true; new-page: …",
+   "neu": "teile löschen (war wirkungslos); new-page: false löschen; new-page: true: Bericht (pagebreak von Hand)",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "figure-kind",
+   "wo": "Dokument",
+   "alt": "figure.where(kind: \"aufgabe\" | \"teilaufgabe\")",
+   "neu": "\"task\" | \"subtask\"; andere Formen: Bericht",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "aufgaben-allein-punkte",
+   "wo": "Dokument importiert aufgaben ohne arbeitsblatt oder klassenarbeit",
+   "alt": "kein set-options mit punkte",
+   "neu": "`#set-options(points: \"tasks\")` hinter dem Import ergänzen (die Vorgabe war \"aufgaben\" und ist jetzt none); Bericht",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "custom-header",
+   "wo": "arbeitsblatt, arbeitsblatt-einzeln",
+   "alt": "custom-header: none | custom-header: X",
+   "neu": "Argument löschen | header: X",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "header-ascent",
+   "wo": "Kopf",
+   "alt": "header-ascent: X",
+   "neu": "page-settings: (header-ascent: X), in ein vorhandenes Dictionary-Literal eingefügt",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "varianten",
+   "wo": "arbeitsblatt, klassenarbeit",
+   "alt": "varianten: \"x\" | (\"x\", …) | (n: (…), m: (:))",
+   "neu": "variants: (\"x'\",) | (\"x'\", …) | variants: (\"n'\", \"m'\"), variant-overrides: (n': (…')); Schlüssel und Werte der Overrides wie im Kopf",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "leerer-text",
+   "wo": "Kopf, aufgabe, klausurboegen",
+   "alt": "\"\" bei title, subtitle, class, date, teacher, student, method",
+   "neu": "Argument löschen",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "theme-funktion",
+   "wo": "Kopf",
+   "alt": "theme: (akzent, class) => … | theme: (schluessel: …)",
+   "neu": "Bericht: Parameter `accent`, `class` und Schlüssel nach schluessel.arbeitsblatt.theme von Hand",
+   "werkzeug": "bericht"
+  },
+  {
+   "id": "dynamischer-wert",
+   "wo": "alle",
+   "alt": "Wert eines Parameters mit Wertregel ist kein Literal (Variable, sys.inputs, Ausdruck)",
+   "neu": "Bericht; der Parametername wird umbenannt, der Wert bleibt",
+   "werkzeug": "bericht"
+  },
+  {
+   "id": "spread",
+   "wo": "alle",
+   "alt": "..args im Aufruf",
+   "neu": "Bericht: Schlüssel des Dictionary von Hand umstellen",
+   "werkzeug": "bericht"
+  },
+  {
+   "id": "eigene-funktion",
+   "wo": "alle",
+   "alt": "Dokument definiert einen Namen der Pakete selbst (#let lücke, #let aufgabe …)",
+   "neu": "Aufrufe bleiben stehen; Bericht",
+   "werkzeug": "bericht"
+  },
+  {
+   "id": "kasten-headless",
+   "wo": "arbeitsblatt, 15 Kästen",
+   "alt": "kasten(headless: true, title: X) | headless: false",
+   "neu": "title: none (ein vorhandenes title entfällt) | Argument löschen",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "pagebreak-loesungen-only",
+   "wo": "arbeitsblatt.print-pagebreak, non-print-pagebreak",
+   "alt": "loesungen-only: true",
+   "neu": "nicht anfassen; Bericht (Bedeutung von solutions-visible ist weiter)",
+   "werkzeug": "bericht"
+  },
+  {
+   "id": "luecke",
+   "wo": "arbeitsblatt.lücke",
+   "alt": "lücke(…)",
+   "neu": "luecke(…), wenn das Dokument weder `#let lücke` noch `#let luecke` hat und kein Argument außer tight trägt; immer Bericht (mit sichtbaren Lösungen zeigt `luecke` den Inhalt)",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "print-state",
+   "wo": "arbeitsblatt",
+   "alt": "print-state.get()",
+   "neu": "is-print(); jede andere Form: Bericht",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "teilaufgaben-enum",
+   "wo": "arbeitsblatt.teilaufgaben",
+   "alt": "teilaufgaben[+ a + b]",
+   "neu": "Bericht: teilaufgaben(items: ([a], [b]))",
+   "werkzeug": "bericht"
+  },
+  {
+   "id": "minipage-zeilen",
+   "wo": "arbeitsblatt.minipage",
+   "alt": "spacing: X",
+   "neu": "gutter: X; Bericht (gutter gilt jetzt auch zwischen Zeilen)",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "fremdimport",
+   "wo": "Dokument",
+   "alt": "Namen, die die alte Version über `*` weiterreichte (fa-…, task, code, colorbox, lamp, rand …)",
+   "neu": "Importzeile nach weggefallen ergänzen; ohne Eintrag: Bericht",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "ka-erwartungen",
+   "wo": "klassenarbeit.klassenarbeit",
+   "alt": "erwartungen: (show: false) | (alle: true, teile: T) | (teile: T) | (new-page: …) | \"true\"",
+   "neu": "expectations: false | (select: \"all\", blocks: T) | Schlüssel teile löschen | Schlüssel löschen | false und Bericht",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "ka-klausurboegen",
+   "wo": "klassenarbeit.klassenarbeit",
+   "alt": "klausurboegen: (show: false, …) | (show: true, …) | (ergebnisse: X) | (scale: n) | (sek1: true)",
+   "neu": "answer-sheets: false | Schlüssel show löschen | (results: X, overprint: true) | (grid-size: n * 0.5cm) | (stage: \"sek-1\")",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "ka-info-table",
+   "wo": "klassenarbeit.klassenarbeit",
+   "alt": "info-table: (a, b, c, d)",
+   "neu": "info-table: ((a, b), (c, d)); kein Array-Literal: Bericht",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "ka-stufe",
+   "wo": "klassenarbeit.klassenarbeit",
+   "alt": "stufe: X (ab 0.1.2 nicht mehr gelesen)",
+   "neu": "Argument löschen; Bericht",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "ka-bogen-rand",
+   "wo": "klassenarbeit.klassenarbeit",
+   "alt": "bogen: (rand: r, unten: u) | (seite4: …, rueckseite: …)",
+   "neu": "Bericht: margin: (top: r, bottom: u, x: r) von Hand",
+   "werkzeug": "bericht"
+  },
+  {
+   "id": "ka-untergrenze",
+   "wo": "klassenarbeit < 0.1.2, arbeitsblatt < 0.2.3, aufgaben < 0.1.0",
+   "alt": "Import unter der Untergrenze",
+   "neu": "Dokument bleibt unverändert; Bericht",
+   "werkzeug": "bericht"
+  },
+  {
+   "id": "bogen-scale",
+   "wo": "klausurboegen.klausurbögen, klassenarbeit.klausurboegen",
+   "alt": "scale: n",
+   "neu": "grid-size: n * 0.5cm (Zahl-Literal ausgerechnet, scale: 1 gelöscht; sonst `(X) * 0.5cm`)",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "bogen-vorgaben",
+   "wo": "klausurboegen.klausurbögen",
+   "alt": "teacher, class, date fehlen (alte Vorgaben \"SLZ\", \"PH1\", \"09.10.2023\")",
+   "neu": "teacher: \"SLZ\", class: \"PH1\", date: \"09.10.2023\" ergänzen, damit der Kopf gleich bleibt; Bericht",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "bogen-numbering",
+   "wo": "klausurboegen.klausurbögen",
+   "alt": "numbering: <anderer Wert als \"a)\">",
+   "neu": "subtask-numbering: \"1.1\"; Bericht",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "pattern-rows",
+   "wo": "patterns.kariert, liniert",
+   "alt": "kariert(rows: r)",
+   "neu": "kariert(r)",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "pattern-width",
+   "wo": "patterns.kariert, liniert",
+   "alt": "width: <Länge> | width: <Ganzzahl> | kariert(r, w)",
+   "neu": "width: <Länge> | kariert: columns: <Zahl>, liniert: width: n * line-height | zweites Positionsargument wird benannt; kein Literal: Bericht",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "graphen-domain",
+   "wo": "mathematik.graphen",
+   "alt": "x: A, y: B",
+   "neu": "domain: (x: A, y: B); x: auto und – zusammen mit datensätze – x: (-5, 5) werden gelöscht",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "graphen-step",
+   "wo": "mathematik.graphen",
+   "alt": "step: S, x-step: X, y-step: Y",
+   "neu": "step: (x: X, y: Y); fehlt X oder Y, tritt S an seine Stelle, außer S ist 1 oder fehlt (die Achse bleibt dann weg); step allein bleibt unverändert",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "graphen-labels",
+   "wo": "mathematik.graphen",
+   "alt": "x-label: A, y-label: B",
+   "neu": "labels: (A, B); fehlendes wird auto",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "graphen-grid",
+   "wo": "mathematik.graphen",
+   "alt": "grid: G, x-grid: X, y-grid: Y",
+   "neu": "grid-lines: G' bzw. grid-lines: (x: X', y: Y')",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "graphen-size",
+   "wo": "mathematik.graphen",
+   "alt": "size: (b, h) | size: n, scale: f",
+   "neu": "width: b * f cm, height: h * f cm bei Zahl-Literalen; sonst Bericht",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "kreisdiagramm-radius",
+   "wo": "mathematik.kreisdiagramm",
+   "alt": "radius: r",
+   "neu": "width: 2 * r cm (Durchmesser als Länge)",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "summify-reihe",
+   "wo": "summify.beside, below, cols, rows",
+   "alt": "beside(lines: true)[…][…]",
+   "neu": "cell-grid(direction: \"horizontal\", dividers: true)[…][…]; below, rows: \"vertical\"",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "ka-leerer-horizont",
+   "wo": "klassenarbeit.klassenarbeit, Quelle < 0.4.0",
+   "alt": "Arbeit ohne erwartung(…)",
+   "neu": "expectations: false (bis 0.3.2 entfiel der Erwartungshorizont dann, ab 0.4.0 stünde eine leere Seite); mit #include nur Bericht",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "vorgabe-im-ausdruck",
+   "wo": "Kopf",
+   "alt": "loesungen: sys.inputs.at(\"loesungen\", default: \"keine\")",
+   "neu": "das Literal hinter default: wird nach werte bzw. vorgaben umgestellt; Bericht, weil die übrigen Werte zur Laufzeit kommen",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "import-alias",
+   "wo": "Dokument",
+   "alt": "#import \"@schule/energy-sketch:0.0.3\": energy-sketch as es",
+   "neu": "Regeln der Funktion gelten auch für Aufrufe unter dem Alias",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "interne-namen",
+   "wo": "Dokument",
+   "alt": "_state_theme, _theme-hook und andere Namen mit Unterstrich; state(\"ab-theme\") usw.",
+   "neu": "Bericht",
+   "werkzeug": "bericht"
+  },
+  {
+   "id": "graphen-eintraege",
+   "wo": "mathematik.graphen",
+   "alt": "Term-, Flächen-, Marken- und Datensatz-Dictionaries als Literal im Aufruf",
+   "neu": "Schlüssel nach _graphen; marks: ((x, y),) -> ((at: (x, y)),); position: (x, y) -> at; Paletten-Index -> Farbe; nicht literal: Bericht",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "physik-auto-einheit",
+   "wo": "physik.datensatz, berechnung",
+   "alt": "prefix: P zusammen mit auto-einheit: A",
+   "neu": "auto-einheit löschen (prefix gewann schon bisher)",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "physik-pk",
+   "wo": "physik.pk",
+   "alt": "pk.<k>.wert | .einheit | .mit-einheit",
+   "neu": "constants.<k>.value | .unit | .qty; pk.m.elektron -> constants.m_e usw.; andere Formen: Bericht",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "informatik-rueckgabe",
+   "wo": "informatik.caesar, vigenere, atbash (0.0.1)",
+   "alt": "Felder der Rückgabewerte (.encode, .decode, .table)",
+   "neu": "Bericht",
+   "werkzeug": "bericht"
+  },
+  {
+   "id": "ascii-variants",
+   "wo": "informatik.ascii-table",
+   "alt": "variants: (\"char\", …)",
+   "neu": "fields: (\"character\", …)",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "summify-theme",
+   "wo": "summify.summify(theme:, theme-overrides:), set-theme, update-theme",
+   "alt": "Schlüssel spacing.content, sizes.title.text, sizes.header.text, typography.base-size in einem Dictionary-Literal",
+   "neu": "spacing.cell, sizes.title.font-size, sizes.header.font-size, typography.font-size; kein Literal: Bericht",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "gutachten-aufgabe",
+   "wo": "gutachten.aufgabe",
+   "alt": "aufgabe(<name>, <punkte>)[…]",
+   "neu": "aufgabe(<name>, points: <punkte>)[…]",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "gutachten-set-aufgaben",
+   "wo": "gutachten.set-aufgaben",
+   "alt": "set-aufgaben(((name: …, be: …, dativ: …), …))",
+   "neu": "set-tasks(((title: …, max-points: …, dative: …), …)) bei Literal; sonst Bericht",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "flashcards-card",
+   "wo": "flashcards.card",
+   "alt": "card(H, F, Q, A) | card[H][F][Q][A]",
+   "neu": "card(header: H, footer: F, Q, A) | card(header: [H], footer: [F])[Q][A]",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "abbozza-scale",
+   "wo": "abbozza.render-hathi-level",
+   "alt": "scale: S",
+   "neu": "tile-size: S * 25mm (Zahl-Literal ausgerechnet, scale: 1 gelöscht)",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "positionsargumente",
+   "wo": "physik.datensatz, messdaten, berechnung, konstante, *-regression",
+   "alt": "datensatz(name, einheit, werte) | lineare_regression(x, y)",
+   "neu": "datensatz(name: …, unit: …, werte) | lineare-regression(x: …, y: …) nach positional",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "rueckgabefelder",
+   "wo": "mathematik.steckbrief, physik, informatik.häufigkeitsanalyse, typlace",
+   "alt": "#let v = funktion(…) … v.feld | funktion(…).feld",
+   "neu": "Feldnamen nach rueckgabe; Zugriffe über .at(\"feld\"), Weitergabe an eigene Funktionen und Einträge von Arrays: von Hand",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "chiffren",
+   "wo": "informatik.caesar, vigenere, atbash, rot13",
+   "alt": "caesar(key: 3)(\"T\") | #let c = caesar(key: 3); c(\"T\", true); c() | rot13()",
+   "neu": "caesar(\"T\", key: 3) | caesar.with(key: 3); c(\"T\", inverse: true); caesar-table(key: 3) | caesar-table(key: 13)",
+   "werkzeug": "automatisch"
+  },
+  {
+   "id": "typlace-schueler",
+   "wo": "typlace.sitzordnung",
+   "alt": "Schülerliste als Literal: wuensche, ablehnungen, position: (tiefe: \"vorne\", seite: …)",
+   "neu": "wishes, rejections, position: (depth: \"front\", side: …); rotation: 90 -> 90deg",
+   "werkzeug": "automatisch"
+  }
+ ],
+ "_varianten": {
+  "arbeitsblatt": {
+   "druck": "print",
+   "digital": "digital",
+   "loesung": "solutions",
+   "loesungen": "solutions",
+   "zweifach": "two-up"
+  },
+  "klassenarbeit": {
+   "druck": "print",
+   "loesung": "solutions",
+   "klausurboegen": "answer-sheets"
+  }
+ },
+ "_kaesten": [
+  "abstract",
+  "info",
+  "question",
+  "memo",
+  "conclusion",
+  "tip",
+  "success",
+  "warning",
+  "error",
+  "example",
+  "goal",
+  "idea",
+  "experiment",
+  "notify",
+  "danger"
+ ],
+ "_theme-schluessel": {
+  "rand": "margin",
+  "kopf": "header",
+  "fuss": "footer",
+  "hintergrund": "background",
+  "kasten": "callout",
+  "marke": "task-marker",
+  "marke-breite": "task-marker-width",
+  "aufgabe": "task",
+  "teilaufgabe": "subtask",
+  "loesung": "solution",
+  "loesung-kopf": "solution-heading",
+  "material-kopf": "material-heading"
+ },
+ "_graphen": {
+  "term": {
+   "color": "accent",
+   "clr": "accent",
+   "label": "labels"
+  },
+  "label": {
+   "content": "body",
+   "size": "font-size",
+   "color": "text-fill",
+   "padding": "distance",
+   "angle": "rotation"
+  },
+  "label-position": {
+   "\"tl\"": "\"top-left\"",
+   "\"tr\"": "\"top-right\"",
+   "\"bl\"": "\"bottom-left\"",
+   "\"br\"": "\"bottom-right\""
+  },
+  "fills": {
+   "color": "fill",
+   "clr": "fill"
+  },
+  "marks": {
+   "pos": "at",
+   "content": "body",
+   "label": "body",
+   "padding": "distance",
+   "color": "accent",
+   "clr": "accent"
+  },
+  "marks-anchor": {
+   "\"south-west\"": "\"top-right\"",
+   "\"south-east\"": "\"top-left\"",
+   "\"north-west\"": "\"bottom-right\"",
+   "\"north-east\"": "\"bottom-left\"",
+   "\"south\"": "\"top\"",
+   "\"north\"": "\"bottom\"",
+   "\"west\"": "\"right\"",
+   "\"east\"": "\"left\"",
+   "\"tl\"": "\"bottom-left\"",
+   "\"top-left\"": "\"bottom-left\"",
+   "\"tr\"": "\"bottom-right\"",
+   "\"top-right\"": "\"bottom-right\"",
+   "\"bl\"": "\"top-left\"",
+   "\"bottom-left\"": "\"top-left\"",
+   "\"br\"": "\"top-right\"",
+   "\"bottom-right\"": "\"top-right\"",
+   "\"t\"": "\"bottom\"",
+   "\"top\"": "\"bottom\"",
+   "\"b\"": "\"top\"",
+   "\"bottom\"": "\"top\"",
+   "\"l\"": "\"left\"",
+   "\"r\"": "\"right\""
+  },
+  "datensaetze": {
+   "marker": "symbol",
+   "color": "accent",
+   "clr": "accent"
+  },
+  "grid": {
+   "\"both\"": "\"all\"",
+   "\"none\"": "none",
+   "false": "none",
+   "true": "\"major\""
+  },
+  "palette": [
+   "rgb(\"#1F77B4\")",
+   "rgb(\"#D62728\")",
+   "rgb(\"#2CA02C\")",
+   "rgb(\"#FF7F0E\")",
+   "rgb(\"#9467BD\")",
+   "rgb(\"#8C564B\")",
+   "rgb(\"#E377C2\")",
+   "rgb(\"#7F7F7F\")",
+   "rgb(\"#BCBD22\")",
+   "rgb(\"#17BECF\")"
+  ]
+ },
+ "_gutachten-aufgaben": {
+  "be": "max-points",
+  "dativ": "dative",
+  "name": "title"
+ }
+}
