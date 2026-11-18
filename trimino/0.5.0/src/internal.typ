@@ -261,14 +261,16 @@
 // ---------------------------------------------------------------------------
 //
 // Die Marken folgen Silhouette Studio (Typ „Cameo, Portrait“): links oben ein
-// gefülltes Quadrat, rechts oben und links unten je ein Winkel. Der Abstand der
+// gefülltes Quadrat, rechts oben und links unten je ein Winkel. Die Winkel
+// sind 0,5 mm stark, wie es der Plotter bei der Suche erwartet (TB53,10);
+// dünnere Linien fand er unter Laminierfolie nicht zuverlässig. Der Abstand der
 // Marken vom Blattrand ist `mark-inset`; um die Marken herum bleibt ein
 // Schutzraum frei, deshalb setzt der Schnittbogen dann den Rand `mark-margin`.
 
 #let mark-inset = 10mm
 #let mark-square = 5mm
 #let mark-line = 20mm
-#let mark-thickness = 0.3mm
+#let mark-thickness = 0.5mm
 #let mark-margin = 30mm
 // Prüfkreuz: Mitte so weit von der rechten unteren Blattecke. Der Plotter
 // fährt nach der Markensuche dorthin; steht das Messer genau darüber, stimmt

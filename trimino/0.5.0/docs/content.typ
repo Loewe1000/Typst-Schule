@@ -147,6 +147,10 @@ kleinere Kärtchen:
 #trimino(pairs: paare, copies: 2, side: 5cm, cut-marks: true, back: true)
 ```
 
+Für mehrere Bögen zählt `first-copy` die Buchstaben weiter: Der zweite Bogen
+mit `copies: 2, first-copy: 3` trägt die Sätze C und D, der dritte mit
+`first-copy: 5` E und F.
+
 #tip[Mit Passermarken passen auf A4 bei 6 cm Kantenlänge 16 Kärtchen (4 Reihen
 zu 4), bei 5 cm 25 (5 Reihen zu 5). Die Schrift wächst und schrumpft mit
 `side`.]
@@ -156,7 +160,7 @@ zu 4), bei 5 cm 25 (5 Reihen zu 5). Die Schrift wächst und schrumpft mit
 Mit `cut-marks: true` schneidet ein Silhouette-Schneideplotter (Cameo,
 Portrait) die Kärtchen aus. Auf jeden Schnittbogen kommen dann Passermarken
 im Silhouette-Format: links oben ein Quadrat, rechts oben und links unten je
-ein Winkel, 10 mm vom Blattrand. Damit der Plotter die Marken sicher findet,
+ein Winkel mit 0,5 mm starken Linien, 10 mm vom Blattrand. Damit der Plotter die Marken sicher findet,
 bekommt der Schnittbogen einen Rand von 30 mm und weder Kopf- noch Fußzeile;
 das Lösungsbild bleibt, wie es ist. Rechts unten steht ein kleines
 Prüfkreuz: Der Plotter fährt nach der Markensuche darüber, und man sieht, ob

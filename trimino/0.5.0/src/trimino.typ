@@ -56,6 +56,7 @@
 /// - theme (str, dictionary, auto): Gestaltung: `"riso"` (Pastell, Standard bei `auto`), `"klar"` (schwarz-weiß), `"leiste"` (Rahmen), `"bauhaus"`; ein Dictionary ändert einzelne Schlüssel von `"riso"` (`fill`, `stroke`, `band`, `band-depth`, `pill`, `ink`, `weight`, `inner`, `corner`)
 /// - corners (bool): zweifarbige Eckspitzen; richtig gelegt ergeben sie Sterne
 /// - back (bool, content, str): hinter jeden Schnittbogen eine Rückseite zum beidseitigen Druck an der langen Kante (die Plätze sind dafür gespiegelt); `true` schreibt „TRIMINO“ und den Titel auf jedes Kärtchen, ein Inhalt ersetzt den Titel unter „TRIMINO“, etwa `[*Prozentrechnung*\ Grundaufgaben]`
+/// - first-copy (int): Buchstabe des ersten Satzes als Zahl (1 = A, 3 = C), damit mehrere gedruckte Bögen verschiedene Sätze tragen
 /// - copies (int): so viele Sätze Kärtchen auf den Schnittbogen, etwa für zwei Gruppen; jeder Satz neu gemischt; auf der Rückseite trägt jedes Kärtchen Satzbuchstabe und Nummer (A1–A12, B1–B12, …)
 /// - cut-marks (bool): Passermarken für Silhouette-Schneideplotter auf jeden Schnittbogen; die Schnittlinien stehen dann als `metadata` mit dem Label `<cut-data>` im Dokument (`typst query datei.typ "<cut-data>"`)
 /// - ..deprecated (arguments): fängt unbekannte Namen ab, nimmt nichts an
@@ -75,13 +76,14 @@
   corners: true,
   back: false,
   copies: 1,
+  first-copy: 1,
   cut-marks: false,
   ..deprecated,
 ) = {
   let fn = "trimino"
   check-positional(pkg, fn, deprecated, hint: "die Paare stehen in `pairs: ((Aufgabe, Lösung), …)`")
   check-named(pkg, fn, deprecated, allowed: ("pairs", "shape", "shape-size", "distractors", "seed",
-    "side", "title", "solution", "cards", "number", "theme", "corners", "back", "copies", "cut-marks"))
+    "side", "title", "solution", "cards", "number", "theme", "corners", "back", "copies", "first-copy", "cut-marks"))
   check-type(pkg, fn, "pairs", pairs, array, example: "(([2 + 3], [5]), ([4 · 2], [8]))")
   for (k, p) in pairs.enumerate() {
     if type(p) != array or p.len() != 2 {
@@ -107,6 +109,8 @@
   let has-back = back != false
   check-type(pkg, fn, "copies", copies, int, example: "2")
   if copies < 1 { fail(pkg, fn, "`copies` muss mindestens 1 sein") }
+  check-type(pkg, fn, "first-copy", first-copy, int, example: "3")
+  if first-copy < 1 { fail(pkg, fn, "`first-copy` muss mindestens 1 sein (1 = A)") }
   check-type(pkg, fn, "cut-marks", cut-marks, bool)
   if pairs.len() == 0 { fail(pkg, fn, "keine Paare – mindestens ein Paar in `pairs` angeben") }
   if shape == auto and shape-size != auto {
@@ -212,7 +216,9 @@
         // Nummer auf der Rückseite: je Satz 1, 2, …; bei mehreren Sätzen mit
         // dem Buchstaben des Satzes davor (A1, …, B1, …).
         let k = pieces.filter(p => p.copy == copy).len() + 1
-        let letter = if copies > 1 { "ABCDEFGHIJKLMNOPQRSTUVWXYZ".clusters().at(calc.rem(copy, 26)) } else { "" }
+        let letter = if copies > 1 or first-copy > 1 {
+          "ABCDEFGHIJKLMNOPQRSTUVWXYZ".clusters().at(calc.rem(first-copy - 1 + copy, 26))
+        } else { "" }
         pieces.push((t: t, turn: calc.rem(calc.quo(s, 65536), 3), copy: copy, number: letter + str(k)))
       }
     }
