@@ -7,6 +7,24 @@
 // Zonen heißen in den Daten englisch, im Bericht deutsch.
 #let _zonen-namen = (front: "vorne", middle: "mitte", back: "hinten", left: "links", right: "rechts")
 
+/// Legt das Ergebnis eines Plans unsichtbar ins Dokument, damit der
+/// nächste Plan es lesen kann. Herausholen mit
+///   typst eval 'query(<seating-result>).first().value' --in Plan-12.typ > Plan-12.json
+/// und einlesen mit `sitzordnung(..., previous: (json("Plan-12.json"),))`.
+/// `seating-report` ruft das selbst auf.
+///
+/// - plan (dictionary): Ergebnis von `sitzordnung()`.
+/// -> content
+#let seating-result(plan) = {
+  check-type("typlace", "seating-result", "plan", plan, dictionary, example: "sitzordnung(layout, wishes)")
+  let k = plan.problem
+  let students = (:)
+  for (i, d) in plan.details.enumerate() {
+    students.insert(k.students.at(i).name, (fulfilled: d.fulfilled.len(), named: k.wishes.at(i).len()))
+  }
+  [#metadata((seed: plan.seed, students: students, names: plan.names)) <seating-result>]
+}
+
 /// Kurze Kennzahlenzeile zu einer Sitzordnung: erfüllte Wünsche,
 /// Positionswünsche und Punktzahl.
 ///
@@ -89,6 +107,8 @@
   let name-von(i) = k.students.at(i).name
   let prozent = calc.round(s.rate * 100)
 
+  seating-result(plan)
+
   block(
     width: 100%,
     inset: 8pt,
@@ -108,6 +128,19 @@
         [#if s.unfulfilled.len() == 0 { [keiner] } else { s.unfulfilled.join(", ") }],
 
         [Positionswünsche], [#s.position-fulfilled von #s.position-total erfüllt],
+
+        ..if s.priority-fulfilled.len() + s.priority-open.len() > 0 {
+          (
+            [Vorrang (alle Wünsche)],
+            [#s.priority-fulfilled.len() von #(s.priority-fulfilled.len() + s.priority-open.len()) bekommen alle#if s.priority-open.len() > 0 and s.priority-fulfilled.len() <= 8 [ – bekommen: #s.priority-fulfilled.join(", ")]],
+          )
+        } else { () },
+        ..if plan.at("previous", default: 0) > 0 {
+          ([Vorpläne gelesen], [#plan.previous – Vorrang für alle, die dort nie alle Wünsche hatten])
+        } else { () },
+        ..if plan.at("nobody-empty", default: false) and plan.attempts > plan.at("attempts-block", default: plan.attempts) {
+          ([Suche verlängert], [auf #plan.attempts Startpläne, damit niemand leer ausgeht])
+        } else { () },
 
         ..if s.rejections-violated.len() > 0 {
           (

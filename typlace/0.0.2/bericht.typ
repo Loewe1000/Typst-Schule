@@ -63,6 +63,21 @@
   )
 }
 
+/// Legt das Ergebnis eines Plans unsichtbar ins Dokument, damit der
+/// nächste Plan es lesen kann. Herausholen mit
+///   typst eval 'query(<sitzplan-ergebnis>).first().value' --in Plan-12.typ
+/// (macht `sitzplan.sh`), einlesen mit `vorplaene: (json("Plan-12.json"),)`.
+/// `sitzplan-bericht` ruft das selbst auf.
+/// -> content
+#let sitzplan-ergebnis(plan, titel: none) = {
+  let k = plan.kontext
+  let schueler = (:)
+  for (i, d) in plan.details.enumerate() {
+    schueler.insert(k.schueler.at(i).name, (erfuellt: d.erfuellt.len(), genannt: k.wuensche.at(i).len()))
+  }
+  [#metadata((titel: titel, seed: plan.seed, schueler: schueler, namen: plan.namen)) <sitzplan-ergebnis>]
+}
+
 /// Ausführlicher Bericht zu einer Sitzordnung: je Schüler, welche Wünsche
 /// erfüllt sind und welche nicht, dazu alle Auffälligkeiten.
 ///
@@ -74,6 +89,8 @@
   let s = plan.statistik
   let name-von(i) = k.schueler.at(i).name
   let prozent = calc.round(s.quote * 100)
+
+  sitzplan-ergebnis(plan)
 
   block(
     width: 100%,
@@ -94,6 +111,19 @@
         [#if s.ohne-wunsch.len() == 0 { [keiner] } else { s.ohne-wunsch.join(", ") }],
 
         [Positionswünsche], [#s.position-erfuellt von #s.position-gesamt erfüllt],
+
+        ..if s.vorrang-alle.len() + s.vorrang-offen.len() > 0 {
+          (
+            [Vorrang (alle Wünsche)],
+            [#s.vorrang-alle.len() von #(s.vorrang-alle.len() + s.vorrang-offen.len()) bekommen alle#if s.vorrang-offen.len() > 0 and s.vorrang-alle.len() <= 8 [ – bekommen: #s.vorrang-alle.join(", ")]],
+          )
+        } else { () },
+        ..if plan.at("vorplaene", default: 0) > 0 {
+          ([Vorpläne gelesen], [#plan.vorplaene – Vorrang für alle, die dort nie alle Wünsche hatten])
+        } else { () },
+        ..if plan.at("niemand-leer", default: false) and plan.versuche > plan.at("versuche-block", default: plan.versuche) {
+          ([Suche verlängert], [auf #plan.versuche Startpläne, damit niemand leer ausgeht])
+        } else { () },
 
         ..if s.ablehnungen-verletzt.len() > 0 {
           (

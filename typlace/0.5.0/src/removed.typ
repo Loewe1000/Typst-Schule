@@ -6,6 +6,7 @@
 // umbenannte öffentliche Funktionen
 #let sitzplan-bericht = stub("typlace", "sitzplan-bericht", "seating-report")
 #let sitzplan-kennzahlen = stub("typlace", "sitzplan-kennzahlen", "seating-summary")
+#let sitzplan-ergebnis = stub("typlace", "sitzplan-ergebnis", "seating-result")
 
 // Einlesen und Prüfen: `wunschliste` erledigt beides in einem Schritt
 #let schueler-lesen = stub("typlace", "schueler-lesen", "wunschliste")

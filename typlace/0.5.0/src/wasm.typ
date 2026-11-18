@@ -17,7 +17,7 @@
 
 /// Setzt die Aufgabe in den Zahlenstrom um, den das Plugin liest.
 /// Die Reihenfolge muss zu `lies()` in `rust/src/lib.rs` passen.
-#let encode(problem, geometry, scope, attempts, max-steps, seed) = {
+#let encode(problem, geometry, scope, attempts, max-steps, seed, nobody-empty: false, max-attempts: 0) = {
   let g = problem.weights
   let np = geometry.seats.len()
   let ns = problem.student-count
@@ -26,8 +26,9 @@
   for (i, t) in geometry.tables.keys().enumerate() { tisch-nr.insert(t, i) }
 
   let teile = (str(np), str(ns), str(attempts), str(max-steps), str(seed))
+  teile += (if nobody-empty { "1" } else { "0" }, str(max-attempts))
 
-  teile += (g.adjacent, g.table, g.fairness, g.rejection, g.constraint, g.position, g.position-avoided).map(str)
+  teile += (g.adjacent, g.table, g.fairness, g.priority, g.rejection, g.constraint, g.position, g.position-avoided).map(str)
   teile += range(3).map(i => str(if i < g.ranks.len() { g.ranks.at(i) } else { g.ranks.last() }))
   teile += range(3).map(i => str(if i < g.tiers.len() { g.tiers.at(i) } else { g.tiers.last() }))
   let wz = g.at("wish-count", default: (1.0,))
@@ -62,6 +63,7 @@
     teile.push(if ps == none { "-1" } else { str(_seite-nr.at(ps)) })
     teile.push(bits(s.at("position-avoided", default: (:)).at("depth", default: ()), _tiefe-nr))
     teile.push(bits(s.at("position-avoided", default: (:)).at("side", default: ()), _seite-nr))
+    teile.push(if problem.priority.at(i) { "1" } else { "0" })
   }
 
   teile += scope.fixed.map(p => if p == none { "-1" } else { str(p) })
@@ -76,10 +78,29 @@
 
 /// Ruft das Plugin auf und liefert Belegung, Punkte und Aufwand.
 /// -> dictionary
-#let wasm-search(problem, geometry, scope, attempts: 8, max-steps: 500, seed: 42) = {
-  let antwort = str(_plugin.optimiere(encode(problem, geometry, scope, attempts, max-steps, seed)))
+#let wasm-search(
+  problem,
+  geometry,
+  scope,
+  attempts: 8,
+  max-steps: 500,
+  seed: 42,
+  nobody-empty: false,
+  max-attempts: 0,
+) = {
+  let eingabe = encode(
+    problem,
+    geometry,
+    scope,
+    attempts,
+    max-steps,
+    seed,
+    nobody-empty: nobody-empty,
+    max-attempts: max-attempts,
+  )
+  let antwort = str(_plugin.optimiere(eingabe))
   let teile = antwort.split(" ").filter(t => t != "")
-  if teile.len() < 3 {
+  if teile.len() < 4 {
     fail("typlace", "sitzordnung", "das WASM-Plugin hat geantwortet: " + antwort + " – mit `engine: \"typst\"` arbeiten und den Fehler melden")
   }
 
@@ -87,7 +108,8 @@
     points: float(teile.at(0)),
     steps: int(teile.at(1)),
     checked: int(teile.at(2)),
-    assignment: teile.slice(3).map(t => {
+    runs: int(teile.at(3)),
+    assignment: teile.slice(4).map(t => {
       let i = int(t)
       if i < 0 { none } else { i }
     }),

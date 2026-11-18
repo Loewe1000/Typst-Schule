@@ -15,7 +15,7 @@
 
 /// Setzt die Aufgabe in den Zahlenstrom um, den das Plugin liest.
 /// Die Reihenfolge muss zu `lies()` in `rust/src/lib.rs` passen.
-#let kodieren(kontext, geo, spielraum, versuche, max-schritte, seed) = {
+#let kodieren(kontext, geo, spielraum, versuche, max-schritte, seed, niemand-leer: false, max-versuche: 0) = {
   let g = kontext.gewichte
   let np = geo.plaetze.len()
   let ns = kontext.anzahl-schueler
@@ -24,8 +24,9 @@
   for (i, t) in geo.tische.keys().enumerate() { tisch-nr.insert(t, i) }
 
   let teile = (str(np), str(ns), str(versuche), str(max-schritte), str(seed))
+  teile += (if niemand-leer { "1" } else { "0" }, str(max-versuche))
 
-  teile += (g.direkt, g.tisch, g.fairness, g.ablehnung, g.hart, g.position, g.position-meidet).map(str)
+  teile += (g.direkt, g.tisch, g.fairness, g.vorrang, g.ablehnung, g.hart, g.position, g.position-meidet).map(str)
   teile += range(3).map(i => str(if i < g.raenge.len() { g.raenge.at(i) } else { g.raenge.last() }))
   teile += range(3).map(i => str(if i < g.stufen.len() { g.stufen.at(i) } else { g.stufen.last() }))
   let wz = g.at("wunschzahl", default: (1.0,))
@@ -60,6 +61,7 @@
     teile.push(if ps == none { "-1" } else { str(_seite-nr.at(ps)) })
     teile.push(bits(s.at("position-meidet", default: (:)).at("tiefe", default: ()), _tiefe-nr))
     teile.push(bits(s.at("position-meidet", default: (:)).at("seite", default: ()), _seite-nr))
+    teile.push(if kontext.vorrang.at(i) { "1" } else { "0" })
   }
 
   teile += spielraum.fest.map(p => if p == none { "-1" } else { str(p) })
@@ -74,16 +76,36 @@
 
 /// Ruft das Plugin auf und liefert Belegung, Punkte und Aufwand.
 /// -> dictionary
-#let wasm-suchen(kontext, geo, spielraum, versuche: 8, max-schritte: 500, seed: 42) = {
-  let antwort = str(_plugin.optimiere(kodieren(kontext, geo, spielraum, versuche, max-schritte, seed)))
+#let wasm-suchen(
+  kontext,
+  geo,
+  spielraum,
+  versuche: 8,
+  max-schritte: 500,
+  seed: 42,
+  niemand-leer: false,
+  max-versuche: 0,
+) = {
+  let eingabe = kodieren(
+    kontext,
+    geo,
+    spielraum,
+    versuche,
+    max-schritte,
+    seed,
+    niemand-leer: niemand-leer,
+    max-versuche: max-versuche,
+  )
+  let antwort = str(_plugin.optimiere(eingabe))
   let teile = antwort.split(" ").filter(t => t != "")
-  if teile.len() < 3 { panic("typlace: Das WASM-Plugin hat geantwortet: " + antwort) }
+  if teile.len() < 4 { panic("typlace: Das WASM-Plugin hat geantwortet: " + antwort) }
 
   (
     punkte: float(teile.at(0)),
     schritte: int(teile.at(1)),
     geprueft: int(teile.at(2)),
-    zuordnung: teile.slice(3).map(t => {
+    laeufe: int(teile.at(3)),
+    zuordnung: teile.slice(4).map(t => {
       let i = int(t)
       if i < 0 { none } else { i }
     }),

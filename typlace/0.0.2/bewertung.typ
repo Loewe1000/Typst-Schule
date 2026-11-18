@@ -28,6 +28,11 @@
 /// - `fairness`: Einmalbonus dafür, dass ein Schüler *überhaupt* einen
 ///   Wunsch erfüllt bekommt. Verhindert, dass wenige Schüler alle Wünsche
 ///   bekommen und andere leer ausgehen.
+/// - `vorrang`: Bonus für einen Schüler aus der Liste `vorrang` (siehe
+///   `sitzordnung`), wenn er *alle* seine Wünsche erfüllt bekommt. Gedacht
+///   für Kinder, die im letzten Plan nur einen Teil bekommen haben. Liegt
+///   bewusst unter `fairness`: erst bekommt jeder einen Wunsch, dann die
+///   Vorrang-Kinder alle.
 /// - `ablehnung`: Abzug, wenn eine abgelehnte Person am selben Tisch sitzt.
 /// - `hart`: Abzug für eine verletzte Vorgabe (`getrennt`, `zusammen`). So
 ///   groß, dass die Suche solche Pläne immer verlässt; bleibt am Ende doch
@@ -43,6 +48,7 @@
   stufen: (1.0, 0.7, 0.45),
   wunschzahl: (1.0, 1.0, 1.0),
   fairness: 2.0,
+  vorrang: 4.0,
   ablehnung: -2.0,
   hart: -1000.0,
   position: 0.5,
@@ -64,7 +70,7 @@
 /// nur die tatsächlich betroffenen Schüler neu bewerten muss.
 ///
 /// -> dictionary
-#let kontext-erstellen(geo, schueler, gewichte: (:), vorgaben: (:), position-anteil: auto) = {
+#let kontext-erstellen(geo, schueler, gewichte: (:), vorgaben: (:), position-anteil: auto, vorrang: ()) = {
   let g = standard-gewichte + gewichte
   let vorgaben = normalisiere-vorgaben(vorgaben)
 
@@ -74,6 +80,14 @@
   let n = schueler.len()
   let wuensche = schueler.map(s => s.at("wuensche", default: ()).map(w => index-von.at(w)))
   let ablehnungen = schueler.map(s => s.at("ablehnungen", default: ()).map(w => index-von.at(w)))
+
+  // Vorrang: Namen in Merker je Schüler übersetzen.
+  if type(vorrang) == str { vorrang = (vorrang,) }
+  let hat-vorrang = range(n).map(_ => false)
+  for name in vorrang {
+    if name not in index-von { panic("typlace: `vorrang` nennt einen unbekannten Namen: " + name) }
+    hat-vorrang.at(index-von.at(name)) = true
+  }
 
   // Positionsgewicht aus dem gewünschten Anteil herleiten.
   //
@@ -155,6 +169,7 @@
     index-von: index-von,
     wuensche: wuensche,
     ablehnungen: ablehnungen,
+    vorrang: hat-vorrang,
     getrennt: getrennt,
     zusammen: zusammen,
     rueckwaerts: rueckwaerts,
@@ -213,6 +228,8 @@
     erfuellt.push((schueler: w, art: kontext.geo.beziehung.at(p).at(q), punkte: punkte))
   }
   if erfuellt.len() > 0 { sozial += g.fairness }
+  let n-w = kontext.wuensche.at(i).len()
+  if kontext.vorrang.at(i) and n-w > 0 and erfuellt.len() == n-w { sozial += g.vorrang }
   summe += _wunschzahl-faktor(g, kontext.wuensche.at(i).len()) * sozial
 
   for a in kontext.ablehnungen.at(i) {
@@ -301,6 +318,8 @@
     treffer += 1
   }
   if treffer > 0 { sozial += g.fairness }
+  let n-w = kontext.wuensche.at(i).len()
+  if kontext.vorrang.at(i) and n-w > 0 and treffer == n-w { sozial += g.vorrang }
   summe += _wunschzahl-faktor(g, kontext.wuensche.at(i).len()) * sozial
 
   for a in kontext.ablehnungen.at(i) {
@@ -412,11 +431,18 @@
   let punkte-pos = 0.0
   let verteilung = (:)
   let verletzt = ()
+  let teilweise = ()
+  let vorrang-alle = ()
+  let vorrang-offen = ()
 
   for (i, d) in ergebnis.details.enumerate() {
     let name = kontext.schueler.at(i).name
     if kontext.wuensche.at(i).len() > 0 and d.erfuellt.len() == 0 { ohne.push(name) }
     if kontext.wuensche.at(i).len() > 0 and d.erfuellt.len() == kontext.wuensche.at(i).len() { alle.push(name) }
+    if d.erfuellt.len() > 0 and d.erfuellt.len() < kontext.wuensche.at(i).len() { teilweise.push(name) }
+    if kontext.vorrang.at(i) {
+      if d.erfuellt.len() == kontext.wuensche.at(i).len() { vorrang-alle.push(name) } else { vorrang-offen.push(name) }
+    }
     let s-i = kontext.schueler.at(i)
     for achse in ("tiefe", "seite") {
       let gewuenscht = s-i.at("position", default: (:)).at(achse, default: none)
@@ -456,6 +482,9 @@
     quote: if gesamt > 0 { erfuellt / gesamt } else { 1.0 },
     alle-erfuellt: alle,
     ohne-wunsch: ohne,
+    teilweise: teilweise,
+    vorrang-alle: vorrang-alle,
+    vorrang-offen: vorrang-offen,
     position-gesamt: pos-gesamt,
     position-erfuellt: mit-pos,
     position-verletzt: pos-verletzt-gesamt,

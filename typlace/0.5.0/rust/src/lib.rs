@@ -65,12 +65,15 @@ struct Schueler {
     pos_seite: i64,
     meidet_tiefe: u32,
     meidet_seite: u32,
+    /// Bonus, wenn dieser Schüler alle Wünsche bekommt (`vorrang`).
+    vorrang: bool,
 }
 
 struct Gewichte {
     direkt: f64,
     tisch: f64,
     fairness: f64,
+    vorrang: f64,
     ablehnung: f64,
     hart: f64,
     position: f64,
@@ -96,6 +99,10 @@ struct Aufgabe {
     versuche: usize,
     max_schritte: usize,
     seed: i64,
+    /// Pläne, in denen jemand leer ausgeht, nur nehmen, wenn es nicht anders geht.
+    niemand_leer: bool,
+    /// Obergrenze für Startpläne, wenn `niemand_leer` weitersuchen lässt.
+    max_versuche: usize,
 }
 
 impl Aufgabe {
@@ -152,6 +159,9 @@ impl Aufgabe {
         }
         if treffer > 0 {
             sozial += g.fairness;
+        }
+        if s.vorrang && !s.wuensche.is_empty() && treffer == s.wuensche.len() {
+            sozial += g.vorrang;
         }
         // Wer wenige Namen genannt hat, hat keine Ausweichwünsche
         let faktor = if s.wuensche.is_empty() {
@@ -399,6 +409,28 @@ fn verbessern(a: &Aufgabe, mut zuordnung: Vec<i64>, beweglich: &[usize], mut z: 
     Lauf { zuordnung, schritte, geprueft, z }
 }
 
+/// Wie viele Schüler mit Wünschen bekommen keinen davon?
+fn leer(a: &Aufgabe, zuordnung: &[i64]) -> usize {
+    let mut platz_von = vec![-1i64; a.anzahl_schueler()];
+    for (p, &s) in zuordnung.iter().enumerate() {
+        if s >= 0 {
+            platz_von[s as usize] = p as i64;
+        }
+    }
+    (0..a.anzahl_schueler())
+        .filter(|&i| {
+            let s = &a.schueler[i];
+            let p = platz_von[i];
+            !s.wuensche.is_empty()
+                && p >= 0
+                && s.wuensche.iter().all(|&w| {
+                    let q = platz_von[w];
+                    q < 0 || a.wert(p as usize, q as usize) <= 0.0
+                })
+        })
+        .count()
+}
+
 fn gesamtpunkte(a: &Aufgabe, zuordnung: &[i64]) -> f64 {
     let mut platz_von = vec![-1i64; a.anzahl_schueler()];
     for (p, &s) in zuordnung.iter().enumerate() {
@@ -447,11 +479,14 @@ fn lies(text: &str) -> Result<Aufgabe, String> {
     let versuche = l.i()? as usize;
     let max_schritte = l.i()? as usize;
     let seed = l.i()?;
+    let niemand_leer = l.i()? != 0;
+    let max_versuche = l.i()? as usize;
 
     let gewichte = Gewichte {
         direkt: l.f()?,
         tisch: l.f()?,
         fairness: l.f()?,
+        vorrang: l.f()?,
         ablehnung: l.f()?,
         hart: l.f()?,
         position: l.f()?,
@@ -503,6 +538,7 @@ fn lies(text: &str) -> Result<Aufgabe, String> {
             pos_seite: l.i()?,
             meidet_tiefe: l.i()? as u32,
             meidet_seite: l.i()? as u32,
+            vorrang: l.i()? != 0,
         });
     }
 
@@ -552,6 +588,8 @@ fn lies(text: &str) -> Result<Aufgabe, String> {
         versuche,
         max_schritte,
         seed,
+        niemand_leer,
+        max_versuche,
     })
 }
 
@@ -561,25 +599,45 @@ fn rechne(text: &str) -> Result<String, String> {
     let beweglich: Vec<usize> = (0..np).filter(|p| !a.fest.contains(&(*p as i64))).collect();
 
     let mut z = (a.seed.abs() + 1).rem_euclid(M);
-    let mut bestes: Option<(Vec<i64>, f64, usize)> = None;
+    // (Belegung, Punkte, Schritte, Leere)
+    let mut bestes: Option<(Vec<i64>, f64, usize, usize)> = None;
     let mut geprueft_gesamt = 0usize;
+    let mut laeufe = 0usize;
 
-    for _ in 0..a.versuche {
-        let (start, z1) = startplan(&a, z).ok_or_else(|| {
-            "Die Vorgaben lassen sich nicht alle gleichzeitig erfüllen.".to_string()
-        })?;
-        z = z1;
-        let lauf = verbessern(&a, start, &beweglich, z);
-        z = lauf.z;
-        geprueft_gesamt += lauf.geprueft;
-        let punkte = gesamtpunkte(&a, &lauf.zuordnung);
-        if bestes.as_ref().map_or(true, |(_, p, _)| punkte > *p) {
-            bestes = Some((lauf.zuordnung, punkte, lauf.schritte));
+    // In Blöcken zu `versuche` Startplänen suchen. Mit `niemand_leer` geht
+    // es weiter, solange der beste Plan noch jemanden leer ausgehen lässt
+    // und die Obergrenze nicht erreicht ist.
+    loop {
+        for _ in 0..a.versuche {
+            let (start, z1) = startplan(&a, z).ok_or_else(|| {
+                "Die Vorgaben lassen sich nicht alle gleichzeitig erfüllen.".to_string()
+            })?;
+            z = z1;
+            let lauf = verbessern(&a, start, &beweglich, z);
+            z = lauf.z;
+            geprueft_gesamt += lauf.geprueft;
+            laeufe += 1;
+            let punkte = gesamtpunkte(&a, &lauf.zuordnung);
+            let leere = if a.niemand_leer { leer(&a, &lauf.zuordnung) } else { 0 };
+            let besser = match &bestes {
+                None => true,
+                Some((_, p, _, l)) => leere < *l || (leere == *l && punkte > *p),
+            };
+            if besser {
+                bestes = Some((lauf.zuordnung, punkte, lauf.schritte, leere));
+            }
+        }
+        let fertig = match &bestes {
+            Some((_, _, _, l)) => *l == 0,
+            None => true,
+        };
+        if !a.niemand_leer || fertig || laeufe >= a.max_versuche || a.versuche == 0 {
+            break;
         }
     }
 
-    let (zuordnung, punkte, schritte) = bestes.ok_or("kein Versuch gelaufen")?;
-    let mut aus = format!("{punkte} {schritte} {geprueft_gesamt}");
+    let (zuordnung, punkte, schritte, _) = bestes.ok_or("kein Versuch gelaufen")?;
+    let mut aus = format!("{punkte} {schritte} {geprueft_gesamt} {laeufe}");
     for s in zuordnung {
         aus.push(' ');
         aus.push_str(&s.to_string());

@@ -258,6 +258,20 @@
 /// - max-schritte (auto, int): Verbesserungsschritte je Versuch.
 /// - dauer (none, str): Rechenzeit als Text für den Bericht. Typst hat keine
 ///   Uhr, die Zeit muss also von außen kommen – siehe `sitzplan.sh`.
+/// - vorrang (array): Namen, die diesmal möglichst *alle* Wünsche bekommen
+///   sollen – typischerweise die, die im letzten Plan nur einen Teil hatten.
+///   Der Bericht schlägt diese Liste für den nächsten Plan vor. Wie stark,
+///   regelt `gewichte: (vorrang: …)` (Standard 4).
+/// - vorplaene (array): Ergebnisse früherer Pläne, je `json("Plan-11.json")`
+///   (geschrieben von `sitzplan.sh`, Inhalt von `sitzplan-ergebnis`). Wer in
+///   *keinem* davon alle Wünsche bekommen hat, kommt automatisch auf die
+///   Vorrang-Liste. Kinder, die in einem Vorplan fehlen, zählen dort nicht.
+/// - niemand-leer (bool): Ein Plan, in dem jemand ganz ohne Wunsch bleibt,
+///   wird nur genommen, wenn sich keiner ohne finden lässt. Die Suche hängt
+///   dafür so lange weitere Blöcke von `versuche` Startplänen an, bis jeder
+///   mindestens einen Wunsch hat oder `max-versuche` erreicht ist.
+/// - max-versuche (auto, int): Obergrenze für `niemand-leer`, Standard
+///   zwanzigmal `versuche`.
 /// - motor (str): `"wasm"` rechnet im mitgelieferten Plugin (Standard),
 ///   `"typst"` in reinem Typst. Beide führen dieselbe Suche aus und liefern
 ///   bei gleichem Seed denselben Plan; die Typst-Fassung ist die lesbare
@@ -278,6 +292,10 @@
   streng: true,
   dauer: none,
   motor: "wasm",
+  vorrang: (),
+  vorplaene: (),
+  niemand-leer: false,
+  max-versuche: auto,
 ) = {
   if motor not in _budget {
     panic("typlace: motor muss \"wasm\" oder \"typst\" sein.")
@@ -289,6 +307,7 @@
   let stufe = _budget.at(motor).at(qualitaet)
   let anzahl-versuche = if versuche == auto { stufe.versuche } else { versuche }
   let grenze = if max-schritte == auto { stufe.max-schritte } else { max-schritte }
+  let obergrenze = if max-versuche == auto { 20 * anzahl-versuche } else { max-versuche }
 
   let geo = plaetze-analysieren(layout, vorne: vorne, perspektive: perspektive)
 
@@ -300,18 +319,37 @@
     schueler-pruefen(schueler, plaetze: geo.plaetze.len(), streng: streng)
   }
 
+  // Vorrang aus früheren Plänen ableiten und mit der Hand-Liste vereinen.
+  if type(vorrang) == str { vorrang = (vorrang,) }
+  if type(vorplaene) == dictionary { vorplaene = (vorplaene,) }
+  let aus-vorplaenen = ()
+  if vorplaene.len() > 0 {
+    for s in daten.schueler {
+      let bekannt = vorplaene.filter(v => s.name in v.at("schueler", default: (:)))
+      if bekannt.len() == 0 { continue }
+      let nie-alle = bekannt.all(v => {
+        let e = v.schueler.at(s.name)
+        e.genannt > 0 and e.erfuellt < e.genannt
+      })
+      if nie-alle and s.name not in vorrang { aus-vorplaenen.push(s.name) }
+    }
+  }
+  let vorrang = vorrang + aus-vorplaenen
+
   let kontext = kontext-erstellen(
     geo,
     daten.schueler,
     gewichte: gewichte,
     vorgaben: vorgaben,
     position-anteil: position-anteil,
+    vorrang: vorrang,
   )
   let spielraum = _spielraum(geo, kontext, vorgaben)
   let beweglich = range(geo.plaetze.len()).filter(p => not spielraum.fest.contains(p))
 
   let bestes = none
   let geprueft-gesamt = 0
+  let laeufe = 0
   let z = calc.rem(calc.abs(seed) + 1, _m)
 
   if motor == "wasm" {
@@ -322,6 +360,8 @@
       versuche: anzahl-versuche,
       max-schritte: grenze,
       seed: seed,
+      niemand-leer: niemand-leer,
+      max-versuche: obergrenze,
     )
     let ergebnis = bewerte(kontext, w.zuordnung)
     // Gegenprobe: Typst bewertet den gelieferten Plan unabhängig nach. Weicht
@@ -338,17 +378,32 @@
     }
     bestes = ergebnis + (schritte: w.schritte)
     geprueft-gesamt = w.geprueft
+    laeufe = w.laeufe
   }
 
-  for versuch in range(if motor == "typst" { anzahl-versuche } else { 0 }) {
-    let start = _startplan(kontext, spielraum, z)
-    z = start.zustand
-    let lauf = _verbessern(kontext, start.zuordnung, spielraum, beweglich, grenze, z)
-    z = lauf.zustand
-    geprueft-gesamt += lauf.geprueft
-    let ergebnis = bewerte(kontext, lauf.zuordnung)
-    if bestes == none or ergebnis.punkte > bestes.punkte {
-      bestes = ergebnis + (versuch: versuch, schritte: lauf.schritte)
+  // Leer ausgegangene Schüler eines bewerteten Plans zählen.
+  let leere(ergebnis) = range(kontext.anzahl-schueler)
+    .filter(i => kontext.wuensche.at(i).len() > 0 and ergebnis.details.at(i).erfuellt.len() == 0)
+    .len()
+
+  // Gleiche Blocklogik wie im Plugin (rust/src/lib.rs, `rechne`).
+  let suchen = motor == "typst"
+  while suchen {
+    for _ in range(anzahl-versuche) {
+      let start = _startplan(kontext, spielraum, z)
+      z = start.zustand
+      let lauf = _verbessern(kontext, start.zuordnung, spielraum, beweglich, grenze, z)
+      z = lauf.zustand
+      geprueft-gesamt += lauf.geprueft
+      let ergebnis = bewerte(kontext, lauf.zuordnung)
+      let l = if niemand-leer { leere(ergebnis) } else { 0 }
+      if bestes == none or l < bestes.leer or (l == bestes.leer and ergebnis.punkte > bestes.punkte) {
+        bestes = ergebnis + (versuch: laeufe, schritte: lauf.schritte, leer: l)
+      }
+      laeufe += 1
+    }
+    if not niemand-leer or bestes == none or bestes.leer == 0 or laeufe >= obergrenze or anzahl-versuche == 0 {
+      suchen = false
     }
   }
 
@@ -374,7 +429,10 @@
     geo: geo,
     seed: seed,
     dauer: dauer,
-    versuche: anzahl-versuche,
+    versuche: laeufe,
+    versuche-block: anzahl-versuche,
+    niemand-leer: niemand-leer,
+    vorplaene: vorplaene.len(),
     schritte: bestes.schritte,
     geprueft: geprueft-gesamt,
   )

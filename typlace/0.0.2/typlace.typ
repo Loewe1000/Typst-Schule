@@ -4,7 +4,7 @@
 #import "daten.typ": schueler-lesen, schueler-pruefen, wunschliste
 #import "optimierer.typ": sitzordnung
 #import "wasm.typ": wasm-suchen
-#import "bericht.typ": sitzplan-bericht, sitzplan-kennzahlen
+#import "bericht.typ": sitzplan-bericht, sitzplan-kennzahlen, sitzplan-ergebnis
 #import "bewertung.typ": (
   bewerte, kontext-erstellen, normalisiere-vorgaben, platz-von-schueler, punkte-schueler, punkte-wert, standard-gewichte, statistik, tausch-delta,
 )

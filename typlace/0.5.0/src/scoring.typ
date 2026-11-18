@@ -31,6 +31,11 @@
 /// - `fairness`: Einmalbonus dafür, dass ein Schüler *überhaupt* einen
 ///   Wunsch erfüllt bekommt. Verhindert, dass wenige Schüler alle Wünsche
 ///   bekommen und andere leer ausgehen.
+/// - `priority`: Bonus für einen Schüler aus der Liste `priority` (siehe
+///   `sitzordnung`), wenn er *alle* seine Wünsche erfüllt bekommt. Gedacht
+///   für Kinder, die im letzten Plan nur einen Teil bekommen haben. Liegt
+///   bewusst unter `fairness`: erst bekommt jeder einen Wunsch, dann die
+///   Vorrang-Kinder alle.
 /// - `rejection`: Abzug, wenn eine abgelehnte Person am selben Tisch sitzt.
 /// - `constraint`: Abzug für eine verletzte Vorgabe (`apart`, `together`). So
 ///   groß, dass die Suche solche Pläne immer verlässt; bleibt am Ende doch
@@ -46,6 +51,7 @@
   tiers: (1.0, 0.7, 0.45),
   wish-count: (1.0, 1.0, 1.0),
   fairness: 2.0,
+  priority: 4.0,
   rejection: -2.0,
   constraint: -1000.0,
   position: 0.5,
@@ -71,7 +77,7 @@
 /// nur die tatsächlich betroffenen Schüler neu bewerten muss.
 ///
 /// -> dictionary
-#let build-problem(geometry, students, weights: (:), constraints: (:), position-share: auto) = {
+#let build-problem(geometry, students, weights: (:), constraints: (:), position-share: auto, priority: ()) = {
   let g = default-weights + weights
   let constraints = normalize-constraints(constraints)
 
@@ -81,6 +87,12 @@
   let n = students.len()
   let wishes = students.map(s => s.at("wishes", default: ()).map(w => index-of.at(w)))
   let rejections = students.map(s => s.at("rejections", default: ()).map(w => index-of.at(w)))
+
+  // Vorrang: Namen in Merker je Schüler übersetzen (Namen prüft `sitzordnung`).
+  let has-priority = range(students.len()).map(_ => false)
+  for name in priority {
+    if name in index-of { has-priority.at(index-of.at(name)) = true }
+  }
 
   // Positionsgewicht aus dem gewünschten Anteil herleiten.
   //
@@ -170,6 +182,7 @@
     index-of: index-of,
     wishes: wishes,
     rejections: rejections,
+    priority: has-priority,
     apart: apart,
     together: together,
     reverse: reverse,
@@ -228,6 +241,8 @@
     fulfilled.push((student: w, kind: problem.geometry.relations.at(p).at(q), points: points))
   }
   if fulfilled.len() > 0 { sozial += g.fairness }
+  let n-w = problem.wishes.at(i).len()
+  if problem.priority.at(i) and n-w > 0 and fulfilled.len() == n-w { sozial += g.priority }
   summe += _wunschzahl-faktor(g, problem.wishes.at(i).len()) * sozial
 
   for a in problem.rejections.at(i) {
@@ -316,6 +331,8 @@
     treffer += 1
   }
   if treffer > 0 { sozial += g.fairness }
+  let n-w = problem.wishes.at(i).len()
+  if problem.priority.at(i) and n-w > 0 and treffer == n-w { sozial += g.priority }
   summe += _wunschzahl-faktor(g, problem.wishes.at(i).len()) * sozial
 
   for a in problem.rejections.at(i) {
@@ -427,11 +444,18 @@
   let punkte-pos = 0.0
   let distribution = (:)
   let violated = ()
+  let teilweise = ()
+  let vorrang-alle = ()
+  let vorrang-offen = ()
 
   for (i, d) in ergebnis.details.enumerate() {
     let name = problem.students.at(i).name
     if problem.wishes.at(i).len() > 0 and d.fulfilled.len() == 0 { ohne.push(name) }
     if problem.wishes.at(i).len() > 0 and d.fulfilled.len() == problem.wishes.at(i).len() { alle.push(name) }
+    if d.fulfilled.len() > 0 and d.fulfilled.len() < problem.wishes.at(i).len() { teilweise.push(name) }
+    if problem.priority.at(i) {
+      if d.fulfilled.len() == problem.wishes.at(i).len() { vorrang-alle.push(name) } else { vorrang-offen.push(name) }
+    }
     let s-i = problem.students.at(i)
     for axis in ("depth", "side") {
       let gewuenscht = s-i.at("position", default: (:)).at(axis, default: none)
@@ -471,6 +495,9 @@
     rate: if gesamt > 0 { fulfilled / gesamt } else { 1.0 },
     all-fulfilled: alle,
     unfulfilled: ohne,
+    partly-fulfilled: teilweise,
+    priority-fulfilled: vorrang-alle,
+    priority-open: vorrang-offen,
     position-total: pos-gesamt,
     position-fulfilled: mit-pos,
     position-violated: pos-verletzt-gesamt,

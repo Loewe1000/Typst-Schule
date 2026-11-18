@@ -199,6 +199,7 @@ einer Erklärung ab, statt still eine davon zu opfern.
   [1., 2. und 3. Wunsch], [`ranks: (1.0, 1.0, 1.0)`],
   [1., 2. und 3. _erfüllter_ Wunsch eines Schülers], [`tiers: (1.0, 0.7, 0.45)`],
   [Bonus für „überhaupt einen Wunsch erfüllt"], [`fairness: 2.0`],
+  [Bonus für „alle Wünsche erfüllt", nur für Kinder mit Vorrang], [`priority: 4.0`],
   [Abgelehnte Person am selben Tisch], [`rejection: -2.0`],
   [Erfüllter Positionswunsch je Achse], [`position: 0.5`],
   [Gemiedene Zone doch zugeteilt], [`position-avoided: -0.5`],
@@ -280,6 +281,48 @@ jeden durch Platztausche, solange das Punkte bringt; bewertet wird dabei nur die
 Differenz eines Tauschs. Der beste Plan gewinnt. `quality` steuert den Aufwand
 (`"fast"`, `"normal"`, `"thorough"`), `attempts` und `max-steps`
 überschreiben ihn direkt.
+
+Weil nur einzelne Tausche geprüft werden, kann die Suche in einem Plan hängen
+bleiben, in dem ein Kind leer ausgeht, obwohl es einen besseren gäbe. Mit
+`nobody-empty: true` wird ein solcher Plan nur genommen, wenn sich keiner ohne
+finden lässt: Die Suche hängt dafür weitere Blöcke von `attempts` Startplänen an,
+bis jedes Kind mindestens einen Wunsch hat oder `max-attempts` (Standard:
+zwanzigmal `attempts`) erreicht ist. Der Bericht zeigt, wenn sie verlängert wurde.
+
+== Sitzreihen statt Gruppentischen
+
+In Reihen sitzt man nur mit den direkten Nachbarn zusammen. Weil eine Reihe im
+Layout ein Tisch ist, zählte ein Wunsch sonst auch dann, wenn die Wunschperson am
+anderen Ende sitzt. `weights: (table: 0.0)` zählt nur noch direkte Nachbarn; ein
+höherer Fairness-Bonus (`fairness: 10.0`) stellt „jeder bekommt einen" vor
+„manche bekommen alle".
+
+== Mehrere Pläne nacheinander
+
+Wer im letzten Plan nur einen Teil seiner Wünsche bekommen hat, soll beim
+nächsten Mal bevorzugt werden. Dafür legt `seating-report` das Ergebnis des
+Plans unsichtbar ins Dokument (auch einzeln: `seating-result(plan)`). Ist der
+Plan fertig, holt man es als Datei heraus:
+
+#show-code[```sh
+typst eval 'query(<seating-result>).first().value' --in Plan-12.typ > Plan-12.json
+```]
+
+Der nächste Plan liest diese Dateien ein. Wer in *keinem* der Vorpläne alle
+Wünsche bekommen hat, erhält den Bonus `priority`, wenn er diesmal alle bekommt:
+
+#show-code[```typ
+#let plan = sitzordnung(
+  layout,
+  read("wuensche.csv"),
+  previous: (json("Plan-12.json"), json("Plan-11.json")),
+  priority: ("Lotta",),   // zusätzlich von Hand
+  nobody-empty: true,
+)
+```]
+
+Kinder, die in einem Vorplan fehlen, zählen dort nicht mit. Die Dateien von
+typlace 0.0.2 (Label `<sitzplan-ergebnis>`) werden ebenfalls gelesen.
 
 = Varianten
 
@@ -366,6 +409,10 @@ Für größere Klassen einfach das Layout erweitern:
   strict: true,         // bool: unbekannte Namen = Fehler
   duration: none,       // none | str | content | Zahl: Rechenzeit für den Bericht
   engine: "wasm",       // str: "wasm" (Plugin) | "typst" (Referenz)
+  priority: (),         // array: Namen, die möglichst alle Wünsche bekommen
+  previous: (),         // array: Ergebnisse früherer Pläne (json(...))
+  nobody-empty: false,  // bool: Plan mit leer ausgehendem Kind nur als letzte Wahl
+  max-attempts: auto,   // auto | int: Obergrenze für nobody-empty
 )
 ```]
 
@@ -465,6 +512,8 @@ Paket nicht helfen, dort meldet Typst nur „dictionary does not contain key".
   [], [`streng`], [`strict`],
   [], [`dauer`], [`duration`],
   [], [`motor: "wasm"`, `"typst"`], [`engine: "wasm"`, `"typst"`],
+  [], [`vorrang`, `vorplaene`], [`priority`, `previous`],
+  [], [`niemand-leer`, `max-versuche`], [`nobody-empty`, `max-attempts`],
   [`wunschliste`], [`trenner`], [`delimiter`],
   [], [`kopfzeile`], [`header-row`],
   [], [`plaetze`], [`seat-count`],
@@ -487,6 +536,7 @@ Paket nicht helfen, dort meldet Typst nur „dictionary does not contain key".
   [], [`wunschzahl`], [`wish-count`],
   [], [`fairness`, `position`], [unverändert],
   [], [`ablehnung`], [`rejection`],
+  [], [`vorrang`], [`priority`],
   [], [`hart`], [`constraint`],
   [], [`position-meidet`], [`position-avoided`],
   [Plan], [`namen`, `punkte`, `punkte-gerundet`], [`names`, `points`, `points-rounded`],
@@ -536,6 +586,6 @@ Paket nicht helfen, dort meldet Typst nur „dictionary does not contain key".
 
 #show-module(read("../src/data.typ"), name: "data", only: ("wunschliste",), heading-level: 2)
 
-#show-module(read("../src/report.typ"), name: "report", only: ("seating-report", "seating-summary"), heading-level: 2)
+#show-module(read("../src/report.typ"), name: "report", only: ("seating-report", "seating-result", "seating-summary"), heading-level: 2)
 
 #show-module(read("../src/scoring.typ"), name: "scoring", only: ("default-weights",), heading-level: 2)

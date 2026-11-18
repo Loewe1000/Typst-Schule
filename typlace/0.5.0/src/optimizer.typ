@@ -295,6 +295,20 @@
 ///   `"typst"` in reinem Typst. Beide führen dieselbe Suche aus und liefern
 ///   bei gleichem Seed denselben Plan; die Typst-Fassung ist die lesbare
 ///   Referenz, an der sich das Plugin messen lassen muss.
+/// - priority (array): Namen, die diesmal möglichst *alle* Wünsche bekommen
+///   sollen. Wie stark, regelt `weights: (priority: …)` (Standard 4).
+/// - previous (array, dictionary): Ergebnisse früherer Pläne, je
+///   `json("Plan-11.json")` – der Inhalt von `seating-result`, den
+///   `typst eval 'query(<seating-result>).first().value' --in Plan-11.typ`
+///   herausholt. Wer in *keinem* davon alle Wünsche bekommen hat, kommt
+///   automatisch zu `priority` dazu. Kinder, die in einem Vorplan fehlen,
+///   zählen dort nicht. Liest auch die Dateien von typlace 0.0.2.
+/// - nobody-empty (bool): Ein Plan, in dem jemand ganz ohne Wunsch bleibt,
+///   wird nur genommen, wenn sich keiner ohne finden lässt. Die Suche hängt
+///   dafür weitere Blöcke von `attempts` Startplänen an, bis jeder
+///   mindestens einen Wunsch hat oder `max-attempts` erreicht ist.
+/// - max-attempts (auto, int): Obergrenze für `nobody-empty`, Standard
+///   zwanzigmal `attempts`.
 /// - ..deprecated (arguments): fängt alte Namen ab, nimmt nichts an
 /// -> dictionary
 #let sitzordnung(
@@ -312,6 +326,10 @@
   strict: true,
   duration: none,
   engine: "wasm",
+  priority: (),
+  previous: (),
+  nobody-empty: false,
+  max-attempts: auto,
   ..deprecated,
 ) = {
   let fn = "sitzordnung"
@@ -336,6 +354,10 @@
       strict: (strict, true),
       duration: (duration, none),
       engine: (engine, "wasm"),
+      priority: (priority, ()),
+      previous: (previous, ()),
+      nobody-empty: (nobody-empty, false),
+      max-attempts: (max-attempts, auto),
     )),
     renamed: (
       vorgaben: "constraints",
@@ -349,6 +371,10 @@
       streng: "strict",
       dauer: "duration",
       motor: "engine",
+      vorrang: "priority",
+      vorplaene: "previous",
+      niemand-leer: "nobody-empty",
+      max-versuche: "max-attempts",
     ),
     allowed: (
       "constraints",
@@ -363,6 +389,10 @@
       "strict",
       "duration",
       "engine",
+      "priority",
+      "previous",
+      "nobody-empty",
+      "max-attempts",
     ),
   )
   check-type("typlace", fn, "layout", layout, str, example: "\"TT.TT\\n..P..\"")
@@ -376,6 +406,10 @@
   check-type("typlace", fn, "duration", duration, (str, content, int, float, none), example: "\"0,4 s\"")
   check-not-empty("typlace", fn, "duration", duration, "keine Rechenzeit")
   check-value("typlace", fn, "engine", engine, ("wasm", "typst"))
+  check-type("typlace", fn, "priority", priority, (array, str), example: "(\"Lotta\", \"Juri\")")
+  check-type("typlace", fn, "previous", previous, (array, dictionary), example: "(json(\"Plan-11.json\"),)")
+  check-type("typlace", fn, "nobody-empty", nobody-empty, bool)
+  check-type("typlace", fn, "max-attempts", max-attempts, (int, auto), example: "10000")
   check-value(
     "typlace",
     fn,
@@ -407,6 +441,7 @@
       ablehnung: "rejection",
       hart: "constraint",
       position-meidet: "position-avoided",
+      vorrang: "priority",
     ),
     allowed: default-weights.keys(),
   )
@@ -440,6 +475,7 @@
   let stufe = _budget.at(engine).at(quality)
   let anzahl-versuche = if attempts == auto { stufe.attempts } else { attempts }
   let grenze = if max-steps == auto { stufe.max-steps } else { max-steps }
+  let obergrenze = if max-attempts == auto { 20 * anzahl-versuche } else { max-attempts }
 
   let geometry = analyze-layout(layout, front: front, perspective: perspective)
 
@@ -462,18 +498,46 @@
     check-students(students, seat-count: geometry.seats.len(), strict: strict, caller: fn)
   }
 
+  // Vorrang: Hand-Liste plus alle, die in keinem Vorplan alle Wünsche hatten.
+  let priority = if type(priority) == str { (priority,) } else { priority }
+  let previous = if type(previous) == dictionary { (previous,) } else { previous }
+  let alle-namen = data.students.map(s => s.name)
+  for name in priority {
+    if name not in alle-namen {
+      fail("typlace", fn, "`priority` nennt " + name + ", das steht nicht in der Wunschliste – Schreibweise prüfen")
+    }
+  }
+  // Eintrag eines Schülers in einem Vorplan: 0.5.0 schreibt `students` mit
+  // `fulfilled`/`named`, 0.0.2 schrieb `schueler` mit `erfuellt`/`genannt`.
+  let eintrag(v, name) = {
+    let neu = v.at("students", default: (:))
+    if name in neu { return (neu.at(name).fulfilled, neu.at(name).named) }
+    let alt = v.at("schueler", default: (:))
+    if name in alt { return (alt.at(name).erfuellt, alt.at(name).genannt) }
+    none
+  }
+  let aus-vorplaenen = ()
+  for name in alle-namen {
+    let bekannt = previous.map(v => eintrag(v, name)).filter(e => e != none)
+    if bekannt.len() == 0 or name in priority { continue }
+    if bekannt.all(e => e.at(1) > 0 and e.at(0) < e.at(1)) { aus-vorplaenen.push(name) }
+  }
+  let priority = priority + aus-vorplaenen
+
   let problem = build-problem(
     geometry,
     data.students,
     weights: weights,
     constraints: constraints,
     position-share: position-share,
+    priority: priority,
   )
   let scope = _spielraum(geometry, problem, constraints)
   let beweglich = range(geometry.seats.len()).filter(p => not scope.fixed.contains(p))
 
   let bestes = none
   let geprueft-gesamt = 0
+  let laeufe = 0
   let z = calc.rem(calc.abs(seed) + 1, _m)
 
   if engine == "wasm" {
@@ -484,6 +548,8 @@
       attempts: anzahl-versuche,
       max-steps: grenze,
       seed: seed,
+      nobody-empty: nobody-empty,
+      max-attempts: obergrenze,
     )
     let ergebnis = score-plan(problem, w.assignment)
     // Gegenprobe: Typst bewertet den gelieferten Plan unabhängig nach. Weicht
@@ -502,17 +568,32 @@
     }
     bestes = ergebnis + (steps: w.steps)
     geprueft-gesamt = w.checked
+    laeufe = w.runs
   }
 
-  for attempt in range(if engine == "typst" { anzahl-versuche } else { 0 }) {
-    let start = _startplan(problem, scope, z)
-    z = start.zustand
-    let lauf = _verbessern(problem, start.assignment, scope, beweglich, grenze, z)
-    z = lauf.zustand
-    geprueft-gesamt += lauf.checked
-    let ergebnis = score-plan(problem, lauf.assignment)
-    if bestes == none or ergebnis.points > bestes.points {
-      bestes = ergebnis + (attempt: attempt, steps: lauf.steps)
+  // Leer ausgegangene Schüler eines bewerteten Plans zählen.
+  let leere(ergebnis) = range(problem.student-count)
+    .filter(i => problem.wishes.at(i).len() > 0 and ergebnis.details.at(i).fulfilled.len() == 0)
+    .len()
+
+  // Gleiche Blocklogik wie im Plugin (rust/src/lib.rs, `rechne`).
+  let suchen = engine == "typst"
+  while suchen {
+    for _ in range(anzahl-versuche) {
+      let start = _startplan(problem, scope, z)
+      z = start.zustand
+      let lauf = _verbessern(problem, start.assignment, scope, beweglich, grenze, z)
+      z = lauf.zustand
+      geprueft-gesamt += lauf.checked
+      let ergebnis = score-plan(problem, lauf.assignment)
+      let l = if nobody-empty { leere(ergebnis) } else { 0 }
+      if bestes == none or l < bestes.empty or (l == bestes.empty and ergebnis.points > bestes.points) {
+        bestes = ergebnis + (attempt: laeufe, steps: lauf.steps, empty: l)
+      }
+      laeufe += 1
+    }
+    if not nobody-empty or bestes == none or bestes.empty == 0 or laeufe >= obergrenze or anzahl-versuche == 0 {
+      suchen = false
     }
   }
 
@@ -540,7 +621,10 @@
     geometry: geometry,
     seed: seed,
     duration: duration,
-    attempts: anzahl-versuche,
+    attempts: laeufe,
+    attempts-block: anzahl-versuche,
+    nobody-empty: nobody-empty,
+    previous: previous.len(),
     steps: bestes.steps,
     checked: geprueft-gesamt,
   )
