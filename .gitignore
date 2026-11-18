@@ -16,3 +16,6 @@ docs-site/
 build.sh
 index.html
 netlify.toml
+# Rust-Build der WASM-Plugins (entsteht bei rust/bauen.sh; eingecheckt wird
+# nur das fertige optimierer.wasm)
+**/rust/target/
