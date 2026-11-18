@@ -103,6 +103,8 @@ class App:
                 self.log_box.configure(state="disabled")
             elif kind == "progress":
                 self.progress["value"] = val
+            elif kind == "status":
+                self.summary.configure(text=val)
             elif kind == "ask":
                 question, box = val
                 box["answer"] = messagebox.askyesno("Weiter?", question)
@@ -262,8 +264,9 @@ class App:
             p = open_plotter(dry_run=False, log=self.log)
             try:
                 p.run(lines, s, sheet.marks, sheet.page_size, trace=trace,
-                      check=sheet.check, decide=self.ask,
-                      progress=lambda f: self.events.put(("progress", f)))
+                      check=sheet.check, pieces=sheet.pieces, decide=self.ask,
+                      progress=lambda f: self.events.put(("progress", f)),
+                      report=lambda f, text: self.events.put(("status", text)))
             finally:
                 p.t.close()
 

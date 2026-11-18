@@ -142,7 +142,8 @@ class UsbTransport(Transport):
         try:
             usb.util.claim_interface(dev, 0)
         except usb.core.USBError as e:
-            raise DeviceError(f"Plotter belegt ({e}) – läuft Silhouette Studio noch?") from e
+            raise DeviceError(f"Plotter belegt ({e}) – Silhouette Studio schließen; sonst das "
+                              "USB-Kabel kurz abziehen oder den Plotter aus- und einschalten") from e
 
     def write(self, data: bytes, timeout: int = 10000) -> None:
         o = 0
@@ -220,6 +221,13 @@ class Settings:
     passes: int = 1
     blade_offset: float = 0.9  # mm; Ausgleich der nachlaufenden Messerspitze
     sharpen_corners: bool = True
+    # Spurverstärkung: Die Rollen fahren vor dem Schnitt dreimal vor und
+    # zurück und prägen Spuren, damit dickes oder glattes Material nicht
+    # rutscht. Wirkt laut inkscape-silhouette erst ab Druck 19. Achtung: Am
+    # Cameo 4 (FW 1.20) fand die Markensuche danach die Marken nicht mehr.
+    track_enhancing: bool = False
+    mark_search: float = 10.0  # mm vor der ersten Marke beginnt die Suche
+    mark_at: tuple[float, float] | None = None  # Lage der Marke ab Rand der Schneidefläche
 
 
 MATERIALS = {
@@ -227,6 +235,14 @@ MATERIALS = {
     "papier": Settings(speed=5, force=10, depth=2),  # 80–120 g/m²
     "karton": Settings(speed=5, force=27, depth=4),  # 160–250 g/m²
     "fotopapier": Settings(speed=4, force=20, depth=3),
+    # Laminiertes Papier (80-µm-Folie), AutoBlade: Testdreiecke mit Druck 33
+    # ergaben: Tiefe 8 und 10 mit zwei Durchgängen und Tiefe 10 mit drei
+    # Durchgängen schneiden die untere Folie nicht durch, Tiefe 10 mit vier
+    # Durchgängen schon. Bogen am Rand festkleben, sonst verrutscht er. Suche
+    # nah an der Marke, sonst liest der Sensor durch die überstehende Folie
+    # das Mattenraster. Ohne Spurverstärkung: mit ihr fand der Cameo 4 die
+    # Marken nicht mehr.
+    "folie": Settings(speed=3, force=33, depth=10, passes=4, mark_search=4),
 }
 
 
@@ -369,6 +385,10 @@ class Plotter:
             f"FF{corner},0,{tool}", f"FF{corner},{corner},{tool}",
             f"FX{force},{tool}", "TJ3", f"FC{su(s.blade_offset)},1,{tool}",
         )
+        # Spurverstärkung immer ausdrücklich setzen: Der Cameo merkt sich
+        # FY0 und verstärkte danach bei jedem Auftrag ab Druck 19 die Spur –
+        # dann fand er die Passermarken nicht mehr.
+        self.send("FY0" if s.track_enhancing else "FY1")
         if s.depth is not None and self.pid in CAMEO3_ON:
             code = self.tool_code()
             if code in (None, 0, 2) and tool == 1:
@@ -376,10 +396,21 @@ class Plotter:
             else:
                 self.log(f"Werkzeug in Halter {tool} ist keine AutoBlade – Tiefe von Hand einstellen.")
 
-    def find_marks(self, m: Marks) -> None:
-        """Passermarken suchen; danach liegt (0, 0) an der Marke links oben."""
+    def find_marks(self, m: Marks, search: float = 10.0,
+                   at: tuple[float, float] | None = None) -> None:
+        """Passermarken suchen; danach liegt (0, 0) an der Marke links oben.
+
+        Die Suche beginnt `search` mm vor der erwarteten Lage der ersten
+        Marke. Ein kleinerer Wert hält den Sensor von der Blattkante fern:
+        Bei laminierten Bögen sieht er dort durch die Folie das Raster der
+        Matte und hält es für eine Marke.
+        """
         self.send("TB50,0", "TB99", "TB52,2", "TB51,400", "TB53,10", "TB55,1")
-        self.send(f"TB123,{su(m.length)},{su(m.width)},{su(max(m.top - 10, 0))},{su(max(m.left - 10, 0))}")
+        # Wo liegt die Marke links oben, gemessen vom Rand der Schneidefläche?
+        # Ohne Angabe wie auf dem Blatt; liegt das Blatt versetzt (etwa wegen
+        # des Folienrands), gibt `at` die tatsächliche Lage an.
+        left, top = at if at else (m.left, m.top)
+        self.send(f"TB123,{su(m.length)},{su(m.width)},{su(max(top - search, 0))},{su(max(left - search, 0))}")
         try:
             r = self.t.read(timeout=40000)
         except Exception as e:
@@ -407,6 +438,39 @@ class Plotter:
         else:
             self.send("H")
 
+    def cut_lines(self, lines: list[Polyline], frame: tuple[float, float] | None, passes: int = 1,
+                  progress: Callable[[float], None] | None = None,
+                  report: Callable[[float, str], None] | None = None) -> None:
+        """Schneidet Linie für Linie und wartet jeweils, bis sie fertig ist.
+
+        So zeigt der Fortschritt, was wirklich geschnitten ist, nicht nur, was
+        gesendet wurde. Zwischen zwei Linien hebt das Messer ohnehin ab.
+        """
+        import math
+
+        real = not isinstance(self.t, RecordingTransport)
+        lengths = [sum(math.dist(a, b) for a, b in zip(l, l[1:])) for l in lines]
+        total = sum(lengths) * passes or 1.0
+        done = 0.0
+        start = time.monotonic()
+        n = len(lines)
+        for p in range(passes):
+            for i, line in enumerate(lines):
+                self.send(*self.path_commands([line], frame))
+                if real:
+                    time.sleep(0.1)  # bis der Status auf „in Bewegung“ wechselt
+                self.wait_ready(timeout=300, poll=0.1)
+                done += lengths[i]
+                f = done / total
+                if progress:
+                    progress(f)
+                if report:
+                    elapsed = time.monotonic() - start
+                    rest = elapsed / f * (1 - f) if f > 0 else 0
+                    pass_txt = f", Durchgang {p + 1}/{passes}" if passes > 1 else ""
+                    report(f, f"Linie {i + 1}/{n}{pass_txt} · {f * 100:3.0f} % · noch ca. "
+                              f"{int(rest // 60)}:{int(rest % 60):02d}")
+
     def move_to(self, p: tuple[float, float]) -> None:
         self.send(f"M{su(p[1])},{su(p[0])}")
         if not isinstance(self.t, RecordingTransport):
@@ -416,11 +480,14 @@ class Plotter:
     def run(self, lines: list[Polyline], settings: Settings, marks: Marks | None,
             page_size: tuple[float, float], trace: bool = False,
             check: tuple[float, float] | None = None,
+            pieces: list[Polyline] | None = None,
             decide: Callable[[str], bool] | None = None,
-            progress: Callable[[float], None] | None = None) -> bool:
+            progress: Callable[[float], None] | None = None,
+            report: Callable[[float, str], None] | None = None) -> bool:
         """Ganzer Auftrag: Gerät vorbereiten, Marken suchen, schneiden.
 
-        `trace=True` fährt die Linien vorher mit angehobenem Messer ab.
+        `trace=True` fährt vorher mit angehobenem Messer langsam den äußeren
+        Umriss ab (aus `pieces`, sonst das Rechteck um die Linien).
         `check`: Prüfkreuz; der Kopf fährt nach der Markensuche (und dem
         Abfahren) darüber. `decide(frage)` entscheidet danach, ob geschnitten
         wird; ohne `decide` wird geschnitten. Liefert, ob geschnitten wurde.
@@ -433,7 +500,7 @@ class Plotter:
         frame = None
         if marks:
             self.log("Suche Passermarken …")
-            self.find_marks(marks)
+            self.find_marks(marks, settings.mark_search, settings.mark_at)
             self.log("Passermarken gefunden.")
             frame = (marks.width, marks.length)
         if trace:
@@ -441,9 +508,12 @@ class Plotter:
             # aufeinanderfolgende Fahrbefehle zusammen und fährt gleich zum
             # letzten Ziel; darum jeden Punkt einzeln schicken, Stillstand
             # abwarten und kurz verharren.
-            self.send(f"!2,{settings.toolholder}")
-            self.log("Fahre die Linien ab (ohne Schnitt) …")
-            self.trace_lines(lines, frame, progress)
+            # Nur den äußeren Umriss, langsam, damit nichts verrutscht.
+            from .geometry import outline
+            ring = outline(pieces or [], lines)
+            self.send(f"!1,{settings.toolholder}")
+            self.log("Fahre den Umriss ab (ohne Schnitt) …")
+            self.trace_lines(ring, frame, progress)
             self.send(f"!{settings.speed},{settings.toolholder}")
         question = None
         if check:
@@ -455,17 +525,76 @@ class Plotter:
         if question and decide is not None:
             go = decide(question)
         if go:
-            cmds = self.path_commands(lines, frame)
-            if settings.passes > 1:
-                cmds = cmds * settings.passes
             self.log("Schneide …")
-            self.send_paced(cmds, progress)
+            self.cut_lines(lines, frame, settings.passes, progress, report)
         else:
             self.log("Abgebrochen, nichts geschnitten.")
         self.home()
         self.wait_ready(timeout=300)
         self.log("Fertig." if go else "Kopf zurück in der Ausgangslage.")
         return go
+
+    def test_cut(self, settings: Settings, marks: Marks | None, page_size: tuple[float, float],
+                 depths: list[int], origin: tuple[float, float], size: float = 10.0,
+                 check: tuple[float, float] | None = None,
+                 decide: Callable[[str], bool] | None = None,
+                 forces: list[int] | None = None,
+                 repeats: list[int] | None = None) -> bool:
+        """Testschnitt: je Stufe ein kleines Dreieck, von links nach rechts.
+
+        `origin` ist die linke untere Ecke des ersten Dreiecks (Koordinaten
+        wie die Schnittlinien). Vor jedem Dreieck wird die Tiefe neu gesetzt
+        (AutoBlade) oder, mit `forces`, der Druck (für Messer, deren Tiefe
+        von Hand eingestellt wird).
+        """
+        version = self.initialize()
+        self.log(f"{self.t.name}, Firmware {version}")
+        self.wait_ready()
+        w, h = page_size
+        self.setup(settings, h, w)
+        if marks:
+            self.log("Suche Passermarken …")
+            self.find_marks(marks, settings.mark_search, settings.mark_at)
+            self.log("Passermarken gefunden.")
+        if check:
+            self.move_to(check)
+            if decide is not None and not decide(
+                    "Der Kopf steht über dem Prüfkreuz. Steht die Messerspitze genau auf der Mitte? "
+                    "Jetzt die Testdreiecke schneiden?"):
+                self.log("Abgebrochen, nichts geschnitten.")
+                self.home()
+                self.wait_ready(timeout=300)
+                return False
+        tool = settings.toolholder
+        x0, y0 = origin
+        hgt = size * 0.8660254
+        steps = forces if forces else (repeats if repeats else depths)
+        for i, v in enumerate(steps):
+            x = x0 + i * (size + 6)
+            n_pass = repeats[i] if repeats else max(1, settings.passes)
+            if repeats:
+                self.log(f"Dreieck {i + 1}: {v} Durchgänge, Tiefe {depths[0]}")
+                if i == 0:
+                    self.send(f"TF{max(0, min(10, depths[0]))},{tool}")
+            elif forces:
+                self.log(f"Dreieck {i + 1}: Druck {v}")
+                self.send(f"FX{max(1, min(33, v))},{tool}")
+            else:
+                self.log(f"Dreieck {i + 1}: Tiefe {v}")
+                self.send(f"TF{max(0, min(10, v))},{tool}")
+            self.wait_ready(timeout=60, poll=0.1)
+            tri = [(x, y0), (x + size, y0), (x + size / 2, y0 - hgt), (x, y0)]
+            # an jeder Ecke neu ansetzen, wie bei den Kärtchen
+            cmds = []
+            for a, b in zip(tri, tri[1:]):
+                cmds += [f"M{su(a[1])},{su(a[0])}", f"D{su(b[1])},{su(b[0])}"]
+            self.send_paced(cmds * n_pass)
+        self.home()
+        self.wait_ready(timeout=300)
+        self.log("Fertig. Die Dreiecke stehen von links nach rechts für "
+                 + ("Druck " if forces else "Durchgänge " if repeats else "die Tiefen ")
+                 + ", ".join(str(v) for v in steps) + ".")
+        return True
 
     def info(self) -> dict:
         version = self.initialize()

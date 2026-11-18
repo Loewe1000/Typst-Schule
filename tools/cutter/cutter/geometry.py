@@ -201,6 +201,27 @@ def order(lines: list[Polyline], start: Point = (0.0, 0.0)) -> list[Polyline]:
     return out
 
 
+def _horizontal(line: Polyline) -> bool:
+    return all(abs(p[1] - line[0][1]) < 0.01 for p in line)
+
+
+def order_rows_first(lines: list[Polyline], start: Point = (0.0, 0.0)) -> list[Polyline]:
+    """Erst alle waagerechten Schnitte von oben nach unten (im Zickzack),
+    dann die übrigen nach kurzen Leerfahrten.
+
+    Waagerecht heißt hier: quer zum Vorschub. Diese Schnitte sitzen damit,
+    bevor sich ein Rutschen der Matte unter den schrägen Schnitten
+    aufsummieren kann.
+    """
+    flat = sorted((l for l in lines if _horizontal(l)), key=lambda l: l[0][1])
+    rest = [l for l in lines if not _horizontal(l)]
+    out = []
+    for i, l in enumerate(flat):
+        left_to_right = l[0][0] <= l[-1][0]
+        out.append(l if left_to_right == (i % 2 == 0) else l[::-1])
+    return out + order(rest, out[-1][-1] if out else start)
+
+
 def plan(paths: list[Polyline], start: Point = (0.0, 0.0), corner: float = 30.0,
          overcut: float = 0.0, pieces: list[Polyline] | None = None,
          frame: tuple[float, float] | None = None) -> list[Polyline]:
@@ -210,12 +231,35 @@ def plan(paths: list[Polyline], start: Point = (0.0, 0.0), corner: float = 30.0,
         # Der Überschnitt verlängert eine Gerade; zusammenfassen, damit jede
         # gerade Linie nur Anfang und Ende hat.
         lines = [simplify(_extend(l, overcut, pieces, frame)) for l in lines]
-    return order(lines, start)
+    return order_rows_first(lines, start)
 
 
 def plan_sheet(sheet, corner: float = 30.0, overcut: float = 1.0) -> list[Polyline]:
     frame = (sheet.marks.width, sheet.marks.length) if sheet.marks else None
     return plan(sheet.paths, corner=corner, overcut=overcut, pieces=sheet.pieces, frame=frame)
+
+
+def outline(pieces: list[Polyline], paths: list[Polyline] | None = None) -> list[Polyline]:
+    """Äußerer Umriss: alle Kanten, die nur zu einem Teil gehören, zu
+    geschlossenen Zügen verbunden. Ohne Teile das umschließende Rechteck."""
+    if not pieces:
+        pts = [p for path in (paths or []) for p in path]
+        if not pts:
+            return []
+        xs, ys = [p[0] for p in pts], [p[1] for p in pts]
+        x0, y0, x1, y1 = min(xs), min(ys), max(xs), max(ys)
+        return [[(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)]]
+    count: dict = {}
+    for poly in pieces:
+        ring = list(poly) if _key(poly[0]) != _key(poly[-1]) else list(poly[:-1])
+        for a, b in zip(ring, ring[1:] + ring[:1]):
+            ka, kb = _key(a), _key(b)
+            k = (ka, kb) if ka < kb else (kb, ka)
+            count[k] = count.get(k, (0, a, b))
+            count[k] = (count[k][0] + 1, count[k][1], count[k][2])
+    border = [(a, b) for n, a, b in count.values() if n == 1]
+    loops = lines_from([[a, b] for a, b in border], corner=180.0)
+    return [simplify(l) for l in loops]
 
 
 @dataclass

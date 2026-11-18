@@ -31,7 +31,7 @@ class Marks:
     length: float = 277.0  # von Marke zu Marke senkrecht
     square: float = 5.0
     line: float = 20.0
-    thickness: float = 0.3
+    thickness: float = 0.5
 
     @classmethod
     def for_page(cls, page_size: tuple[float, float], inset: float = 10.0) -> "Marks":
@@ -105,7 +105,7 @@ def sheet_from_cut_data(d: dict, source: str = "") -> Sheet:
             length=float(m["length"]),
             square=float(m.get("square", 5)),
             line=float(m.get("line", 20)),
-            thickness=float(m.get("thickness", 0.3)),
+            thickness=float(m.get("thickness", 0.5)),
         )
     paths = [[(float(x), float(y)) for x, y in p] for p in d.get("paths", [])]
     size = d.get("page-size", (210, 297))

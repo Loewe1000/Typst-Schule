@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 
 from cutter.device import RecordingTransport, Plotter, Settings
-from cutter.geometry import _inside, plan, segments, stats
+from cutter.geometry import _inside, outline, plan, segments, stats
 from cutter.job import Marks, load_svg
 
 
@@ -41,6 +41,20 @@ class Geometry(unittest.TestCase):
                 self.assertFalse(inside, f"Überschnitt in ein Teil bei {p}")
 
 
+    def test_rows_first(self):
+        lines = plan([[(0, 10), (50, 10)], [(0, 0), (50, 0)], [(0, 0), (5, 10)]], corner=30)
+        self.assertTrue(all(abs(l[0][1] - l[-1][1]) < 0.01 for l in lines[:2]))
+        self.assertEqual(lines[0][0][1], 0)  # oben zuerst
+
+
+    def test_outline(self):
+        a = [(0, 0), (60, 0), (30, 51.96)]
+        b = [(60, 0), (90, 51.96), (30, 51.96)]
+        (ring,) = outline([a, b])
+        self.assertEqual(len(ring), 5)  # Raute: vier Ecken, geschlossen
+        self.assertAlmostEqual(stats([ring]).cut_mm, 240, delta=0.1)
+
+
 class Device(unittest.TestCase):
     def test_dry_run_commands(self):
         t = RecordingTransport()
@@ -50,6 +64,24 @@ class Device(unittest.TestCase):
         self.assertIn("TB123,5540,3800,0,0", text)
         self.assertIn("M0,0\nD100,200", text)  # y vor x, 20 Einheiten je mm
         self.assertIn("FX27,1", text)
+        self.assertNotIn("FY0", text)
+        self.assertIn("FY1", text)
+
+    def test_mark_search(self):
+        t = RecordingTransport()
+        Plotter(t, log=lambda m: None).run([[(0, 0), (10, 5)]], Settings(mark_search=4), Marks(), (210, 297))
+        self.assertIn("TB123,5540,3800,120,120", t.text())
+
+    def test_mark_at(self):
+        t = RecordingTransport()
+        Plotter(t, log=lambda m: None).run([[(0, 0), (10, 5)]], Settings(mark_search=4, mark_at=(20, 20)),
+                                           Marks(), (210, 297))
+        self.assertIn("TB123,5540,3800,320,320", t.text())
+
+    def test_track_enhancing(self):
+        t = RecordingTransport()
+        Plotter(t, log=lambda m: None).run([[(0, 0), (10, 5)]], Settings(track_enhancing=True), Marks(), (210, 297))
+        self.assertIn("FY0", t.text())
 
     def test_trace_then_decline(self):
         t = RecordingTransport()
