@@ -123,3 +123,7 @@ star
 rhombus
 trapezoid
 strip
+corners
+cut
+file
+copies

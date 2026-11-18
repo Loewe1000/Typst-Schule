@@ -1,7 +1,7 @@
 // trimino 0.5.0 – öffentliche Funktionen.
 #import "@preview/cetz:0.4.2" as cetz
 #import "internal/check.typ": fail, check-named, check-value, check-type, check-positional
-#import "internal.typ": catalogue, corners, draw-card, edges, fill-edges, height, next-random, point, shape-names, shape-triangles, shuffle
+#import "internal.typ": back-bleed, check-point, draw-back-ground, content-area, draw-back, cut-segments, cut-svg, mark-drawing, mark-geometry, mark-inset, mark-margin, themes, pastels, bauhaus-colors, ring-colors, catalogue, vertices, draw-card, edges, fill-edges, height, next-random, point, shape-names, shape-triangles, shuffle
 
 #let pkg = "trimino"
 
@@ -52,7 +52,12 @@
 /// - title (content, str, none): Titel über Lösung und Schnittbogen
 /// - solution (bool): Lösungsbild setzen
 /// - cards (bool): Schnittbogen setzen
-/// - number (bool): Kärtchennummer in der Mitte, auf Lösung und Schnittbogen gleich
+/// - number (bool): Kärtchennummer in der Mitte des Lösungsbilds; auf dem Schnittbogen steht keine, weil ihre Ausrichtung die Lage des Kärtchens verraten würde
+/// - theme (str, dictionary, auto): Gestaltung: `"riso"` (Pastell, Standard bei `auto`), `"klar"` (schwarz-weiß), `"leiste"` (Rahmen), `"bauhaus"`; ein Dictionary ändert einzelne Schlüssel von `"riso"` (`fill`, `stroke`, `band`, `band-depth`, `pill`, `ink`, `weight`, `inner`, `corner`)
+/// - corners (bool): zweifarbige Eckspitzen; richtig gelegt ergeben sie Sterne
+/// - back (bool, content, str): hinter jeden Schnittbogen eine Rückseite zum beidseitigen Druck an der langen Kante (die Plätze sind dafür gespiegelt); `true` schreibt „TRIMINO“ und den Titel auf jedes Kärtchen, ein Inhalt ersetzt den Titel unter „TRIMINO“, etwa `[*Prozentrechnung*\ Grundaufgaben]`
+/// - copies (int): so viele Sätze Kärtchen auf den Schnittbogen, etwa für zwei Gruppen; jeder Satz neu gemischt; auf der Rückseite trägt jedes Kärtchen Satzbuchstabe und Nummer (A1–A12, B1–B12, …)
+/// - cut-marks (bool): Passermarken für Silhouette-Schneideplotter auf jeden Schnittbogen; die Schnittlinien stehen dann als `metadata` mit dem Label `<cut-data>` im Dokument (`typst query datei.typ "<cut-data>"`)
 /// - ..deprecated (arguments): fängt unbekannte Namen ab, nimmt nichts an
 /// -> content
 #let trimino(
@@ -66,12 +71,17 @@
   solution: true,
   cards: true,
   number: true,
+  theme: auto,
+  corners: true,
+  back: false,
+  copies: 1,
+  cut-marks: false,
   ..deprecated,
 ) = {
   let fn = "trimino"
   check-positional(pkg, fn, deprecated, hint: "die Paare stehen in `pairs: ((Aufgabe, Lösung), …)`")
   check-named(pkg, fn, deprecated, allowed: ("pairs", "shape", "shape-size", "distractors", "seed",
-    "side", "title", "solution", "cards", "number"))
+    "side", "title", "solution", "cards", "number", "theme", "corners", "back", "copies", "cut-marks"))
   check-type(pkg, fn, "pairs", pairs, array, example: "(([2 + 3], [5]), ([4 · 2], [8]))")
   for (k, p) in pairs.enumerate() {
     if type(p) != array or p.len() != 2 {
@@ -87,6 +97,17 @@
   check-type(pkg, fn, "solution", solution, bool)
   check-type(pkg, fn, "cards", cards, bool)
   check-type(pkg, fn, "number", number, bool)
+  check-type(pkg, fn, "theme", theme, (str, dictionary, auto), example: "\"klar\"")
+  if type(theme) == str { check-value(pkg, fn, "theme", theme, themes.keys()) }
+  if type(theme) == dictionary {
+    check-named(pkg, fn, theme, allowed: themes.riso.keys(), what: "Schlüssel")
+  }
+  check-type(pkg, fn, "corners", corners, bool)
+  check-type(pkg, fn, "back", back, (bool, content, str), example: "[*Prozentrechnung*\\ Grundaufgaben]")
+  let has-back = back != false
+  check-type(pkg, fn, "copies", copies, int, example: "2")
+  if copies < 1 { fail(pkg, fn, "`copies` muss mindestens 1 sein") }
+  check-type(pkg, fn, "cut-marks", cut-marks, bool)
   if pairs.len() == 0 { fail(pkg, fn, "keine Paare – mindestens ein Paar in `pairs` angeben") }
   if shape == auto and shape-size != auto {
     fail(pkg, fn, "`shape-size` ohne `shape` – auch die Form nennen, zum Beispiel `shape: \"triangle\"`")
@@ -120,9 +141,37 @@
   }
   let triangles = shape-triangles(entry.shape, entry.shape-size)
   let (labels, state) = fill-edges(triangles, pairs, distractors, seed)
+  let style = if theme == auto { themes.riso } else if type(theme) == str { themes.at(theme) } else { themes.riso + theme }
+
+  // Farben je Kärtchen und je Kante, auf Lösung und Schnittbogen gleich.
+  let tints = ()
+  let edge-tints = ()
+  let r = seed * 7919 + 17
+  let centers = triangles.map(t => {
+    let c = vertices(t).map(c => point(c, 1))
+    (c.map(p => p.at(0)).sum() / 3, c.map(p => p.at(1)).sum() / 3)
+  })
+  let mid = (centers.map(c => c.at(0)).sum() / centers.len(), centers.map(c => c.at(1)).sum() / centers.len())
+  let dist(c) = calc.round(calc.sqrt(calc.pow(c.at(0) - mid.at(0), 2) + calc.pow(c.at(1) - mid.at(1), 2)), digits: 2)
+  let distances = centers.map(dist).dedup().sorted()
+  for (t, _) in triangles.enumerate() {
+    r = next-random(r)
+    let ring-index = distances.position(x => x == dist(centers.at(t)))
+    let ring-color = ring-colors.at(calc.rem(ring-index, ring-colors.len()))
+    tints.push(if style.fill == "ring" { ring-color.lighten(72%) }
+      else if style.fill == "parity" { if triangles.at(t).up { rgb("#ece8fb") } else { rgb("#dcd5f7") } }
+      else if style.fill == "single" { rgb("#ece8fb") }
+      else { pastels.at(calc.rem(calc.quo(r, 65536), pastels.len())) })
+    let et = ()
+    for i in range(3) {
+      r = next-random(r)
+      et.push(bauhaus-colors.at(calc.rem(calc.quo(r, 65536), bauhaus-colors.len())))
+    }
+    edge-tints.push(et)
+  }
 
   let side-cm = side / 1cm
-  let base-size = 9pt * side-cm / 6
+  let base-size = 10pt * side-cm / 6
   let head(caption) = {
     text(size: 13pt, weight: "bold", caption)
     if title != none { text(size: 13pt)[ · #title] }
@@ -133,7 +182,7 @@
   if solution {
     head[Trimino: Lösung]
     layout(available => {
-      let pts = triangles.map(t => corners(t).map(c => point(c, 1)))
+      let pts = triangles.map(t => vertices(t).map(c => point(c, 1)))
       let xs = pts.flatten().chunks(2).map(p => p.at(0))
       let ys = pts.flatten().chunks(2).map(p => p.at(1))
       let (w, h) = (calc.max(..xs) - calc.min(..xs), calc.max(..ys) - calc.min(..ys))
@@ -142,9 +191,10 @@
       align(center, cetz.canvas(length: 1cm, {
         import cetz.draw
         for (t, tri) in triangles.enumerate() {
-          let p = corners(tri).map(c => point(c, unit))
+          let p = vertices(tri).map(c => point(c, unit))
           draw-card(draw, p, labels.at(t), unit, base-size * unit / side-cm,
-            number: if number { t + 1 } else { none })
+            number: if number { t + 1 } else { none }, theme: style, corners: corners,
+            tint: tints.at(t), edge-tints: edge-tints.at(t))
         }
       }))
     })
@@ -152,36 +202,184 @@
 
   // Schnittbogen
   if cards {
-    if solution { pagebreak() }
-    let (order, s) = shuffle(range(triangles.len()), state)
     let pieces = ()
-    for t in order {
-      s = next-random(s)
-      pieces.push((t: t, turn: calc.rem(calc.quo(s, 65536), 3)))
+    let s = state
+    for copy in range(copies) {
+      let (order, s2) = shuffle(range(triangles.len()), s)
+      s = s2
+      for t in order {
+        s = next-random(s)
+        // Nummer auf der Rückseite: je Satz 1, 2, …; bei mehreren Sätzen mit
+        // dem Buchstaben des Satzes davor (A1, …, B1, …).
+        let k = pieces.filter(p => p.copy == copy).len() + 1
+        let letter = if copies > 1 { "ABCDEFGHIJKLMNOPQRSTUVWXYZ".clusters().at(calc.rem(copy, 26)) } else { "" }
+        pieces.push((t: t, turn: calc.rem(calc.quo(s, 65536), 3), copy: copy, number: letter + str(k)))
+      }
     }
-    layout(available => {
+    // Kein `layout(…)`: darin sind Seitenumbrüche verboten. Der Satzspiegel
+    // folgt aus Seitengröße und Rändern.
+    let sheets = context {
+      let available = content-area()
       let per-row = calc.max(1, calc.floor(2 * available.width / side - 1))
-      let row-gap = 0.4
+      // Die Reihen liegen ohne Abstand aneinander, jede zweite um eine halbe
+      // Kante versetzt und mit einem Kärtchen „Spitze unten“ beginnend. So
+      // liegen alle Kanten auf durchgehenden Geraden über den ganzen Bogen:
+      // ein Schnitt trennt zwei Kärtchen, und ein Schneideplotter schneidet
+      // lange Geraden am Stück.
+      let row-gap = 0
       let rows-per-page = calc.max(1, calc.floor((available.height - 1.2cm) / 1cm / (side-cm * height + row-gap)))
       let pages = pieces.chunks(per-row * rows-per-page)
       for (pi, page-pieces) in pages.enumerate() {
         if pi > 0 { pagebreak() }
         head[Trimino zum Ausschneiden]
-        cetz.canvas(length: 1cm, {
+        let rows = page-pieces.chunks(per-row)
+        // Ecken jedes Kärtchens in cm, Ursprung links unten im ersten Platz
+        let placed = ()
+        for (r, row) in rows.enumerate() {
+          let y0 = -r * (side-cm * height + row-gap)
+          let odd = calc.odd(r)
+          let dx = if odd { -side-cm / 2 } else { 0 }
+          for (i, piece) in row.enumerate() {
+            let j = if odd { i + 1 } else { i }
+            let slot = (a: calc.quo(j, 2), b: 0, up: calc.even(j))
+            placed.push((piece: piece, pts: vertices(slot).map(c => point(c, side-cm)).map(((x, y)) => (x + dx, y + y0))))
+          }
+        }
+        // Feste Ausdehnung der Zeichnung, damit die Lage auf der Seite bekannt ist.
+        let x-max = calc.max(..placed.map(q => q.pts.map(p => p.at(0))).flatten())
+        let y-min = -(rows.len() - 1) * (side-cm * height + row-gap)
+        let y-max = side-cm * height
+        let drawing = cetz.canvas(length: 1cm, {
           import cetz.draw
-          for (r, row) in page-pieces.chunks(per-row).enumerate() {
-            let y0 = -r * (side-cm * height + row-gap)
-            for (i, piece) in row.enumerate() {
-              let slot = (a: calc.quo(i, 2), b: 0, up: calc.even(i))
-              let p = corners(slot).map(c => point(c, side-cm)).map(((x, y)) => (x, y + y0))
-              let l = labels.at(piece.t)
-              let turned = range(3).map(j => l.at(calc.rem(j + piece.turn, 3)))
-              draw-card(draw, p, turned, side-cm, base-size,
-                number: if number { piece.t + 1 } else { none }, stroke: 0.6pt)
-            }
+          draw.rect((0, y-min), (x-max, y-max), stroke: none, fill: none)
+          for q in placed {
+            let piece = q.piece
+            let l = labels.at(piece.t)
+            let turned = range(3).map(j => l.at(calc.rem(j + piece.turn, 3)))
+            let et = edge-tints.at(piece.t)
+            draw-card(draw, q.pts, turned, side-cm, base-size,
+              number: none, theme: style, corners: corners,
+              tint: tints.at(piece.t), edge-tints: range(3).map(j => et.at(calc.rem(j + piece.turn, 3))))
           }
         })
+        if cut-marks {
+          let segments = cut-segments(placed.map(q => q.pts))
+          block({
+            place(top + left, context {
+              let here-pos = here().position()
+              let mm(l) = calc.round(l / 1mm, digits: 3)
+              let to-mark((x, y)) = (
+                calc.round(mm(here-pos.x) + x * 10 - mark-inset / 1mm, digits: 2),
+                calc.round(mm(here-pos.y) + (y-max - y) * 10 - mark-inset / 1mm, digits: 2),
+              )
+              [#metadata((
+                format: "cut-data",
+                version: 1,
+                source: "trimino",
+                page: here-pos.page,
+                unit: "mm",
+                page-size: (mm(page.width), mm(page.height)),
+                marks: mark-geometry(page.width, page.height),
+                check: check-point(page.width, page.height),
+                paths: segments.map(seg => seg.map(to-mark)),
+                pieces: placed.map(q => q.pts.map(to-mark)),
+              )) <cut-data>]
+            })
+            drawing
+          })
+        } else {
+          drawing
+        }
+        // Rückseite: dieselben Plätze, waagerecht gespiegelt (Duplexdruck an
+        // der langen Kante). Gleiche Höhe der Überschrift, damit die Reihen
+        // übereinanderliegen; die Zeichnung steht rechtsbündig, also bei
+        // gleichen Rändern links und rechts genau gespiegelt.
+        if has-back {
+          pagebreak()
+          [#metadata(none) <trimino-back-page>]
+          hide(head[Trimino zum Ausschneiden])
+          let mirror(pts) = pts.map(((x, y)) => (x-max - x, y))
+          // Die Fläche ragt über die Kärtchen hinaus, an spitzen Ecken bis
+          // zum Doppelten von `back-bleed`. Die Zeichnung bekommt ringsum
+          // einen festen, sicher größeren Rand `d` und wird um ihn
+          // zurückgeschoben, damit die Kärtchen genau gespiegelt liegen.
+          let d = 3 * back-bleed
+          // Im Fluss nur so hoch wie die Vorderseite, damit der Zusatzrand
+          // keinen Seitenumbruch auslöst.
+          block(width: 100%, height: (y-max - y-min) * 1cm,
+            place(top + right, dx: d * 1cm, dy: -d * 1cm, cetz.canvas(length: 1cm, {
+            import cetz.draw
+            draw.rect((-d, y-min - d), (x-max + d, y-max + d), stroke: none, fill: none)
+            for (r, row) in rows.enumerate() {
+              let first = rows.slice(0, r).map(x => x.len()).sum(default: 0)
+              let cards = placed.slice(first, first + row.len()).map(q => mirror(q.pts))
+              draw-back-ground(draw, cards, seed + r, style)
+            }
+            draw-back(draw, placed.map(q => mirror(q.pts)), side-cm, base-size, style, title,
+              custom: if type(back) == bool { none } else { back },
+              numbers: placed.map(q => q.piece.number))
+          })))
+        }
       }
-    })
+    }
+    // Marken nur auf den Vorderseiten. Mit Rückseite beginnt der Schnittbogen auf einer ungeraden
+    // Seite, damit das ganze Dokument beidseitig gedruckt werden kann.
+    let background = context {
+      let backs = query(<trimino-back-page>).map(m => m.location().page())
+      if cut-marks and here().page() not in backs { mark-drawing(page.width, page.height) }
+    }
+    if has-back { pagebreak(weak: true, to: "odd") }
+    if cut-marks {
+      page(margin: mark-margin, header: none, footer: none, background: background, sheets)
+    } else if has-back {
+      page(header: none, footer: none, background: background, sheets)
+    } else {
+      if solution { pagebreak() }
+      sheets
+    }
+  }
+}
+
+/// Legt die Schnittvorlage aller Schnittbögen als Datei in ein Bündel.
+///
+/// Gehört auf die oberste Ebene eines Bündels, neben `document(…)`, und
+/// liest die Schnittdaten, die `trimino(cut-marks: true)` dort hinterlegt.
+/// Die Endung von `path` bestimmt das Format: `.json` schreibt die Daten
+/// wie `typst query`, `.svg` je Schnittbogen ein Blatt mit Passermarken
+/// (schwarz) und Schnittlinien (rot, `#ff0000`); bei mehreren Bögen erhalten
+/// die Dateien `-1`, `-2`, … vor der Endung.
+///
+/// ```typ
+/// #document("trimino.pdf", trimino(pairs: paare, cut-marks: true))
+/// #trimino-cut-file("trimino-schnitt.svg")
+/// ```
+///
+/// Übersetzen mit `typst compile datei.typ ausgabe --format bundle --features bundle`.
+///
+/// - path (str): Dateiname im Bündel, Endung `.json` oder `.svg`
+/// -> content
+#let trimino-cut-file(path) = {
+  let fn = "trimino-cut-file"
+  check-type(pkg, fn, "path", path, str, example: "\"trimino-schnitt.svg\"")
+  let ext = lower(path.split(".").last())
+  check-value(pkg, fn, "Endung von `path`", ext, ("json", "svg"))
+  context {
+    if target() != "bundle" {
+      fail(pkg, fn, "nur in einem Bündel möglich – auf oberster Ebene neben `document(…)` "
+        + "setzen und mit `--format bundle --features bundle` übersetzen")
+    }
+    let sheets = query(<cut-data>).map(m => m.value)
+    if sheets.len() == 0 {
+      fail(pkg, fn, "keine Schnittdaten – im Dokument `trimino(…, cut-marks: true)` setzen")
+    }
+    if ext == "json" {
+      asset(path, json.encode(sheets))
+    } else {
+      let stem = path.slice(0, path.len() - 4)
+      for (k, d) in sheets.enumerate() {
+        let name = if sheets.len() == 1 { path } else { stem + "-" + str(k + 1) + ".svg" }
+        asset(name, cut-svg(d))
+      }
+    }
   }
 }

@@ -19,7 +19,8 @@ Kärtchen.
 
 | Funktion | Zweck |
 |---|---|
-| `trimino(pairs: (), shape: auto, shape-size: auto, distractors: (), seed: 1, side: 6cm, title: none, solution: true, cards: true, number: true)` | setzt Lösungsbild und Schnittbogen |
+| `trimino(pairs: (), shape: auto, shape-size: auto, distractors: (), seed: 1, side: 6cm, title: none, solution: true, cards: true, number: true, theme: auto, corners: true, back: false, copies: 1, cut-marks: false)` | setzt Lösungsbild und Schnittbogen |
+| `trimino-cut-file(path)` | legt die Schnittvorlage als `.json` oder `.svg` in ein Bündel |
 | `trimino-shapes(count)` | listet die Formen für eine Zahl von Paaren |
 
 Ein Beispiel liegt in `examples/brueche-prozente.typ`.
