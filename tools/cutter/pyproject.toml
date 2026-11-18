@@ -1,0 +1,17 @@
+[project]
+name = "cutter"
+version = "0.1.0"
+description = "Schnittdaten aus Typst oder SVG auf einem Silhouette-Schneideplotter schneiden, mit Passermarken"
+requires-python = ">=3.10"
+license = "MIT"
+dependencies = ["pyusb>=1.2", "svgelements>=1.9"]
+
+[project.scripts]
+cutter = "cutter.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["cutter"]
