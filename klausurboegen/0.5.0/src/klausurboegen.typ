@@ -31,7 +31,7 @@
 /// - class (content, str, none): Klasse oder Kurs.
 /// - date (content, str, none): Datum der Arbeit.
 /// - logo (content, str, auto, none): Logo links im Kopf, zum Beispiel `image("logo.svg")`. `auto`: das Schullogo des Pakets. `none`: kein Logo; dann entfällt auch der Untertitel.
-/// - results (array): Braucht `title`. Zeilen einer CSV-Datei, zum Beispiel `csv("ergebnisse.csv")`: Kopfzeile, Zeile der Maximalpunkte, dann je Schüler eine Zeile. Spalte 1 ist der Name, Spalte 2 die Note, ab Spalte 3 stehen die Aufgaben. Teilaufgaben heißen in der Kopfzeile `"A1 a)"` oder `"A1.1"`. Eine leere Zelle zählt 0 Punkte, Zellen mit Leerzeichen und leere Zeilen werden übersprungen. Je Schülerzeile entsteht ein Bogen.
+/// - results (array): Braucht `title`. Zeilen einer CSV-Datei, zum Beispiel `csv("ergebnisse.csv")`: Kopfzeile, Zeile der Maximalpunkte, dann je Schüler eine Zeile. Spalte 1 ist der Name, Spalte 2 die Note, ab Spalte 3 stehen die Aufgaben. Teilaufgaben heißen in der Kopfzeile `"A1 a)"` oder `"A1.1"`. Gleichnamige Spalten (zweimal `"A1 c)"`, weil eine Teilaufgabe aufgeteilt bewertet wurde) werden zu einer Spalte addiert. Eine leere Zelle zählt 0 Punkte, Zellen mit Leerzeichen und leere Zeilen werden übersprungen. Je Schülerzeile entsteht ein Bogen.
 /// - overprint (bool): Ergebnisdruck: nur Punktetabelle, Note und Notenschlüssel zum Überdrucken der beschriebenen Bögen. Braucht `results` und `title`.
 /// - overprint-name (bool): Setzt beim Ergebnisdruck den Namen aus Spalte 1 klein über „Name:“, zur Kontrolle der Reihenfolge. Wirkt nur mit `overprint`.
 /// - stage (str): `"sek-1"` (Noten 1 bis 6) oder `"sek-2"` (15 bis 0 Punkte); bestimmt den Notenschlüssel.
@@ -145,6 +145,35 @@
     // Leere Zeilen (z. B. am Ende der CSV) ignorieren; leere Kopfspalten
     // (abschließendes Komma der CSV) werden in den Schleifen übersprungen.
     let rows = results.filter(row => row.len() > 1 and row.any(cell => cell.trim() != ""))
+    // Gleichnamige Aufgabenspalten (z. B. zweimal "A4 c)", wenn eine
+    // Teilaufgabe im Korrekturprogramm aufgeteilt ist) werden zu einer Spalte
+    // addiert. Leer bleibt die Zelle nur, wenn alle Teile leer sind; Zellen
+    // mit Leerzeichen (Summen wie "6.00  6/7") werden nicht addiert.
+    let rows = if rows.len() == 0 { rows } else {
+      let header = rows.at(0)
+      let groups = () // je Spalte die Indizes der gleichnamigen Spalten
+      let seen = (:) // Spaltenname → Position in groups
+      for (j, name) in header.enumerate() {
+        if j >= 2 and name.trim() != "" and name in seen {
+          let g = seen.at(name)
+          groups.at(g) = groups.at(g) + (j,)
+        } else {
+          if j >= 2 and name.trim() != "" { seen.insert(name, groups.len()) }
+          groups.push((j,))
+        }
+      }
+      if groups.all(g => g.len() == 1) { rows } else {
+        (groups.map(g => header.at(g.first())),) + rows.slice(1).map(row => groups.map(g => {
+          let cells = g.map(j => row.at(j, default: ""))
+          if g.len() == 1 { cells.first() }
+          else if cells.all(c => c.trim() == "") { "" }
+          else if cells.any(c => c.trim().contains(" ")) { cells.find(c => c.trim() != "") }
+          else {
+            str(cells.filter(c => c.trim() != "").map(c => points-number(c.trim(), row.first(), header.at(g.first()))).sum())
+          }
+        }))
+      }
+    }
     if title == none and overprint {
       fail(
         "klausurboegen",
