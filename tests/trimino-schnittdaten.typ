@@ -3,7 +3,7 @@
 // je Reihe, 3 Reihen ohne Abstand, jede zweite versetzt. Je Reihe 9 Kanten;
 // die beiden Grenzen zwischen den Reihen teilen je 2 waagerechte Kanten:
 // 27 − 4 = 23 Strecken.
-// erwartet: Trimino zum Ausschneiden
+// erwartet: T ?R ?I ?M ?I ?N ?O +S ?C ?H ?N ?I ?T ?T ?B ?O ?G ?E ?N
 // erwartet: Bögen 1, Seite 2, Strecken 23
 // erwartet: Marken 10 10 190 277
 // erwartet: erste Strecke 20 [0-9.]+ 80 [0-9.]+

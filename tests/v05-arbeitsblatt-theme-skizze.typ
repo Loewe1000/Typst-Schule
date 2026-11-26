@@ -1,9 +1,9 @@
 // Theme "skizze": Kopf mit Fachzeile, Aufgabenkopf, Teilaufgabe, Lösung, Kasten, Material.
 // erwartet: [Mm] ?[Aa] ?[Tt] ?[Hh] ?[Ee] ?[Mm] ?[Aa] ?[Tt] ?[Ii] ?[Kk]
-// erwartet: (Größen|GRÖẞEN)
-// erwartet: (Längen umrechnen|LÄNGEN UMRECHNEN)
+// erwartet: (Gr(ö)+ßen|GRÖẞEN)
+// erwartet: (Lä ?ngen umrechnen|LÄNGEN UMRECHNEN)
 // erwartet: a\) +Rechne
-// erwartet: Lösung a\)
+// erwartet: L(ö)+sung a\)
 // erwartet: [Mm] ?[Ee] ?[Rr] ?[Kk] ?[Ee]
 // erwartet: (Material zu Aufgabe 1|MATERIAL ZU AUFGABE 1)
 #import "@schule/arbeitsblatt:0.5.0": *

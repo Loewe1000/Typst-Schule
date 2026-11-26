@@ -1,5 +1,5 @@
-// erwartet: Trimino: Lösung
-// erwartet: Trimino zum Ausschneiden
+// erwartet: T ?R ?I ?M ?I ?N ?O +L ?Ö ?S ?U ?N ?G
+// erwartet: T ?R ?I ?M ?I ?N ?O +S ?C ?H ?N ?I ?T ?T ?B ?O ?G ?E ?N
 // erwartet: star 1 12
 // erwartet: triangle 3 9
 #import "@schule/trimino:0.5.0": trimino, trimino-shapes

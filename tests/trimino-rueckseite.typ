@@ -3,7 +3,7 @@
 // beidseitig gedruckt werden kann, beginnt der Schnittbogen auf einer
 // ungeraden Seite: 1 Lösung, 2 leer, 3 Schnittbogen, 4 Rückseite. Seite 5
 // trägt den Prüftext unten.
-// erwartet: Trimino zum Ausschneiden
+// erwartet: T ?R ?I ?M ?I ?N ?O +S ?C ?H ?N ?I ?T ?T ?B ?O ?G ?E ?N
 // erwartet: TRIMINO
 // erwartet: Brüche und Prozente
 // erwartet: Seiten 5, Bögen 1, Seite 3

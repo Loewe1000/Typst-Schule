@@ -5,6 +5,6 @@ entrypoint = "src/lib.typ"
 compiler = "0.15.0"
 exclude = ["*.pdf", "examples/", "docs/"]
 
-description = "Trimino-Legespiele: Aufgaben und Lösungen auf dreieckigen Kärtchen, Form passend zur Zahl der Paare, mit Lösungsbild und Schnittbogen"
+description = "Trimino- und Domino-Legespiele: Aufgaben und Lösungen auf dreieckigen oder rechteckigen Kärtchen, mit Lösungsbild, Schnittbogen und Rückseite"
 license = "MIT"
 repository = "https://github.com/Loewe1000/Typst-Schule"
