@@ -1,0 +1,10 @@
+[package]
+name = "trimino"
+version = "0.5.0"
+entrypoint = "src/lib.typ"
+compiler = "0.15.0"
+exclude = ["*.pdf", "examples/", "docs/"]
+
+description = "Trimino- und Domino-Legespiele: Aufgaben und Lösungen auf dreieckigen oder rechteckigen Kärtchen, mit Lösungsbild, Schnittbogen und Rückseite"
+license = "MIT"
+repository = "https://github.com/Loewe1000/Typst-Schule"

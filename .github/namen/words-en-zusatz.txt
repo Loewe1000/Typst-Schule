@@ -112,3 +112,19 @@ selected
 dative
 length
 padding
+# trimino 0.5.0
+shape
+shapes
+pairs
+distractors
+triangle
+hexagon
+star
+rhombus
+trapezoid
+strip
+corners
+cut
+file
+copies
+copy
